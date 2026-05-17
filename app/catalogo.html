@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="es" class="scroll-smooth">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Catálogo general público del Prototipo 1 para el Catálogo Digital de Obra Serigráfica — UNAM / FAD / Taller de Serigrafía."
+    />
+    <title>Catálogo — Catálogo Digital de Obra Serigráfica</title>
+
+    <!-- Entrega 2: Tailwind vía CDN para prototipo estático. No requiere build, bundler ni Next.js. -->
+    <script>
+      tailwind = {
+        config: {
+          theme: {
+            extend: {
+              colors: {
+                archive: {
+                  bg: '#F7F5EF',
+                  surface: '#FFFCF5',
+                  surfaceMuted: '#EFE9DC',
+                  ink: '#101B2D',
+                  muted: '#5E6878',
+                  line: '#D8CFBF',
+                  blue: '#103B73',
+                  blueDeep: '#082A55',
+                  blueSoft: '#DDEAF7',
+                  gold: '#B69254'
+                }
+              },
+              fontFamily: {
+                sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+                serif: ['Georgia', 'Times New Roman', 'serif']
+              },
+              boxShadow: {
+                archival: '0 24px 60px rgba(16, 27, 45, 0.08)'
+              }
+            }
+          }
+        }
+      };
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+
+  <body class="min-h-screen bg-archive-bg font-sans text-archive-ink antialiased selection:bg-archive-blue selection:text-white">
+    <a
+      class="skip-link fixed left-4 top-4 z-[100] rounded-full bg-archive-blue px-5 py-3 text-sm font-semibold text-white shadow-archival"
+      href="#contenido-principal"
+    >
+      Saltar al contenido principal
+    </a>
+
+    <header class="public-header sticky top-0 z-50 border-b border-archive-line/80 bg-archive-surface/95 backdrop-blur" data-public-header>
+      <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
+        <a
+          class="group flex min-w-0 items-center gap-3 rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-archive-blue"
+          href="index.html"
+          aria-label="Ir al inicio del Catálogo Digital de Obra Serigráfica"
+        >
+          <span
+            class="brand-mark grid h-11 w-11 shrink-0 place-items-center rounded-full border border-archive-blue/20 bg-archive-blue text-[11px] font-bold tracking-[0.16em] text-white"
+            aria-hidden="true"
+          >
+            FAD
+          </span>
+          <span class="min-w-0 leading-tight">
+            <span class="block truncate text-sm font-semibold tracking-[0.12em] text-archive-blue uppercase">
+              Taller de Serigrafía
+            </span>
+            <span class="block truncate text-sm text-archive-muted">
+              Catálogo Digital de Obra Serigráfica
+            </span>
+          </span>
+        </a>
+
+        <nav class="hidden items-center gap-1 lg:flex" aria-label="Navegación pública principal">
+          <a class="nav-link" href="index.html">Inicio</a>
+          <a class="nav-link is-active" href="catalogo.html" aria-current="page">Catálogo</a>
+          <a class="nav-link" href="archivo.html">Archivo por año</a>
+          <a class="nav-link" href="tecnica-serigrafia-experimental.html" aria-label="Abrir vista representativa por técnica: Serigrafía experimental">Técnicas</a>
+          <a class="nav-link" href="serie-archivo-grafico.html" aria-label="Abrir vista representativa por serie: Archivo gráfico">Series</a>
+          <a class="nav-link" href="acerca.html">Acerca</a>
+        </nav>
+
+        <div class="hidden items-center gap-3 lg:flex">
+          <div class="language-switch" aria-label="Indicador visual de idioma. Cambio ES/EN reservado para entregas posteriores.">
+            <span class="language-option is-selected" aria-current="true">ES</span>
+            <span class="language-option">EN</span>
+          </div>
+          <a class="primary-link" href="#catalogo-grid">Explorar catálogo</a>
+        </div>
+
+        <button
+          class="mobile-menu-button inline-flex h-11 w-11 items-center justify-center rounded-full border border-archive-line bg-archive-surface text-archive-blue transition hover:border-archive-blue hover:bg-archive-blueSoft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-archive-blue lg:hidden"
+          type="button"
+          aria-label="Abrir menú de navegación"
+          aria-controls="menu-mobile"
+          aria-expanded="false"
+          data-menu-toggle
+        >
+          <span class="sr-only">Abrir menú</span>
+          <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+          </svg>
+        </button>
+      </div>
+
+      <div id="menu-mobile" class="mobile-panel border-t border-archive-line bg-archive-surface lg:hidden" data-mobile-panel hidden>
+        <nav class="mx-auto grid max-w-7xl gap-2 px-4 py-4 sm:px-6" aria-label="Navegación móvil pública">
+          <a class="mobile-nav-link" href="index.html">Inicio</a>
+          <a class="mobile-nav-link is-active" href="catalogo.html" aria-current="page">Catálogo</a>
+          <a class="mobile-nav-link" href="archivo.html">Archivo por año</a>
+          <a class="mobile-nav-link" href="tecnica-serigrafia-experimental.html" aria-label="Abrir vista representativa por técnica: Serigrafía experimental">Técnicas</a>
+          <a class="mobile-nav-link" href="serie-archivo-grafico.html" aria-label="Abrir vista representativa por serie: Archivo gráfico">Series</a>
+          <a class="mobile-nav-link" href="acerca.html">Acerca</a>
+          <div class="mt-3 flex items-center justify-between gap-3 border-t border-archive-line pt-4">
+            <div class="language-switch" aria-label="Indicador visual de idioma. Cambio ES/EN reservado para entregas posteriores.">
+              <span class="language-option is-selected" aria-current="true">ES</span>
+              <span class="language-option">EN</span>
+            </div>
+            <a class="primary-link" href="#catalogo-grid">Explorar</a>
+          </div>
+        </nav>
+      </div>
+    </header>
+
+    <main id="contenido-principal" tabindex="-1" data-catalog-app>
+      <section class="catalog-hero border-b border-archive-line bg-archive-surface">
+        <div class="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8 lg:py-20">
+          <div class="grid gap-8 lg:grid-cols-[1fr_0.72fr] lg:items-end">
+            <div class="max-w-3xl">
+              <p class="eyebrow">Exploración pública</p>
+              <h1 class="mt-5 font-serif text-4xl leading-[1.05] tracking-[-0.035em] text-archive-ink sm:text-5xl lg:text-6xl">Catálogo</h1>
+              <p class="mt-6 max-w-2xl text-base leading-8 text-archive-muted sm:text-lg">
+                Consulta general de obras publicadas del Taller de Serigrafía. La exploración se organiza por búsqueda simple y filtros neutrales: año, técnica, serie y tags administrados.
+              </p>
+            </div>
+            <aside class="base-card" aria-labelledby="catalog-status-title">
+              <p class="eyebrow">Entrega 2</p>
+              <h2 id="catalog-status-title" class="mt-3 font-serif text-2xl text-archive-ink">Catálogo general público.</h2>
+              <p class="mt-4 text-sm leading-7 text-archive-muted">
+                Esta vista renderiza 24 obras mock aprobadas para validar la exploración pública, los filtros, la búsqueda y la carga progresiva del catálogo.
+              </p>
+            </aside>
+          </div>
+        </div>
+      </section>
+
+      <section id="catalogo-grid" class="section-block catalog-layout" aria-labelledby="catalog-main-title">
+        <div class="catalog-toolbar">
+          <div>
+            <p class="eyebrow">Búsqueda y filtros</p>
+            <h2 id="catalog-main-title" class="catalog-section-title">Explorar obras publicadas</h2>
+          </div>
+          <p class="catalog-progress" data-progress aria-live="polite">Preparando catálogo…</p>
+        </div>
+
+        <div class="catalog-search-row" role="search" aria-label="Buscar obras en el catálogo">
+          <label class="sr-only" for="catalog-search">Buscar por título, autor, año, técnica, serie o tag</label>
+          <input
+            id="catalog-search"
+            class="catalog-search-input"
+            type="search"
+            name="search"
+            placeholder="Buscar por título, autor, año, técnica, serie o tag"
+            autocomplete="off"
+            data-search-input
+          />
+          <button class="filter-drawer-button lg:hidden" type="button" data-filter-drawer-open aria-controls="filter-drawer" aria-expanded="false">
+            Filtros
+          </button>
+        </div>
+
+        <div class="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div class="filter-chip-list" data-filter-chips aria-live="polite"></div>
+          <button class="clear-filters-button" type="button" data-clear-filters hidden>Limpiar filtros</button>
+        </div>
+
+        <div class="mt-8 grid gap-8 lg:grid-cols-[18rem_1fr] lg:items-start">
+          <aside class="filter-panel-desktop hidden lg:block" aria-labelledby="desktop-filters-title">
+            <div class="filter-panel-header">
+              <h2 id="desktop-filters-title">Filtros</h2>
+              <button class="clear-filters-inline" type="button" data-clear-filters hidden>Limpiar</button>
+            </div>
+
+            <form class="filter-form" data-filter-form="desktop">
+              <div class="filter-group">
+                <label for="filter-year-desktop">Año</label>
+                <select id="filter-year-desktop" data-filter-select="year">
+                  <option value="">Todos los años</option>
+                </select>
+              </div>
+              <div class="filter-group">
+                <label for="filter-technique-desktop">Técnica</label>
+                <select id="filter-technique-desktop" data-filter-select="technique">
+                  <option value="">Todas las técnicas</option>
+                </select>
+              </div>
+              <div class="filter-group">
+                <label for="filter-series-desktop">Serie</label>
+                <select id="filter-series-desktop" data-filter-select="series">
+                  <option value="">Todas las series</option>
+                </select>
+              </div>
+              <div class="filter-group">
+                <label for="filter-tag-desktop">Tag</label>
+                <select id="filter-tag-desktop" data-filter-select="tag">
+                  <option value="">Todos los tags</option>
+                </select>
+              </div>
+            </form>
+          </aside>
+
+          <div class="min-w-0">
+            <div class="catalog-state catalog-state-loading" data-catalog-loading>
+              <span class="catalog-spinner" aria-hidden="true"></span>
+              <p>Cargando catálogo…</p>
+            </div>
+
+            <div class="catalog-state catalog-state-error" data-catalog-error hidden>
+              <p class="eyebrow">Estado error</p>
+              <h2>No se pudo cargar el dataset aprobado.</h2>
+              <p data-error-detail>
+                No fue posible leer <code>data/artworks.json</code>. Verifica que el dataset mock aprobado esté disponible junto al prototipo.
+              </p>
+            </div>
+
+            <div class="catalog-state catalog-state-empty" data-catalog-empty hidden>
+              <p class="eyebrow">Sin resultados</p>
+              <h2>No hay obras que coincidan con la búsqueda o filtros actuales.</h2>
+              <p>Prueba limpiar filtros o modificar el término de búsqueda.</p>
+              <button class="button-secondary mt-5" type="button" data-clear-filters>Limpiar filtros</button>
+            </div>
+
+            <div class="artwork-grid" data-artwork-grid aria-live="polite"></div>
+
+            <div class="load-more-wrap">
+              <button class="button-primary" type="button" data-load-more hidden>Cargar más obras</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="archivo-reservado" class="section-block border-t border-archive-line bg-archive-surface/45">
+        <div class="section-heading compact">
+          <p class="eyebrow">Navegación neutral</p>
+          <h2 class="section-title">Archivo por año</h2>
+          <p class="section-copy">Vista pública disponible para seleccionar un año y regresar al catálogo con el filtro correspondiente aplicado.</p>
+          <a class="button-secondary mt-6" href="archivo.html">Abrir archivo por año</a>
+        </div>
+      </section>
+
+      <section id="tecnicas-reservado" class="section-block border-t border-archive-line">
+        <div class="section-heading compact">
+          <p class="eyebrow">Vista representativa</p>
+          <h2 class="section-title">Técnicas</h2>
+          <p class="section-copy">
+            La vista pública por técnica ya está disponible para <a class="primary-link" href="tecnica-serigrafia-experimental.html">Serigrafía experimental</a>. Esta entrega valida una entrada documental sin crear todavía un índice completo de técnicas.
+          </p>
+        </div>
+      </section>
+
+      <section id="series-reservado" class="section-block border-t border-archive-line bg-archive-surface/45">
+        <div class="section-heading compact">
+          <p class="eyebrow">Vista representativa</p>
+          <h2 class="section-title">Series</h2>
+          <p class="section-copy">La vista pública por serie ya está disponible para <a class="primary-link" href="serie-archivo-grafico.html">Archivo gráfico</a>. Esta entrega valida una entrada documental sin crear todavía un índice completo de series.</p>
+        </div>
+      </section>
+
+      <section id="acerca-reservado" class="section-block border-t border-archive-line">
+        <div class="section-heading compact">
+          <p class="eyebrow">Información institucional</p>
+          <h2 class="section-title">Acerca del catálogo</h2>
+          <p class="section-copy">La página informativa del prototipo ya está disponible para explicar propósito, alcance, criterios documentales, derechos de imagen y carácter mock del dataset.</p>
+          <a class="button-secondary mt-5 inline-flex" href="acerca.html">Leer acerca del catálogo</a>
+        </div>
+      </section>
+    </main>
+
+    <div class="filter-drawer-shell" data-filter-drawer hidden>
+      <div class="filter-drawer-backdrop" data-filter-drawer-close aria-hidden="true"></div>
+      <section
+        id="filter-drawer"
+        class="filter-drawer-mobile"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="mobile-filters-title"
+        tabindex="-1"
+      >
+        <div class="filter-drawer-header">
+          <div>
+            <p class="eyebrow">Catálogo</p>
+            <h2 id="mobile-filters-title">Filtros</h2>
+          </div>
+          <button class="drawer-close-button" type="button" data-filter-drawer-close aria-label="Cerrar filtros">
+            ×
+          </button>
+        </div>
+
+        <form class="filter-form" data-filter-form="mobile">
+          <div class="filter-group">
+            <label for="filter-year-mobile">Año</label>
+            <select id="filter-year-mobile" data-filter-select="year">
+              <option value="">Todos los años</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="filter-technique-mobile">Técnica</label>
+            <select id="filter-technique-mobile" data-filter-select="technique">
+              <option value="">Todas las técnicas</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="filter-series-mobile">Serie</label>
+            <select id="filter-series-mobile" data-filter-select="series">
+              <option value="">Todas las series</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="filter-tag-mobile">Tag</label>
+            <select id="filter-tag-mobile" data-filter-select="tag">
+              <option value="">Todos los tags</option>
+            </select>
+          </div>
+        </form>
+
+        <div class="filter-drawer-actions">
+          <button class="button-secondary" type="button" data-clear-filters>Limpiar filtros</button>
+          <button class="button-primary" type="button" data-filter-drawer-close>Ver resultados</button>
+        </div>
+      </section>
+    </div>
+
+    <footer class="public-footer border-t border-archive-line bg-archive-blueDeep text-white">
+      <div class="mx-auto grid max-w-7xl gap-10 px-4 py-10 sm:px-6 lg:grid-cols-[1fr_1.2fr] lg:px-8">
+        <div>
+          <div class="flex items-center gap-3">
+            <span class="grid h-11 w-11 place-items-center rounded-full border border-white/20 bg-white/10 text-[11px] font-bold tracking-[0.16em]" aria-hidden="true">UNAM</span>
+            <span class="leading-tight">
+              <span class="block text-sm font-semibold tracking-[0.14em] uppercase text-white/90">UNAM · FAD</span>
+              <span class="block text-sm text-white/65">Taller de Serigrafía</span>
+            </span>
+          </div>
+          <p class="mt-5 max-w-md text-sm leading-7 text-white/68">
+            Prototipo público estático para validar la consulta general del catálogo, sin conexión a backend y con dataset mock controlado.
+          </p>
+        </div>
+
+        <div class="grid gap-6 sm:grid-cols-3">
+          <div>
+            <h2 class="footer-heading">Navegación</h2>
+            <ul class="footer-list">
+              <li><a href="index.html">Inicio</a></li>
+              <li><a href="catalogo.html" aria-current="page">Catálogo</a></li>
+              <li><a href="archivo.html">Archivo por año</a></li>
+            </ul>
+          </div>
+          <div>
+            <h2 class="footer-heading">Consulta</h2>
+            <ul class="footer-list">
+              <li><a href="tecnica-serigrafia-experimental.html">Técnicas</a></li>
+              <li><a href="serie-archivo-grafico.html">Series</a></li>
+              <li><a href="acerca.html">Acerca</a></li>
+            </ul>
+          </div>
+          <div>
+            <h2 class="footer-heading">Entrega</h2>
+            <ul class="footer-list">
+              <li>Catálogo general</li>
+              <li>Filtros públicos</li>
+              <li>JS ligero</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="border-t border-white/10 px-4 py-4 text-center text-xs text-white/52 sm:px-6 lg:px-8">
+        Catálogo Digital de Obra Serigráfica — Prototipo 1 · Entrega 2
+      </div>
+    </footer>
+
+    <script src="js/main.js" defer></script>
+    <script src="js/drawer.js" defer></script>
+    <script src="js/filters.js" defer></script>
+  </body>
+</html>

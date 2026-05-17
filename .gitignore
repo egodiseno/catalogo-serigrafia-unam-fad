@@ -1,0 +1,46 @@
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/*
+!.vscode/settings.json
+
+# Dependencias futuras
+node_modules/
+
+# Builds futuros
+dist/
+build/
+.next/
+out/
+
+# Variables sensibles
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Archivos fuente pesados de diseño
+*.psd
+*.psb
+*.ai
+*.indd
+
+# Carpetas de referencia / producción visual local
+Assets GPT/
+Assets Profesor/
+mockups/
+
+# Backups o versiones paralelas locales
+app_/
+appcatalogo_/
+
+# Temporales
+*.tmp
+*.bak

@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="es" class="scroll-smooth">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Ficha pública mock de la obra Memoria del taller dentro del Prototipo 1 del Catálogo Digital de Obra Serigráfica — UNAM / FAD / Taller de Serigrafía."
+    />
+    <title>Memoria del taller — Catálogo Digital de Obra Serigráfica</title>
+
+    <!-- Entrega 5: Tailwind vía CDN para ficha pública estática con visor simple y panel de compartir enlace. No requiere build, bundler ni Next.js. -->
+    <script>
+      tailwind = {
+        config: {
+          theme: {
+            extend: {
+              colors: {
+                archive: {
+                  bg: '#F7F5EF',
+                  surface: '#FFFCF5',
+                  surfaceMuted: '#EFE9DC',
+                  ink: '#101B2D',
+                  muted: '#5E6878',
+                  line: '#D8CFBF',
+                  blue: '#103B73',
+                  blueDeep: '#082A55',
+                  blueSoft: '#DDEAF7',
+                  gold: '#B69254'
+                }
+              },
+              fontFamily: {
+                sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+                serif: ['Georgia', 'Times New Roman', 'serif']
+              },
+              boxShadow: {
+                archival: '0 24px 60px rgba(16, 27, 45, 0.08)'
+              }
+            }
+          }
+        }
+      };
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+
+  <body class="min-h-screen bg-archive-bg font-sans text-archive-ink antialiased selection:bg-archive-blue selection:text-white">
+    <a
+      class="skip-link fixed left-4 top-4 z-[100] rounded-full bg-archive-blue px-5 py-3 text-sm font-semibold text-white shadow-archival"
+      href="#contenido-principal"
+    >
+      Saltar al contenido principal
+    </a>
+
+    <header class="public-header sticky top-0 z-50 border-b border-archive-line/80 bg-archive-surface/95 backdrop-blur" data-public-header>
+      <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
+        <a
+          class="group flex min-w-0 items-center gap-3 rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-archive-blue"
+          href="index.html"
+          aria-label="Ir al inicio del Catálogo Digital de Obra Serigráfica"
+        >
+          <span
+            class="brand-mark grid h-11 w-11 shrink-0 place-items-center rounded-full border border-archive-blue/20 bg-archive-blue text-[11px] font-bold tracking-[0.16em] text-white"
+            aria-hidden="true"
+          >
+            FAD
+          </span>
+          <span class="min-w-0 leading-tight">
+            <span class="block truncate text-sm font-semibold tracking-[0.12em] text-archive-blue uppercase">
+              Taller de Serigrafía
+            </span>
+            <span class="block truncate text-sm text-archive-muted">
+              Catálogo Digital de Obra Serigráfica
+            </span>
+          </span>
+        </a>
+
+        <nav class="hidden items-center gap-1 lg:flex" aria-label="Navegación pública principal">
+          <a class="nav-link" href="index.html">Inicio</a>
+          <a class="nav-link is-active" href="catalogo.html" aria-current="location">Catálogo</a>
+          <a class="nav-link" href="archivo.html">Archivo por año</a>
+          <a class="nav-link" href="tecnica-serigrafia-experimental.html" aria-label="Abrir vista representativa por técnica: Serigrafía experimental">Técnicas</a>
+          <a class="nav-link" href="serie-archivo-grafico.html" aria-label="Abrir vista representativa por serie: Archivo gráfico">Series</a>
+          <a class="nav-link" href="acerca.html">Acerca</a>
+        </nav>
+
+        <div class="hidden items-center gap-3 lg:flex">
+          <div class="language-switch" aria-label="Indicador visual de idioma. Cambio ES/EN reservado para entregas posteriores.">
+            <span class="language-option is-selected" aria-current="true">ES</span>
+            <span class="language-option">EN</span>
+          </div>
+          <a class="primary-link" href="catalogo.html#catalogo-grid">Explorar catálogo</a>
+        </div>
+
+        <button
+          class="mobile-menu-button inline-flex h-11 w-11 items-center justify-center rounded-full border border-archive-line bg-archive-surface text-archive-blue transition hover:border-archive-blue hover:bg-archive-blueSoft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-archive-blue lg:hidden"
+          type="button"
+          aria-label="Abrir menú de navegación"
+          aria-controls="menu-mobile"
+          aria-expanded="false"
+          data-menu-toggle
+        >
+          <span class="sr-only">Abrir menú</span>
+          <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+          </svg>
+        </button>
+      </div>
+
+      <div id="menu-mobile" class="mobile-panel border-t border-archive-line bg-archive-surface lg:hidden" data-mobile-panel hidden>
+        <nav class="mx-auto grid max-w-7xl gap-2 px-4 py-4 sm:px-6" aria-label="Navegación móvil pública">
+          <a class="mobile-nav-link" href="index.html">Inicio</a>
+          <a class="mobile-nav-link is-active" href="catalogo.html" aria-current="location">Catálogo</a>
+          <a class="mobile-nav-link" href="archivo.html">Archivo por año</a>
+          <a class="mobile-nav-link" href="tecnica-serigrafia-experimental.html" aria-label="Abrir vista representativa por técnica: Serigrafía experimental">Técnicas</a>
+          <a class="mobile-nav-link" href="serie-archivo-grafico.html" aria-label="Abrir vista representativa por serie: Archivo gráfico">Series</a>
+          <a class="mobile-nav-link" href="acerca.html">Acerca</a>
+          <div class="mt-3 flex items-center justify-between gap-3 border-t border-archive-line pt-4">
+            <div class="language-switch" aria-label="Indicador visual de idioma. Cambio ES/EN reservado para entregas posteriores.">
+              <span class="language-option is-selected" aria-current="true">ES</span>
+              <span class="language-option">EN</span>
+            </div>
+            <a class="primary-link" href="catalogo.html#catalogo-grid">Explorar</a>
+          </div>
+        </nav>
+      </div>
+    </header>
+
+
+
+    <main id="contenido-principal" tabindex="-1">
+      <section class="work-hero border-b border-archive-line bg-archive-surface">
+        <div class="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8 lg:py-16">
+          <nav class="work-breadcrumb" aria-label="Ruta de navegación">
+            <ol>
+              <li><a href="catalogo.html">Catálogo</a></li>
+              <li aria-current="page">Memoria del taller</li>
+            </ol>
+          </nav>
+
+          <div class="mt-8 grid gap-8 lg:grid-cols-[1fr_0.38fr] lg:items-end">
+            <div class="max-w-4xl">
+              <p class="eyebrow">Ficha pública de obra</p>
+              <h1 id="ficha-obra-title" class="work-title">Memoria del taller</h1>
+              <p class="work-intro">Capas de textura y registros parciales que documentan procesos de taller.</p>
+              <div class="artwork-tag-list mt-6" aria-label="Tags de la obra">
+                <span class="artwork-tag">memoria</span><span class="artwork-tag">textura</span><span class="artwork-tag">archivo</span>
+              </div>
+            </div>
+
+            <aside class="work-context-card" aria-label="Contexto de prototipo">
+              <p class="eyebrow">Entrega 5</p>
+              <h2>Ficha de obra pública con visor y compartir enlace.</h2>
+              <p>Vista estática para validar consulta individual, imagen ampliada, compartir URL de ficha y regreso al catálogo. Sin galería avanzada, descarga ni backend.</p>
+            </aside>
+          </div>
+        </div>
+      </section>
+
+      <section class="section-block work-detail-layout" aria-labelledby="ficha-obra-title">
+        <div class="work-media-panel">
+          <figure>
+            <div class="work-image-frame">
+              <img src="assets/mock/artworks/obra-01-main.jpg" alt="Imagen principal de la obra Memoria del taller, de Ana Martínez" />
+            </div>
+            <figcaption>
+              Imagen mock local para validación visual del prototipo público. No representa un archivo institucional definitivo.
+            </figcaption>
+            <div class="work-media-actions">
+              <button
+                class="button-secondary image-viewer-trigger"
+                type="button"
+                data-image-viewer-open
+                data-image-viewer-src="assets/mock/artworks/obra-01-main.jpg"
+                data-image-viewer-alt="Imagen ampliada de la obra Memoria del taller, de Ana Martínez"
+                aria-haspopup="dialog"
+              >
+                Ver imagen ampliada
+              </button>
+            </div>
+          </figure>
+        </div>
+
+        <aside class="work-summary-card" aria-labelledby="ficha-tecnica-title">
+          <p class="eyebrow">Obra 01</p>
+          <h2 id="ficha-tecnica-title">Ficha técnica</h2>
+          <dl class="work-meta-list">
+            <div>
+              <dt>Autor/a</dt>
+              <dd>Ana Martínez</dd>
+            </div>
+            <div>
+              <dt>Año</dt>
+              <dd>2024</dd>
+            </div>
+            <div>
+              <dt>Técnica</dt>
+              <dd>Serigrafía experimental</dd>
+            </div>
+            <div>
+              <dt>Serie</dt>
+              <dd>Archivo gráfico</dd>
+            </div>
+            <div>
+              <dt>Medidas</dt>
+              <dd>50 × 70 cm</dd>
+            </div>
+            <div>
+              <dt>Edición / tiraje</dt>
+              <dd>Edición de 20</dd>
+            </div>
+          </dl>
+
+          <div class="work-description-block">
+            <h3>Descripción</h3>
+            <p>Capas de textura y registros parciales que documentan procesos de taller.</p>
+          </div>
+
+          <div class="work-description-block">
+            <h3>Créditos</h3>
+            <p>Taller de Serigrafía, Facultad de Artes y Diseño, UNAM.</p>
+          </div>
+
+          <section class="share-panel" aria-labelledby="share-panel-title" data-share-panel data-share-title="Memoria del taller">
+            <div class="share-panel-heading">
+              <p class="eyebrow">Enlace público</p>
+              <h3 id="share-panel-title">Compartir obra</h3>
+              <p>Comparte la URL de esta ficha pública. La imagen no se descarga ni se envía como archivo.</p>
+            </div>
+
+            <div class="share-url-field" aria-label="URL pública de la ficha">
+              <span class="share-url-text" data-share-url-text>obra-memoria-del-taller.html</span>
+            </div>
+
+            <div class="share-actions" aria-label="Opciones para compartir enlace">
+              <button class="button-primary share-copy-button" type="button" data-share-copy>Copiar enlace</button>
+              <button class="button-secondary share-native-button" type="button" data-share-native hidden>Compartir</button>
+              <a class="button-secondary share-channel-link" href="https://wa.me/?text=Memoria%20del%20taller%20%E2%80%94%20obra-memoria-del-taller.html" data-share-channel="whatsapp" rel="noopener noreferrer" target="_blank">WhatsApp</a>
+              <a class="button-secondary share-channel-link" href="mailto:?subject=Memoria%20del%20taller&body=obra-memoria-del-taller.html" data-share-channel="email">Correo</a>
+              <a class="button-secondary share-channel-link" href="sms:?&body=Memoria%20del%20taller%20%E2%80%94%20obra-memoria-del-taller.html" data-share-channel="sms">SMS</a>
+            </div>
+
+            <p class="share-status" role="status" aria-live="polite" data-share-status></p>
+          </section>
+        </aside>
+      </section>
+
+      <section class="section-block work-return-section border-t border-archive-line bg-archive-surface/45" aria-labelledby="regreso-title">
+        <div class="work-return-grid">
+          <div>
+            <p class="eyebrow">Navegación</p>
+            <h2 id="regreso-title" class="section-title">Volver al catálogo</h2>
+            <p class="section-copy">Esta ficha valida el flujo central de consulta pública: explorar el catálogo, abrir una obra y regresar al listado general.</p>
+            <div class="work-actions">
+              <a class="button-secondary" href="catalogo.html#catalogo-grid">Volver al catálogo</a>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <div
+      id="image-viewer"
+      class="image-viewer-dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="image-viewer-title"
+      aria-describedby="image-viewer-description"
+      hidden
+      data-image-viewer
+    >
+      <div class="image-viewer-backdrop" data-image-viewer-close aria-hidden="true"></div>
+      <section class="image-viewer-panel" role="document">
+        <div class="image-viewer-handle" aria-hidden="true"></div>
+        <header class="image-viewer-header">
+          <div>
+            <p class="eyebrow">Visor de imagen</p>
+            <h2 id="image-viewer-title">Memoria del taller</h2>
+            <p id="image-viewer-description">Vista ampliada de la imagen principal de la obra. Usa Escape o el botón cerrar para volver a la ficha.</p>
+          </div>
+          <button class="drawer-close-button image-viewer-close" type="button" data-image-viewer-close aria-label="Cerrar visor de imagen">
+            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+            </svg>
+          </button>
+        </header>
+        <div class="image-viewer-body">
+          <img data-image-viewer-image alt="" />
+        </div>
+        <p class="image-viewer-caption">Imagen principal de la ficha pública. Visor simple para observación; no incluye descarga, funciones externas ni zoom avanzado.</p>
+      </section>
+    </div>
+
+    <footer class="public-footer border-t border-archive-line bg-archive-blueDeep text-white">
+      <div class="mx-auto grid max-w-7xl gap-10 px-4 py-10 sm:px-6 lg:grid-cols-[1fr_1.2fr] lg:px-8">
+        <div>
+          <div class="flex items-center gap-3">
+            <span class="grid h-11 w-11 place-items-center rounded-full border border-white/20 bg-white/10 text-[11px] font-bold tracking-[0.16em]" aria-hidden="true">UNAM</span>
+            <span class="leading-tight">
+              <span class="block text-sm font-semibold tracking-[0.14em] uppercase text-white/90">UNAM · FAD</span>
+              <span class="block text-sm text-white/65">Taller de Serigrafía</span>
+            </span>
+          </div>
+          <p class="mt-5 max-w-md text-sm leading-7 text-white/68">
+            Prototipo público estático para validar la consulta individual de obra y compartir enlace, sin conexión a backend y con dataset mock controlado.
+          </p>
+        </div>
+
+        <div class="grid gap-6 sm:grid-cols-3">
+          <div>
+            <h2 class="footer-heading">Navegación</h2>
+            <ul class="footer-list">
+              <li><a href="index.html">Inicio</a></li>
+              <li><a href="catalogo.html">Catálogo</a></li>
+              <li><a href="archivo.html">Archivo por año</a></li>
+            </ul>
+          </div>
+          <div>
+            <h2 class="footer-heading">Consulta</h2>
+            <ul class="footer-list">
+              <li><a href="tecnica-serigrafia-experimental.html">Técnicas</a></li>
+              <li><a href="serie-archivo-grafico.html">Series</a></li>
+              <li><a href="acerca.html">Acerca</a></li>
+            </ul>
+          </div>
+          <div>
+            <h2 class="footer-heading">Entrega</h2>
+            <ul class="footer-list">
+              <li>Ficha pública</li>
+              <li>Consulta individual</li>
+              <li>JS ligero</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="border-t border-white/10 px-4 py-4 text-center text-xs text-white/52 sm:px-6 lg:px-8">
+        Catálogo Digital de Obra Serigráfica — Prototipo 1 · Entrega 5
+      </div>
+    </footer>
+
+
+
+    <script src="js/main.js" defer></script>
+    <script src="js/image-viewer.js" defer></script>
+    <script src="js/share-panel.js" defer></script>
+  </body>
+</html>

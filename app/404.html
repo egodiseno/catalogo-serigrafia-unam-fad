@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="es" class="scroll-smooth">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Página no encontrada del Prototipo 1 para el Catálogo Digital de Obra Serigráfica — UNAM / FAD / Taller de Serigrafía."
+    />
+    <title>Página no encontrada — Catálogo Digital de Obra Serigráfica</title>
+
+    <!-- Entrega 10: Tailwind vía CDN para prototipo estático. No requiere build, bundler ni Next.js. -->
+    <script>
+      tailwind = {
+        config: {
+          theme: {
+            extend: {
+              colors: {
+                archive: {
+                  bg: '#F7F5EF',
+                  surface: '#FFFCF5',
+                  surfaceMuted: '#EFE9DC',
+                  ink: '#101B2D',
+                  muted: '#5E6878',
+                  line: '#D8CFBF',
+                  blue: '#103B73',
+                  blueDeep: '#082A55',
+                  blueSoft: '#DDEAF7',
+                  gold: '#B69254'
+                }
+              },
+              fontFamily: {
+                sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+                serif: ['Georgia', 'Times New Roman', 'serif']
+              },
+              boxShadow: {
+                archival: '0 24px 60px rgba(16, 27, 45, 0.08)'
+              }
+            }
+          }
+        }
+      };
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+
+  <body class="min-h-screen bg-archive-bg font-sans text-archive-ink antialiased selection:bg-archive-blue selection:text-white">
+    <a
+      class="skip-link fixed left-4 top-4 z-[100] rounded-full bg-archive-blue px-5 py-3 text-sm font-semibold text-white shadow-archival"
+      href="#contenido-principal"
+    >
+      Saltar al contenido principal
+    </a>
+
+    <header class="public-header sticky top-0 z-50 border-b border-archive-line/80 bg-archive-surface/95 backdrop-blur" data-public-header>
+      <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
+        <a
+          class="group flex min-w-0 items-center gap-3 rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-archive-blue"
+          href="index.html"
+          aria-label="Ir al inicio del Catálogo Digital de Obra Serigráfica"
+        >
+          <span
+            class="brand-mark grid h-11 w-11 shrink-0 place-items-center rounded-full border border-archive-blue/20 bg-archive-blue text-[11px] font-bold tracking-[0.16em] text-white"
+            aria-hidden="true"
+          >
+            FAD
+          </span>
+          <span class="min-w-0 leading-tight">
+            <span class="block truncate text-sm font-semibold tracking-[0.12em] text-archive-blue uppercase">
+              Taller de Serigrafía
+            </span>
+            <span class="block truncate text-sm text-archive-muted">
+              Catálogo Digital de Obra Serigráfica
+            </span>
+          </span>
+        </a>
+
+        <nav class="hidden items-center gap-1 lg:flex" aria-label="Navegación pública principal">
+          <a class="nav-link" href="index.html">Inicio</a>
+          <a class="nav-link" href="catalogo.html">Catálogo</a>
+          <a class="nav-link" href="archivo.html">Archivo por año</a>
+          <a class="nav-link" href="tecnica-serigrafia-experimental.html" aria-label="Abrir vista representativa por técnica: Serigrafía experimental">Técnicas</a>
+          <a class="nav-link" href="serie-archivo-grafico.html" aria-label="Abrir vista representativa por serie: Archivo gráfico">Series</a>
+          <a class="nav-link" href="acerca.html">Acerca</a>
+        </nav>
+
+        <div class="hidden items-center gap-3 lg:flex">
+          <div class="language-switch" aria-label="Indicador visual de idioma. Cambio ES/EN reservado para entregas posteriores.">
+            <span class="language-option is-selected" aria-current="true">ES</span>
+            <span class="language-option">EN</span>
+          </div>
+          <a class="primary-link" href="catalogo.html">Explorar catálogo</a>
+        </div>
+
+        <button
+          class="mobile-menu-button inline-flex h-11 w-11 items-center justify-center rounded-full border border-archive-line bg-archive-surface text-archive-blue transition hover:border-archive-blue hover:bg-archive-blueSoft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-archive-blue lg:hidden"
+          type="button"
+          aria-label="Abrir menú de navegación"
+          aria-controls="menu-mobile"
+          aria-expanded="false"
+          data-menu-toggle
+        >
+          <span class="sr-only">Abrir menú</span>
+          <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+          </svg>
+        </button>
+      </div>
+
+      <div id="menu-mobile" class="mobile-panel border-t border-archive-line bg-archive-surface lg:hidden" data-mobile-panel hidden>
+        <nav class="mx-auto grid max-w-7xl gap-2 px-4 py-4 sm:px-6" aria-label="Navegación móvil pública">
+          <a class="mobile-nav-link" href="index.html">Inicio</a>
+          <a class="mobile-nav-link" href="catalogo.html">Catálogo</a>
+          <a class="mobile-nav-link" href="archivo.html">Archivo por año</a>
+          <a class="mobile-nav-link" href="tecnica-serigrafia-experimental.html" aria-label="Abrir vista representativa por técnica: Serigrafía experimental">Técnicas</a>
+          <a class="mobile-nav-link" href="serie-archivo-grafico.html" aria-label="Abrir vista representativa por serie: Archivo gráfico">Series</a>
+          <a class="mobile-nav-link" href="acerca.html">Acerca</a>
+          <div class="mt-3 flex items-center justify-between gap-3 border-t border-archive-line pt-4">
+            <div class="language-switch" aria-label="Indicador visual de idioma. Cambio ES/EN reservado para entregas posteriores.">
+              <span class="language-option is-selected" aria-current="true">ES</span>
+              <span class="language-option">EN</span>
+            </div>
+            <a class="primary-link" href="catalogo.html">Explorar</a>
+          </div>
+        </nav>
+      </div>
+    </header>
+
+    <main id="contenido-principal" tabindex="-1">
+      <section class="not-found-hero border-b border-archive-line bg-archive-surface">
+        <div class="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8 lg:py-20">
+          <div class="not-found-shell">
+            <div class="not-found-content">
+              <nav class="breadcrumb" aria-label="Ruta de navegación">
+                <a href="index.html">Inicio</a>
+                <span aria-hidden="true">/</span>
+                <span aria-current="page">Página no encontrada</span>
+              </nav>
+              <p class="eyebrow mt-6">Error 404</p>
+              <h1 class="mt-5 font-serif text-4xl leading-[1.05] tracking-[-0.035em] text-archive-ink sm:text-5xl lg:text-6xl">Página no encontrada</h1>
+              <p class="mt-6 max-w-3xl text-base leading-8 text-archive-muted sm:text-lg">
+                La ruta solicitada no está disponible en este prototipo público. Puede tratarse de una ficha aún no implementada, una dirección incompleta o un enlace reservado para una entrega posterior.
+              </p>
+              <div class="not-found-actions mt-8">
+                <a class="button-primary" href="catalogo.html">Ir al catálogo</a>
+                <a class="button-secondary" href="index.html">Volver al inicio</a>
+              </div>
+            </div>
+
+            <aside class="not-found-card" aria-label="Opciones para continuar navegando">
+              <p class="eyebrow">Continuar consulta</p>
+              <h2>Rutas disponibles</h2>
+              <p>
+                Usa cualquiera de estos accesos para retomar la exploración del catálogo sin depender de la ruta anterior.
+              </p>
+              <nav class="not-found-link-grid" aria-label="Accesos de recuperación">
+                <a href="index.html">Inicio</a>
+                <a href="catalogo.html">Catálogo general</a>
+                <a href="archivo.html">Archivo por año</a>
+                <a href="tecnica-serigrafia-experimental.html">Técnicas</a>
+                <a href="serie-archivo-grafico.html">Series</a>
+                <a href="acerca.html">Acerca</a>
+              </nav>
+            </aside>
+          </div>
+        </div>
+      </section>
+
+      <section class="section-block not-found-guidance">
+        <div class="mx-auto grid max-w-7xl gap-6 px-4 sm:px-6 lg:grid-cols-3 lg:px-8">
+          <article class="not-found-info-card">
+            <p class="eyebrow">Catálogo</p>
+            <h2>Explorar obras publicadas</h2>
+            <p>Consulta el grid general, usa búsqueda, filtros y carga por bloques para encontrar registros disponibles en el dataset mock controlado.</p>
+            <a class="text-link" href="catalogo.html">Abrir catálogo</a>
+          </article>
+          <article class="not-found-info-card">
+            <p class="eyebrow">Archivo</p>
+            <h2>Navegar por año</h2>
+            <p>Revisa las obras agrupadas por año como criterio neutral de organización documental, sin jerarquías ni selección curatorial.</p>
+            <a class="text-link" href="archivo.html">Abrir archivo</a>
+          </article>
+          <article class="not-found-info-card">
+            <p class="eyebrow">Contexto</p>
+            <h2>Entender el prototipo</h2>
+            <p>Consulta el propósito, alcance, criterios documentales y restricciones de uso de imágenes dentro de esta versión pública.</p>
+            <a class="text-link" href="acerca.html">Leer acerca del catálogo</a>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="public-footer border-t border-archive-line bg-archive-blueDeep text-white">
+      <div class="mx-auto grid max-w-7xl gap-10 px-4 py-10 sm:px-6 lg:grid-cols-[1fr_1.2fr] lg:px-8">
+        <div>
+          <div class="flex items-center gap-3">
+            <span class="grid h-11 w-11 place-items-center rounded-full border border-white/20 bg-white/10 text-[11px] font-bold tracking-[0.16em]" aria-hidden="true">UNAM</span>
+            <span class="leading-tight">
+              <span class="block text-sm font-semibold tracking-[0.14em] uppercase text-white/90">UNAM · FAD</span>
+              <span class="block text-sm text-white/65">Taller de Serigrafía</span>
+            </span>
+          </div>
+          <p class="mt-5 max-w-md text-sm leading-7 text-white/68">
+            Prototipo público estático para resolver rutas no encontradas y orientar la recuperación de navegación, sin conexión a backend y con dataset mock controlado.
+          </p>
+        </div>
+
+        <div class="grid gap-6 sm:grid-cols-3">
+          <div>
+            <h2 class="footer-heading">Navegación</h2>
+            <ul class="footer-list">
+              <li><a href="index.html">Inicio</a></li>
+              <li><a href="catalogo.html">Catálogo</a></li>
+              <li><a href="archivo.html">Archivo por año</a></li>
+            </ul>
+          </div>
+          <div>
+            <h2 class="footer-heading">Consulta</h2>
+            <ul class="footer-list">
+              <li><a href="tecnica-serigrafia-experimental.html">Técnicas</a></li>
+              <li><a href="serie-archivo-grafico.html">Series</a></li>
+              <li><a href="acerca.html">Acerca</a></li>
+            </ul>
+          </div>
+          <div>
+            <h2 class="footer-heading">Entrega</h2>
+            <ul class="footer-list">
+              <li>Entrega 10</li>
+              <li>Página no encontrada</li>
+              <li>Recuperación de navegación</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="border-t border-white/10 px-4 py-4 text-center text-xs text-white/52 sm:px-6 lg:px-8">
+        Catálogo Digital de Obra Serigráfica — Prototipo 1 · Entrega 10
+      </div>
+    </footer>
+
+    <script src="js/main.js" defer></script>
+  </body>
+</html>
