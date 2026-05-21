@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+
+<html class="scroll-smooth" lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<meta content="Confirmación estática mock para enviar imagen a revisión del Prototipo 2 Admin del Catálogo Digital de Obra Serigráfica — UNAM / FAD / Taller de Serigrafía." name="description"/>
+<title>Prototipo 2 Admin — Confirmación para enviar imagen a revisión</title>
+<!-- Prototipo estático: Tailwind vía CDN. Sin build, backend, Auth real, Supabase, Storage ni CRUD. -->
+    <script src="../js/tailwind.config.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+<link href="css/admin.css" rel="stylesheet"/>
+</head>
+<body class="admin-body subir-imagen-page confirmation-page image-review-confirmation-page envio-revision-imagen-confirmation-page">
+<a class="skip-link" href="#contenido-admin">Saltar al contenido administrativo</a>
+<div class="admin-page">
+<header class="admin-header" data-admin-header="">
+<div class="admin-header-inner">
+<a aria-label="Ir al dashboard administrativo del Catálogo Digital de Obra Serigráfica" class="brand-lockup" href="index.html">
+<span class="brand-title">Catálogo digital de obra serigráfica</span>
+<span class="brand-subtitle">UNAM  /  FAD  /  Taller de Serigrafía</span>
+</a>
+<div aria-label="Controles administrativos estáticos" class="admin-header-actions">
+<span aria-label="Área administrativa" class="admin-chip">
+<svg aria-hidden="true" fill="none" viewbox="0 0 24 24"><path d="M7 10V7a5 5 0 0 1 10 0v3" stroke="currentColor" stroke-linecap="round" stroke-width="1.8"></path><rect height="10" rx="2" stroke="currentColor" stroke-width="1.8" width="14" x="5" y="10"></rect><path d="M12 14v2" stroke="currentColor" stroke-linecap="round" stroke-width="1.8"></path></svg>
+              Administración
+            </span>
+<span aria-hidden="true" class="header-separator"></span>
+<span aria-label="Usuario administrador mock" class="admin-user-placeholder">
+<span aria-hidden="true" class="admin-avatar">A</span>
+<span>Admin</span>
+<svg aria-hidden="true" fill="none" viewbox="0 0 24 24"><path d="m7 10 5 5 5-5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path></svg>
+</span>
+<span aria-hidden="true" class="header-separator"></span>
+<a class="reserved-action" href="login.html">Cerrar sesión</a>
+</div>
+</div>
+<div class="admin-mobile-bar">
+<button aria-controls="admin-mobile-menu" aria-expanded="false" aria-label="Abrir menú administrativo" class="admin-mobile-toggle" data-admin-menu-toggle="" type="button">
+<svg aria-hidden="true" fill="none" viewbox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-linecap="round" stroke-width="1.8"></path></svg>
+<span>Menú admin</span>
+</button>
+<span aria-current="page" class="mobile-current-section">
+<svg aria-hidden="true" fill="none" viewbox="0 0 24 24"><rect height="14" rx="2" stroke="currentColor" stroke-width="1.7" width="16" x="4" y="5"></rect><path d="m6.5 16 4.2-4.2 3 3 2-2L19 16" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7"></path><path d="M8.5 9h.01" stroke="currentColor" stroke-linecap="round" stroke-width="3"></path></svg>
+            Imágenes
+          </span>
+</div>
+<div class="admin-mobile-panel" data-admin-mobile-panel="" hidden="" id="admin-mobile-menu">
+<nav aria-label="Navegación administrativa móvil" class="admin-mobile-nav">
+<a class="admin-mobile-nav-link" href="index.html">Dashboard <span>Disponible</span></a>
+<a class="admin-mobile-nav-link" href="obras.html">Obras <span>Disponible</span></a>
+<a class="admin-mobile-nav-link" href="crear-obra.html">Crear obra <span>Disponible</span></a>
+<a class="admin-mobile-nav-link" href="tecnicas.html">Técnicas <span>Disponible</span></a>
+<a class="admin-mobile-nav-link" href="series.html">Series <span>Disponible</span></a>
+<a class="admin-mobile-nav-link" href="anos-generaciones.html">Años / generaciones <span>Disponible</span></a>
+<a class="admin-mobile-nav-link" href="tags.html">Tags <span>Disponible</span></a>
+<a aria-current="page" class="admin-mobile-nav-link is-active" href="imagenes.html">Imágenes <span>Actual</span></a>
+<a class="admin-mobile-nav-link" href="usuarios.html">Usuarios admin <span>Disponible</span></a>
+<a class="admin-mobile-nav-link" href="configuracion.html">Configuración <span>Disponible</span></a>
+<a class="admin-mobile-nav-link" href="login.html">Cerrar sesión <span>Mock</span></a>
+</nav>
+</div>
+</header>
+<div class="admin-shell">
+<aside aria-label="Navegación administrativa principal" class="admin-sidebar">
+<div class="admin-sidebar-inner">
+<p class="sidebar-label">Panel administrativo</p>
+<nav aria-label="Módulos administrativos" class="admin-sidebar-nav">
+<a class="admin-nav-link" href="index.html">
+<span aria-hidden="true" class="nav-icon"><svg fill="none" viewbox="0 0 24 24"><path d="M4 5h7v7H4V5Zm9 0h7v7h-7V5ZM4 14h7v5H4v-5Zm9 0h7v5h-7v-5Z" stroke="currentColor" stroke-linejoin="round" stroke-width="1.7"></path></svg></span>
+                Dashboard
+              </a>
+<a class="admin-nav-link" href="obras.html">
+<span aria-hidden="true" class="nav-icon"><svg fill="none" viewbox="0 0 24 24"><path d="M7 4h8l4 4v12H7V4Z" stroke="currentColor" stroke-linejoin="round" stroke-width="1.7"></path><path d="M14 4v5h5M9 13h7M9 16h5" stroke="currentColor" stroke-linecap="round" stroke-width="1.7"></path></svg></span>
+                Obras
+              </a>
+<a class="admin-nav-link" href="crear-obra.html">
+<span aria-hidden="true" class="nav-icon"><svg fill="none" viewbox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-linecap="round" stroke-width="1.8"></path><rect height="16" rx="2.5" stroke="currentColor" stroke-width="1.7" width="16" x="4" y="4"></rect></svg></span>
+                Crear obra
+              </a>
+<a class="admin-nav-link" href="tecnicas.html">
+<span aria-hidden="true" class="nav-icon"><svg fill="none" viewbox="0 0 24 24"><path d="M5 18h14M8 18V9a4 4 0 0 1 8 0v2M7 9h10M10 21h4" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7"></path></svg></span>
+                Técnicas
+              </a>
+<a class="admin-nav-link" href="series.html">
+<span aria-hidden="true" class="nav-icon"><svg fill="none" viewbox="0 0 24 24"><path d="M8 7h12M8 12h12M8 17h12" stroke="currentColor" stroke-linecap="round" stroke-width="1.7"></path><path d="M4 7h.01M4 12h.01M4 17h.01" stroke="currentColor" stroke-linecap="round" stroke-width="3"></path></svg></span>
+                Series
+              </a>
+<a class="admin-nav-link" href="anos-generaciones.html">
+<span aria-hidden="true" class="nav-icon"><svg fill="none" viewbox="0 0 24 24"><path d="M7 4v3M17 4v3M5 9h14M6 6h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7"></path><path d="M8 13h3M8 16h6" stroke="currentColor" stroke-linecap="round" stroke-width="1.7"></path></svg></span>
+                Años / generaciones
+              </a>
+<a class="admin-nav-link" href="tags.html">
+<span aria-hidden="true" class="nav-icon"><svg fill="none" viewbox="0 0 24 24"><path d="m4 12 8-8 8 8-8 8-8-8Z" stroke="currentColor" stroke-linejoin="round" stroke-width="1.7"></path><path d="M12 8h.01" stroke="currentColor" stroke-linecap="round" stroke-width="3"></path></svg></span>
+                Tags
+              </a>
+<a aria-current="page" class="admin-nav-link is-active" href="imagenes.html">
+<span aria-hidden="true" class="nav-icon"><svg fill="none" viewbox="0 0 24 24"><rect height="14" rx="2" stroke="currentColor" stroke-width="1.7" width="16" x="4" y="5"></rect><path d="m6.5 16 4.2-4.2 3 3 2-2L19 16" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7"></path><path d="M8.5 9h.01" stroke="currentColor" stroke-linecap="round" stroke-width="3"></path></svg></span>
+                Imágenes
+              </a>
+<a class="admin-nav-link" href="usuarios.html">
+<span aria-hidden="true" class="nav-icon"><svg fill="none" viewbox="0 0 24 24"><path d="M8 12a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm8-1a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5ZM3.5 19a4.5 4.5 0 0 1 9 0M13.5 17.5a3.7 3.7 0 0 1 7 1.5" stroke="currentColor" stroke-linecap="round" stroke-width="1.7"></path></svg></span>
+                Usuarios admin
+              </a>
+<a class="admin-nav-link" href="configuracion.html">
+<span aria-hidden="true" class="nav-icon"><svg fill="none" viewbox="0 0 24 24"><path d="M12 15.5A3.5 3.5 0 1 0 12 8a3.5 3.5 0 0 0 0 7.5Z" stroke="currentColor" stroke-width="1.7"></path><path d="M19 12a7.2 7.2 0 0 0-.1-1.1l2-1.5-2-3.4-2.4 1a7 7 0 0 0-1.9-1.1L14.3 3h-4.6l-.4 2.9A7 7 0 0 0 7.4 7l-2.4-1-2 3.4 2 1.5A7.2 7.2 0 0 0 5 12c0 .4 0 .8.1 1.1l-2 1.5 2 3.4 2.4-1c.6.5 1.2.8 1.9 1.1l.4 2.9h4.6l.4-2.9c.7-.3 1.3-.6 1.9-1.1l2.4 1 2-3.4-2-1.5c.1-.3.1-.7.1-1.1Z" stroke="currentColor" stroke-linejoin="round" stroke-width="1.4"></path></svg></span>
+                Configuración
+              </a>
+</nav>
+</div>
+</aside>
+<main class="dashboard-main imagenes-main revision-image-main image-approved-success-main image-reviewed-success-main" id="contenido-admin" tabindex="-1">
+<section aria-labelledby="subir-imagen-title" class="dashboard-section imagenes-section create-section subir-imagen-section">
+<nav aria-label="Ruta administrativa" class="edit-breadcrumb imagenes-breadcrumb">
+<a href="index.html">Dashboard</a>
+<span aria-hidden="true">/</span>
+<a href="imagenes.html">Imágenes</a>
+<span aria-hidden="true">/</span>
+<a href="imagen-guardada-exitosa.html">Imagen guardada</a>
+<span aria-hidden="true">/</span>
+<span>Confirmación de envío a revisión</span>
+</nav>
+<div class="dashboard-heading imagenes-heading create-heading">
+<div>
+<h1 id="subir-imagen-title">Confirmación para enviar imagen a revisión</h1>
+<p>Revisa esta confirmación antes de enviar la imagen a revisión dentro del flujo mock del prototipo.</p>
+</div>
+<div aria-label="Acciones superiores de subida mock" class="imagenes-top-actions create-top-actions">
+<a class="admin-primary-cta" href="imagen-enviada-revision-exitosa.html">
+<svg aria-hidden="true" fill="none" viewbox="0 0 24 24"><path d="M4 12a8 8 0 0 1 13.5-5.8M20 12a8 8 0 0 1-13.5 5.8" stroke="currentColor" stroke-linecap="round" stroke-width="1.8"></path><path d="M17 3v3.5h-3.5M7 21v-3.5h3.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path></svg>
+<span>Confirmar envío a revisión</span>
+</a>
+<a class="admin-secondary-cta" href="imagenes.html">
+<svg aria-hidden="true" fill="none" viewbox="0 0 24 24"><path d="M15 6 9 12l6 6" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9"></path></svg>
+<span>Volver a gestión de imágenes</span>
+</a>
+<a class="admin-secondary-cta" href="editar-obra.html">
+<svg aria-hidden="true" fill="none" viewbox="0 0 24 24"><path d="M7 4h8l4 4v12H7V4Z" stroke="currentColor" stroke-linejoin="round" stroke-width="1.7"></path><path d="M14 4v5h5M9 13h7M9 16h5" stroke="currentColor" stroke-linecap="round" stroke-width="1.7"></path></svg>
+<span>Volver a obra</span>
+</a>
+</div>
+</div>
+<div aria-label="Aviso de formulario mock" class="dashboard-mock-notice imagenes-mock-notice" id="subir-imagen-mock" role="note">
+<svg aria-hidden="true" fill="none" viewbox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"></circle><path d="M12 10v6" stroke="currentColor" stroke-linecap="round" stroke-width="1.8"></path><path d="M12 7.5h.01" stroke="currentColor" stroke-linecap="round" stroke-width="3"></path></svg>
+<p><strong>Confirmación mock del prototipo.</strong> Esta pantalla valida el flujo previo a enviar una imagen a revisión; no modifica archivos, metadatos ni estados reales.</p>
+</div>
+<div class="create-layout">
+<div class="create-form-stack">
+<section aria-labelledby="subir-archivo-title" class="dashboard-card create-card create-card-wide">
+<h2 id="subir-archivo-title">Archivo de imagen</h2>
+<div aria-label="Área visual mock para seleccionar archivo" class="secondary-upload" role="group">
+<svg aria-hidden="true" fill="none" viewbox="0 0 24 24"><path d="M12 16V5m0 0-4 4m4-4 4 4" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9"></path><path d="M5 16v3h14v-3" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path></svg>
+<strong>Arrastra una imagen aquí o selecciona un archivo</strong>
+<span>Formatos sugeridos: JPG o PNG. Esta área no procesa archivos reales.</span>
+<a class="admin-secondary-cta mt-3" href="#envio-revision-imagen-acciones">Seleccionar archivo</a>
+</div>
+<div class="image-loaded-row mt-4">
+<span aria-hidden="true" class="art-thumb thumb-missing"></span>
+<dl class="revision-meta-list compact">
+<div><dt>Nombre de archivo</dt><dd>umbral-de-tinta-principal.jpg</dd></div>
+<div><dt>Peso</dt><dd>2.4 MB</dd></div>
+<div><dt>Dimensiones</dt><dd>2400 × 1800 px</dd></div>
+<div><dt>Estado del archivo</dt><dd><span class="badge ready">Listo para revisión</span></dd></div>
+</dl>
+</div>
+</section>
+<section aria-labelledby="subir-obra-title" class="dashboard-card create-card create-card-wide">
+<h2 id="subir-obra-title">Obra asociada</h2>
+<div class="form-grid form-grid-basic">
+<label class="field-control" for="subir-buscar-obra">
+<span>Selector mock de obra asociada</span>
+<input aria-describedby="subir-obra-help" id="subir-buscar-obra" readonly="" type="text" value="Umbral de tinta"/>
+</label>
+<label class="field-control" for="subir-clave">
+<span>Clave de registro</span>
+<input id="subir-clave" readonly="" type="text" value="TS-2025-014"/>
+</label>
+</div>
+<dl class="revision-meta-list compact mt-3">
+<div><dt>Obra sugerida</dt><dd>Umbral de tinta</dd></div>
+<div><dt>Autor/a</dt><dd>Mariana Soto</dd></div>
+<div><dt>Año / generación</dt><dd>2025</dd></div>
+<div><dt>Técnica</dt><dd>Serigrafía experimental</dd></div>
+<div><dt>Estado de obra</dt><dd><span class="badge published">Publicada</span></dd></div>
+</dl>
+<p class="field-help" id="subir-obra-help">La imagen quedará asociada visualmente a esta obra, pero no modificará su ficha técnica.</p>
+</section>
+<section aria-labelledby="subir-tipo-title" class="dashboard-card create-card">
+<h2 id="subir-tipo-title">Tipo y uso de imagen</h2>
+<div class="form-grid form-grid-description">
+<fieldset class="status-choice">
+<legend>Tipo de imagen</legend>
+<label><input checked="" name="tipo-imagen" type="radio"/> Imagen principal</label>
+<label><input name="tipo-imagen" type="radio"/> Imagen de detalle</label>
+</fieldset>
+<fieldset class="status-choice">
+<legend>Uso dentro de la ficha</legend>
+<label><input checked="" name="uso-imagen" type="radio"/> Vista principal</label>
+<label><input name="uso-imagen" type="radio"/> Galería de detalles</label>
+</fieldset>
+<dl class="revision-meta-list compact field-wide">
+<div><dt>Estado inicial</dt><dd><span class="badge pending">Pendiente</span></dd></div>
+<div><dt>Visibilidad</dt><dd><span class="badge missing">No visible hasta revisión</span></dd></div>
+<div><dt>Descarga pública directa</dt><dd><span class="badge missing">Deshabilitada</span></dd></div>
+</dl>
+</div>
+</section>
+<section aria-labelledby="subir-metadatos-title" class="dashboard-card create-card">
+<h2 id="subir-metadatos-title">Metadatos de imagen</h2>
+<div class="form-grid form-grid-description">
+<label class="field-control" for="subir-nombre">
+<span>Nombre visible del archivo</span>
+<input id="subir-nombre" readonly="" type="text" value="umbral-de-tinta-principal.jpg"/>
+</label>
+<label class="field-control" for="subir-alt">
+<span>Texto alternativo</span>
+<input id="subir-alt" readonly="" type="text" value="Composición serigráfica abstracta de Umbral de tinta"/>
+</label>
+<label class="field-control field-wide" for="subir-notas">
+<span>Notas internas mock</span>
+<textarea id="subir-notas" readonly="">Imagen principal propuesta para revisión administrativa. Verificar correspondencia con obra, nitidez, recorte y visibilidad antes de publicarla.</textarea>
+</label>
+</div>
+</section>
+<section aria-labelledby="subir-preview-title" class="dashboard-card create-card create-card-wide">
+<h2 id="subir-preview-title">Vista previa administrativa</h2>
+<div class="revision-preview-grid">
+<div aria-label="Vista previa mock de imagen para Umbral de tinta" class="revision-image-art image-thumb-umbral" role="img"></div>
+<dl class="revision-meta-list">
+<div><dt>Nombre de obra asociada</dt><dd>Umbral de tinta</dd></div>
+<div><dt>Tipo</dt><dd>Imagen principal</dd></div>
+<div><dt>Estado inicial</dt><dd><span class="badge pending">Pendiente</span></dd></div>
+<div><dt>Visibilidad</dt><dd><span class="badge missing">No visible</span></dd></div>
+<div><dt>Última revisión</dt><dd>Pendiente</dd></div>
+</dl>
+</div>
+</section>
+<section aria-labelledby="subir-check-title" class="dashboard-card create-card create-card-wide">
+<h2 id="subir-check-title">Checklist de requisitos visuales</h2>
+<div class="revision-dual-grid">
+<ul class="review-list imagenes-review-list">
+<li><span aria-hidden="true">✓</span> Archivo seleccionado.</li>
+<li><span aria-hidden="true">✓</span> Obra asociada.</li>
+<li><span aria-hidden="true">✓</span> Tipo de imagen definido.</li>
+<li><span aria-hidden="true">✓</span> Estado inicial pendiente.</li>
+</ul>
+<ul class="review-list imagenes-review-list">
+<li><span aria-hidden="true">✓</span> Usa una imagen clara y bien enfocada.</li>
+<li><span aria-hidden="true">✓</span> Evita imágenes borrosas o mal recortadas.</li>
+<li><span aria-hidden="true">✓</span> Verifica que corresponda a la obra correcta.</li>
+<li><span aria-hidden="true">✓</span> No habilites descarga pública directa.</li>
+</ul>
+</div>
+</section>
+</div>
+<aside aria-label="Panel lateral de revisión y acciones" class="create-side-panel subir-imagen-side-panel">
+<section aria-labelledby="subir-quick-title" class="dashboard-card side-card">
+<h2 id="subir-quick-title">Revisión rápida</h2>
+<ul class="review-list">
+<li><span aria-hidden="true">✓</span> Archivo seleccionado</li>
+<li><span aria-hidden="true">✓</span> Obra asociada</li>
+<li><span aria-hidden="true">✓</span> Tipo de imagen definido</li>
+<li><span aria-hidden="true">✓</span> Visibilidad revisada</li>
+<li><span aria-hidden="true">✓</span> Descarga pública deshabilitada</li>
+</ul>
+</section>
+<section aria-labelledby="subir-criteria-title" class="dashboard-card side-card">
+<h2 id="subir-criteria-title">Criterios de imagen</h2>
+<ul class="review-list">
+<li><span aria-hidden="true">✓</span> Imagen clara y correctamente recortada.</li>
+<li><span aria-hidden="true">✓</span> Correspondencia con la obra.</li>
+<li><span aria-hidden="true">✓</span> Metadatos mínimos visibles.</li>
+<li><span aria-hidden="true">✓</span> Consistencia con miniaturas.</li>
+</ul>
+</section>
+<section aria-labelledby="subir-actions-title" class="dashboard-card side-card final-actions-card" id="subir-imagen-acciones">
+<h2 id="subir-actions-title">Acciones finales</h2>
+<div class="side-actions">
+<a class="admin-primary-cta" href="#envio-revision-imagen-acciones">Guardar imagen</a>
+<a class="admin-secondary-cta" href="#subir-imagen-mock">Guardar como pendiente</a>
+<a class="admin-secondary-cta" href="imagenes.html">Volver a gestión de imágenes</a>
+<a class="admin-secondary-cta" href="editar-obra.html">Volver a obra</a>
+</div>
+</section>
+</aside>
+</div>
+<div class="dashboard-alert imagenes-admin-note" role="note">
+<span aria-hidden="true">i</span>
+<p>Subir una imagen en este prototipo no crea una obra nueva ni modifica la ficha técnica. La imagen quedará asociada visualmente a la obra seleccionada.</p>
+</div>
+</section>
+</main>
+</div>
+<footer class="admin-footer">
+<div class="admin-footer-inner">
+<div>
+<p class="footer-brand">UNAM  /  FAD  /  Taller de Serigrafía</p>
+<p>Catálogo digital de obra serigráfica</p>
+</div>
+<span aria-hidden="true" class="footer-separator"></span>
+<a href="#contenido-admin">Derechos y créditos</a>
+</div>
+</footer>
+</div>
+<div class="confirmation-overlay image-review-confirmation-overlay" role="presentation">
+<section aria-describedby="confirm-send-review-image-description" aria-labelledby="confirm-send-review-image-title" aria-modal="true" class="confirmation-dialog image-review-confirmation-dialog" role="dialog">
+<span aria-hidden="true" class="confirmation-handle"></span>
+<div class="confirmation-header image-review-confirmation-header">
+<div>
+<p class="confirmation-kicker">Confirmación mock</p>
+<h2 id="confirm-send-review-image-title">Confirmación para enviar imagen a revisión</h2>
+</div>
+<a aria-label="Cerrar confirmación y volver a imagen guardada" class="confirmation-close" href="imagen-guardada-exitosa.html">
+<svg aria-hidden="true" fill="none" viewbox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-linecap="round" stroke-width="1.8"></path></svg>
+</a>
+</div>
+<div class="confirmation-body image-review-confirmation-body">
+<p class="confirmation-question" id="confirm-send-review-image-description">¿Confirmas que deseas enviar esta imagen a revisión?</p>
+<p class="confirmation-copy">La imagen guardada quedará marcada visualmente como en revisión dentro del flujo mock. No se creará una obra nueva ni se modificará la ficha técnica.</p>
+<article aria-label="Resumen de la imagen guardada para enviar a revisión" class="confirmation-summary image-review-confirmation-summary">
+<div aria-label="Vista previa mock de imagen propuesta para Umbral de tinta" class="art-thumb image-thumb-umbral image-review-confirmation-thumb" role="img"></div>
+<div class="image-review-confirmation-summary-copy">
+<h3>Imagen guardada</h3>
+<dl class="confirmation-meta image-review-confirmation-meta">
+<div><dt>Nombre de archivo:</dt><dd>umbral-de-tinta-principal.jpg</dd></div>
+<div><dt>Peso simulado:</dt><dd>2.4 MB</dd></div>
+<div><dt>Dimensiones simuladas:</dt><dd>2400 × 1800 px</dd></div>
+<div><dt>Tipo de imagen:</dt><dd>Imagen principal</dd></div>
+<div><dt>Estado actual:</dt><dd><span class="badge reviewed">Guardada</span></dd></div>
+<div><dt>Estado si se confirma:</dt><dd><span class="badge pending">En revisión</span></dd></div>
+<div><dt>Texto alternativo:</dt><dd>Composición serigráfica abstracta de Umbral de tinta.</dd></div>
+</dl>
+</div>
+</article>
+<section aria-labelledby="confirm-save-work-title" class="confirmation-state-card image-review-confirmation-work">
+<h3 id="confirm-save-work-title">Obra asociada</h3>
+<dl class="confirmation-meta image-review-confirmation-meta two-columns">
+<div><dt>Obra:</dt><dd>Umbral de tinta</dd></div>
+<div><dt>Autor/a:</dt><dd>Mariana Soto</dd></div>
+<div><dt>Clave de registro:</dt><dd>TS-2025-014</dd></div>
+<div><dt>Año / generación:</dt><dd>2025</dd></div>
+<div><dt>Técnica:</dt><dd>Serigrafía experimental</dd></div>
+<div><dt>Estado de obra:</dt><dd><span class="badge published">Publicada</span></dd></div>
+</dl>
+</section>
+<section aria-labelledby="confirm-save-result-title" class="confirmation-state-card image-review-confirmation-result">
+<h3 id="confirm-save-result-title">Resultado de la acción</h3>
+<dl class="confirmation-meta image-review-confirmation-meta two-columns">
+<div><dt>Estado actual:</dt><dd><span class="badge reviewed">Guardada</span></dd></div>
+<div><dt>Estado si se confirma:</dt><dd><span class="badge pending">En revisión</span></dd></div>
+<div><dt>Tipo de imagen:</dt><dd>Imagen principal</dd></div>
+<div><dt>Motivo de envío a revisión:</dt><dd>Validación administrativa de imagen guardada</dd></div>
+<div><dt>Prioridad:</dt><dd><span class="badge pending">Media</span></dd></div>
+<div><dt>Acción real:</dt><dd>No ejecutada</dd></div>
+</dl>
+</section>
+<p class="confirmation-note image-review-confirmation-warning"><span aria-hidden="true">!</span> Esta imagen quedará en revisión administrativa antes de mostrarse como validada dentro del catálogo.</p>
+<section aria-label="Checklist de confirmación para enviar imagen a revisión" class="confirmation-checklist image-review-confirmation-checklist">
+<p><span aria-hidden="true">✓</span>La imagen quedará marcada visualmente como en revisión.</p>
+<p><span aria-hidden="true">✓</span>La imagen conservará su relación con la obra seleccionada.</p>
+<p><span aria-hidden="true">✓</span>La revisión será registrada solo dentro del flujo mock.</p>
+<p><span aria-hidden="true">✓</span>No se modificará la ficha técnica de la obra.</p>
+<p><span aria-hidden="true">✓</span>No se habilitará descarga pública directa.</p>
+<p><span aria-hidden="true">✓</span>No se creará una obra nueva.</p>
+</section>
+<p class="confirmation-note" id="confirmacion-envio-revision-imagen-mock-note"><span aria-hidden="true">i</span> Confirmación mock del prototipo. Esta pantalla no envía a revisión, no modifica archivos, metadatos ni estados reales.</p>
+</div>
+<div aria-label="Acciones de confirmación de envío a revisión mock" class="confirmation-actions image-review-confirmation-actions" id="envio-revision-imagen-acciones">
+<a class="admin-primary-cta confirmation-reserved-submit" href="imagen-enviada-revision-exitosa.html">Confirmar envío a revisión</a>
+<a class="admin-secondary-cta" href="imagen-guardada-exitosa.html">Cancelar y volver a imagen guardada</a>
+<a class="admin-secondary-cta" href="imagenes.html">Volver a gestión de imágenes</a>
+<a class="admin-text-cta" href="editar-obra.html">Volver a obra</a>
+</div>
+</section>
+</div>
+<script src="js/admin-main.js"></script>
+</body>
+</html>
