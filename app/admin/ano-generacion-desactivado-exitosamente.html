@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+
+<html class="scroll-smooth" lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<meta content="Estado de éxito estático mock para año o generación desactivado del Prototipo 2 Admin del Catálogo Digital de Obra Serigráfica — UNAM / FAD / Taller de Serigrafía." name="description"/>
+<title>Prototipo 2 Admin — Año generación desactivado exitosamente</title>
+<!-- Prototipo estático: Tailwind vía CDN. Sin build, backend, Auth real, Supabase, Storage ni CRUD. -->
+    <script src="../js/tailwind.config.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+<link href="css/admin.css" rel="stylesheet"/>
+</head>
+<body class="admin-body">
+<a class="skip-link" href="#contenido-admin">Saltar al contenido administrativo</a>
+<div class="admin-page">
+<header class="admin-header" data-admin-header="">
+<div class="admin-header-inner">
+<a aria-label="Ir al dashboard administrativo del Catálogo Digital de Obra Serigráfica" class="brand-lockup" href="index.html">
+<span class="brand-title">Catálogo digital de obra serigráfica</span>
+<span class="brand-subtitle">UNAM  /  FAD  /  Taller de Serigrafía</span>
+</a>
+<div aria-label="Controles administrativos estáticos" class="admin-header-actions">
+<span aria-label="Área administrativa" class="admin-chip">
+<svg aria-hidden="true" fill="none" viewbox="0 0 24 24"><path d="M7 10V7a5 5 0 0 1 10 0v3" stroke="currentColor" stroke-linecap="round" stroke-width="1.8"></path><rect height="10" rx="2" stroke="currentColor" stroke-width="1.8" width="14" x="5" y="10"></rect><path d="M12 14v2" stroke="currentColor" stroke-linecap="round" stroke-width="1.8"></path></svg>
+              Administración
+            </span>
+<span aria-hidden="true" class="header-separator"></span>
+<span aria-label="Usuario administrador mock" class="admin-user-placeholder">
+<span aria-hidden="true" class="admin-avatar">A</span>
+<span>Admin</span>
+<svg aria-hidden="true" fill="none" viewbox="0 0 24 24"><path d="m7 10 5 5 5-5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path></svg>
+</span>
+<span aria-hidden="true" class="header-separator"></span>
+<a class="reserved-action" href="login.html">Cerrar sesión</a>
+</div>
+</div>
+<div class="admin-mobile-bar">
+<button aria-controls="admin-mobile-menu" aria-expanded="false" aria-label="Abrir menú administrativo" class="admin-mobile-toggle" data-admin-menu-toggle="" type="button">
+<svg aria-hidden="true" fill="none" viewbox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-linecap="round" stroke-width="1.8"></path></svg>
+<span>Menú admin</span>
+</button>
+<span aria-current="page" class="mobile-current-section">
+<svg aria-hidden="true" fill="none" viewbox="0 0 24 24"><path d="M7 4v3M17 4v3M5 9h14M6 6h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7"></path><path d="M8 13h3M8 16h6" stroke="currentColor" stroke-linecap="round" stroke-width="1.7"></path></svg>
+            Años / generaciones
+          </span>
+</div>
+<div class="admin-mobile-panel" data-admin-mobile-panel="" hidden="" id="admin-mobile-menu">
+<nav aria-label="Navegación administrativa móvil" class="admin-mobile-nav">
+<a class="admin-mobile-nav-link" href="index.html">Dashboard <span>Disponible</span></a>
+<a class="admin-mobile-nav-link" href="obras.html">Obras <span>Disponible</span></a>
+<a class="admin-mobile-nav-link" href="crear-obra.html">Crear obra <span>Disponible</span></a>
+<a class="admin-mobile-nav-link" href="tecnicas.html">Técnicas <span>Disponible</span></a>
+<a class="admin-mobile-nav-link" href="series.html">Series <span>Disponible</span></a>
+<a aria-current="page" class="admin-mobile-nav-link is-active" href="anos-generaciones.html">Años / generaciones <span>Actual</span></a>
+<a class="admin-mobile-nav-link" href="tags.html">Tags <span>Disponible</span></a>
+<a class="admin-mobile-nav-link" href="imagenes.html">Imágenes <span>Disponible</span></a>
+<a class="admin-mobile-nav-link" href="usuarios.html">Usuarios admin <span>Disponible</span></a>
+<a class="admin-mobile-nav-link" href="configuracion.html">Configuración <span>Disponible</span></a>
+<a class="admin-mobile-nav-link" href="login.html">Cerrar sesión <span>Mock</span></a>
+</nav>
+</div>
+</header>
+<div class="admin-shell">
+<aside aria-label="Navegación administrativa principal" class="admin-sidebar">
+<div class="admin-sidebar-inner">
+<p class="sidebar-label">Panel administrativo</p>
+<nav aria-label="Módulos administrativos" class="admin-sidebar-nav">
+<a class="admin-nav-link" href="index.html">
+<span aria-hidden="true" class="nav-icon"><svg fill="none" viewbox="0 0 24 24"><path d="M4 5h7v7H4V5Zm9 0h7v7h-7V5ZM4 14h7v5H4v-5Zm9 0h7v5h-7v-5Z" stroke="currentColor" stroke-linejoin="round" stroke-width="1.7"></path></svg></span>
+                Dashboard
+              </a>
+<a class="admin-nav-link" href="obras.html">
+<span aria-hidden="true" class="nav-icon"><svg fill="none" viewbox="0 0 24 24"><path d="M7 4h8l4 4v12H7V4Z" stroke="currentColor" stroke-linejoin="round" stroke-width="1.7"></path><path d="M14 4v5h5M9 13h7M9 16h5" stroke="currentColor" stroke-linecap="round" stroke-width="1.7"></path></svg></span>
+                Obras
+              </a>
+<a class="admin-nav-link" href="crear-obra.html">
+<span aria-hidden="true" class="nav-icon"><svg fill="none" viewbox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-linecap="round" stroke-width="1.8"></path><rect height="16" rx="2.5" stroke="currentColor" stroke-width="1.7" width="16" x="4" y="4"></rect></svg></span>
+                Crear obra
+              </a>
+<a class="admin-nav-link" href="tecnicas.html">
+<span aria-hidden="true" class="nav-icon"><svg fill="none" viewbox="0 0 24 24"><path d="M5 18h14M8 18V9a4 4 0 0 1 8 0v2M7 9h10M10 21h4" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7"></path></svg></span>
+                Técnicas
+              </a>
+<a class="admin-nav-link" href="series.html">
+<span aria-hidden="true" class="nav-icon"><svg fill="none" viewbox="0 0 24 24"><path d="M8 7h12M8 12h12M8 17h12" stroke="currentColor" stroke-linecap="round" stroke-width="1.7"></path><path d="M4 7h.01M4 12h.01M4 17h.01" stroke="currentColor" stroke-linecap="round" stroke-width="3"></path></svg></span>
+                Series
+              </a>
+<a aria-current="page" class="admin-nav-link is-active" href="anos-generaciones.html">
+<span aria-hidden="true" class="nav-icon"><svg fill="none" viewbox="0 0 24 24"><path d="M7 4v3M17 4v3M5 9h14M6 6h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7"></path><path d="M8 13h3M8 16h6" stroke="currentColor" stroke-linecap="round" stroke-width="1.7"></path></svg></span>
+                Años / generaciones
+              </a>
+<a class="admin-nav-link" href="tags.html">
+<span aria-hidden="true" class="nav-icon"><svg fill="none" viewbox="0 0 24 24"><path d="m4 12 8-8 8 8-8 8-8-8Z" stroke="currentColor" stroke-linejoin="round" stroke-width="1.7"></path><path d="M12 8h.01" stroke="currentColor" stroke-linecap="round" stroke-width="3"></path></svg></span>
+                Tags
+              </a>
+<a class="admin-nav-link" href="imagenes.html">
+<span aria-hidden="true" class="nav-icon"><svg fill="none" viewbox="0 0 24 24"><rect height="14" rx="2" stroke="currentColor" stroke-width="1.7" width="16" x="4" y="5"></rect><path d="m6.5 16 4.2-4.2 3 3 2-2L19 16" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7"></path><path d="M8.5 9h.01" stroke="currentColor" stroke-linecap="round" stroke-width="3"></path></svg></span>
+                Imágenes
+              </a>
+<a class="admin-nav-link" href="usuarios.html">
+<span aria-hidden="true" class="nav-icon"><svg fill="none" viewbox="0 0 24 24"><path d="M8 12a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm8-1a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5ZM3.5 19a4.5 4.5 0 0 1 9 0M13.5 17.5a3.7 3.7 0 0 1 7 1.5" stroke="currentColor" stroke-linecap="round" stroke-width="1.7"></path></svg></span>
+                Usuarios admin
+              </a>
+<a class="admin-nav-link" href="configuracion.html">
+<span aria-hidden="true" class="nav-icon"><svg fill="none" viewbox="0 0 24 24"><path d="M12 15.5A3.5 3.5 0 1 0 12 8a3.5 3.5 0 0 0 0 7.5Z" stroke="currentColor" stroke-width="1.7"></path><path d="M19 12a7.2 7.2 0 0 0-.1-1.1l2-1.5-2-3.4-2.4 1a7 7 0 0 0-1.9-1.1L14.3 3h-4.6l-.4 2.9A7 7 0 0 0 7.4 7l-2.4-1-2 3.4 2 1.5A7.2 7.2 0 0 0 5 12c0 .4 0 .8.1 1.1l-2 1.5 2 3.4 2.4-1c.6.5 1.2.8 1.9 1.1l.4 2.9h4.6l.4-2.9c.7-.3 1.3-.6 1.9-1.1l2.4 1 2-3.4-2-1.5c.1-.3.1-.7.1-1.1Z" stroke="currentColor" stroke-linejoin="round" stroke-width="1.4"></path></svg></span>
+                Configuración
+              </a>
+</nav>
+</div>
+</aside>
+<main class="dashboard-main imagenes-main revision-image-main image-approved-success-main" id="contenido-admin" tabindex="-1">
+<section aria-labelledby="ano-generacion-desactivado-title" class="dashboard-section imagenes-section create-section subir-imagen-section">
+<nav aria-label="Ruta administrativa" class="edit-breadcrumb imagenes-breadcrumb">
+<a href="index.html">Dashboard</a>
+<span aria-hidden="true">/</span>
+<a href="anos-generaciones.html">Años generaciones</a>
+<span aria-hidden="true">/</span>
+<span>Desactivación de año generación</span>
+</nav>
+<div class="dashboard-heading imagenes-heading create-heading">
+<div>
+<h1 id="ano-generacion-desactivado-title">Año generación desactivado exitosamente</h1>
+<p>El año o generación se muestra como desactivado dentro del flujo mock del prototipo.</p>
+</div>
+<div aria-label="Acciones superiores posteriores mock" class="imagenes-top-actions create-top-actions">
+<a class="admin-primary-cta" href="anos-generaciones.html">
+<svg aria-hidden="true" fill="none" viewbox="0 0 24 24"><path d="M15 6 9 12l6 6" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9"></path></svg>
+<span>Volver a gestión de años/generaciones</span>
+</a>
+<a class="admin-secondary-cta" href="agregar-editar-ano-generacion.html">
+<svg aria-hidden="true" fill="none" viewbox="0 0 24 24"><path d="M4 20h4l10.5-10.5a2.1 2.1 0 0 0-3-3L5 17v3Z" stroke="currentColor" stroke-linejoin="round" stroke-width="1.7"></path><path d="m14 7 3 3" stroke="currentColor" stroke-linecap="round" stroke-width="1.7"></path></svg>
+<span>Volver a edición de año/generación</span>
+</a>
+<a class="admin-secondary-cta" href="#ano-generacion-desactivado-mock-note">
+<svg aria-hidden="true" fill="none" viewbox="0 0 24 24"><path d="M8 12h8M8 16h5M7 4h10v16H7V4Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7"></path></svg>
+<span>Ver obras asociadas</span>
+</a>
+</div>
+</div>
+<div aria-label="Aviso de estado de éxito mock" class="dashboard-mock-notice imagenes-mock-notice" id="ano-generacion-desactivado-mock" role="note">
+<svg aria-hidden="true" fill="none" viewbox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"></circle><path d="m8 12 2.6 2.6L16.5 9" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9"></path></svg>
+<p><strong>Estado de éxito mock del prototipo.</strong> Esta pantalla valida el resultado visual posterior a desactivar un año o generación; no desactiva, guarda, edita ni modifica registros reales.</p>
+</div>
+<section aria-label="Resultado de desactivación de año o generación" class="success-hero dashboard-card">
+<div aria-hidden="true" class="success-hero-icon">✓</div>
+<div>
+<h2>Año / generación desactivado correctamente</h2>
+<p>El año 2025 se muestra como desactivado dentro del catálogo administrativo. Las obras asociadas se conservan y no se modificaron fichas individuales de obra.</p>
+</div>
+</section>
+<div class="create-layout">
+<div class="create-form-stack">
+<section aria-labelledby="ano-desactivado-resumen-title" class="dashboard-card create-card create-card-wide">
+<h2 id="ano-desactivado-resumen-title">Resumen del año o generación</h2>
+<div class="revision-dual-grid">
+<dl class="revision-meta-list compact">
+<div><dt>Nombre</dt><dd>Generación 2025</dd></div>
+<div><dt>Slug</dt><dd>generacion-2025</dd></div>
+<div><dt>Año / generación</dt><dd>2025</dd></div>
+<div><dt>Nombre descriptivo</dt><dd>Producción 2025 del Taller de Serigrafía</dd></div>
+<div><dt>Periodo académico</dt><dd>2025</dd></div>
+</dl>
+<dl class="revision-meta-list compact">
+<div><dt>Estado simulado anterior</dt><dd><span class="badge reviewed">Activo</span></dd></div>
+<div><dt>Estado simulado posterior</dt><dd><span class="badge missing">Inactivo</span></dd></div>
+<div><dt>Visibilidad pública</dt><dd><span class="badge missing">No visible</span></dd></div>
+<div><dt>Última actualización simulada</dt><dd>14 mayo 2026</dd></div>
+<div><dt>Acción real no ejecutada</dt><dd>Sin desactivación persistente</dd></div>
+</dl>
+</div>
+</section>
+<section aria-labelledby="ano-desactivado-estado-title" class="dashboard-card create-card create-card-wide">
+<h2 id="ano-desactivado-estado-title">Estado, visibilidad y clasificación</h2>
+<div class="revision-dual-grid">
+<dl class="revision-meta-list compact">
+<div><dt>Estado anterior</dt><dd><span class="badge reviewed">Activo</span></dd></div>
+<div><dt>Estado actual</dt><dd><span class="badge missing">Inactivo</span></dd></div>
+<div><dt>Visibilidad anterior</dt><dd><span class="badge reviewed">Visible</span></dd></div>
+<div><dt>Visibilidad actual</dt><dd><span class="badge missing">No visible</span></dd></div>
+</dl>
+<dl class="revision-meta-list compact">
+<div><dt>Filtro público</dt><dd><span class="badge missing">Desactivado</span></dd></div>
+<div><dt>Mostrar en archivo público</dt><dd><span class="badge missing">Desactivado</span></dd></div>
+<div><dt>Técnicas predominantes</dt><dd>Serigrafía, Técnica mixta</dd></div>
+<div><dt>Series asociadas</dt><dd>Cartografías interiores, Archivo sensible</dd></div>
+</dl>
+</div>
+</section>
+<section aria-labelledby="ano-desactivado-impacto-title" class="dashboard-card create-card create-card-wide">
+<h2 id="ano-desactivado-impacto-title">Impacto simulado sobre obras asociadas</h2>
+<div class="revision-dual-grid">
+<dl class="revision-meta-list compact">
+<div><dt>Obras asociadas simuladas</dt><dd>42</dd></div>
+<div><dt>Obras publicadas</dt><dd>34</dd></div>
+<div><dt>Obras pendientes</dt><dd>2</dd></div>
+<div><dt>Obras eliminadas</dt><dd>0</dd></div>
+</dl>
+<dl class="revision-meta-list compact">
+<div><dt>Fichas modificadas</dt><dd>0</dd></div>
+<div><dt>Registros eliminados</dt><dd>0</dd></div>
+<div><dt>Estado de relación</dt><dd><span class="badge reviewed">Conservada</span></dd></div>
+<div><dt>Tipo de cambio</dt><dd>Desactivación visual de año / generación</dd></div>
+</dl>
+</div>
+</section>
+<section aria-labelledby="ano-desactivado-datos-title" class="dashboard-card create-card create-card-wide">
+<h2 id="ano-desactivado-datos-title">Datos de desactivación</h2>
+<div class="revision-dual-grid">
+<dl class="revision-meta-list compact">
+<div><dt>Desactivado el</dt><dd>14 mayo 2026</dd></div>
+<div><dt>Desactivado por</dt><dd>Admin</dd></div>
+<div><dt>Tipo de cambio</dt><dd>Desactivación de año / generación</dd></div>
+</dl>
+<dl class="revision-meta-list compact">
+<div><dt>Estado del proceso</dt><dd><span class="badge ready">Desactivado correctamente</span></dd></div>
+<div><dt>Registro eliminado</dt><dd><span class="badge missing">No</span></dd></div>
+<div><dt>Acción real no ejecutada</dt><dd>Sin CRUD, guardado ni desactivación real</dd></div>
+</dl>
+</div>
+</section>
+<section aria-labelledby="ano-desactivado-impacto-actual-title" class="dashboard-card create-card create-card-wide">
+<h2 id="ano-desactivado-impacto-actual-title">Impacto actual</h2>
+<div class="revision-dual-grid">
+<ul class="review-list imagenes-review-list">
+<li><span aria-hidden="true">✓</span> El año ya no aparece como activo.</li>
+<li><span aria-hidden="true">✓</span> La visibilidad pública quedó desactivada.</li>
+<li><span aria-hidden="true">✓</span> Puede dejar de aparecer en filtros públicos.</li>
+</ul>
+<ul class="review-list imagenes-review-list">
+<li><span aria-hidden="true">✓</span> Las obras asociadas conservaron su relación.</li>
+<li><span aria-hidden="true">✓</span> No se modificaron fichas individuales.</li>
+<li><span aria-hidden="true">✓</span> No se eliminaron registros del catálogo.</li>
+<li><span aria-hidden="true">✓</span> El año podrá reactivarse posteriormente.</li>
+</ul>
+</div>
+</section>
+</div>
+<aside aria-label="Panel lateral de acciones posteriores de año o generación desactivado" class="create-side-panel subir-imagen-side-panel">
+<section aria-labelledby="ano-desactivado-lateral-title" class="dashboard-card side-card">
+<h2 id="ano-desactivado-lateral-title">Año/generación desactivado</h2>
+<h3 class="admin-record-title font-extrabold text-admin-blueDeep">Generación 2025</h3>
+<p class="mock-helper-text">Estado simulado posterior a la desactivación visual.</p>
+<dl class="publication-summary imagenes-summary-list">
+<div><dt>Slug</dt><dd>generacion-2025</dd></div>
+<div><dt>Estado</dt><dd><span class="badge missing">Inactivo</span></dd></div>
+<div><dt>Visibilidad</dt><dd><span class="badge missing">No visible</span></dd></div>
+<div><dt>Obras asociadas</dt><dd>42</dd></div>
+<div><dt>Técnicas predominantes</dt><dd>Serigrafía · Técnica mixta</dd></div>
+<div><dt>Series asociadas</dt><dd>Cartografías interiores · Archivo sensible</dd></div>
+</dl>
+</section>
+<section aria-labelledby="ano-desactivado-acciones-title" class="dashboard-card side-card">
+<h2 id="ano-desactivado-acciones-title">Acciones</h2>
+<div class="side-actions">
+<a class="admin-primary-cta" href="confirmar-reactivar-ano-generacion.html">Reactivar año/generación</a>
+<a class="admin-secondary-cta" href="anos-generaciones.html">Volver a gestión de años/generaciones</a>
+<a class="admin-secondary-cta" href="agregar-editar-ano-generacion.html">Volver a edición de año/generación</a>
+<a class="admin-secondary-cta" href="#ano-generacion-desactivado-mock-note">Ver obras asociadas</a>
+</div>
+</section>
+</aside>
+</div>
+<div class="dashboard-alert imagenes-admin-note" id="ano-generacion-desactivado-mock-note" role="note">
+<span aria-hidden="true">i</span>
+<p>Desactivar un año cambia su estado y visibilidad dentro del catálogo. No elimina obras asociadas ni modifica fichas individuales. Esta pantalla solo representa el resultado visual dentro del flujo mock.</p>
+</div>
+</section>
+</main>
+</div>
+<footer class="admin-footer">
+<div class="admin-footer-inner">
+<div>
+<p class="footer-brand">UNAM  /  FAD  /  Taller de Serigrafía</p>
+<p>Catálogo digital de obra serigráfica</p>
+</div>
+<span aria-hidden="true" class="footer-separator"></span>
+<a href="#contenido-admin">Derechos y créditos</a>
+</div>
+</footer>
+</div>
+<script src="js/admin-main.js"></script>
+</body>
+</html>
