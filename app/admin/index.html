@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - Catálogo de Obra Serigráfica</title>
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+  <!-- ========================
+       PÁGINA DE LOGIN (estado inicial)
+       ======================== -->
+  <div id="loginPage" class="login-container">
+    <div class="login-box">
+      <div class="login-header">
+        <h1>Admin Panel</h1>
+        <p>Catálogo de Obra Serigráfica — UNAM/FAD</p>
+      </div>
+
+      <form id="loginForm" class="login-form">
+        <div class="form-group">
+          <label for="email">Correo</label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            placeholder="admin@example.com"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="password">Contraseña</label>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            placeholder="••••••••"
+            required
+          />
+        </div>
+
+        <div id="loginError" class="error-message" style="display: none;"></div>
+
+        <button type="submit" class="btn btn-primary btn-block">Ingresar</button>
+      </form>
+
+      <div class="login-footer">
+        <p><a href="#" class="link-forgot">¿Olvidaste tu contraseña?</a></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================
+       DASHBOARD (estado autenticado)
+       ======================== -->
+  <div id="dashboardPage" class="dashboard-container" style="display: none;">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">
+          <span class="logo-text">AC</span>
+        </div>
+        <h2>Catálogo</h2>
+      </div>
+
+      <nav class="sidebar-nav">
+        <button class="nav-item active" data-section="dashboard">
+          <span class="nav-icon">📊</span>
+          <span class="nav-label">Dashboard</span>
+        </button>
+        <button class="nav-item" data-section="obras">
+          <span class="nav-icon">🎨</span>
+          <span class="nav-label">Obras</span>
+        </button>
+        <button class="nav-item" data-section="tecnicas">
+          <span class="nav-icon">🔧</span>
+          <span class="nav-label">Técnicas</span>
+        </button>
+        <button class="nav-item" data-section="tags">
+          <span class="nav-icon">🏷️</span>
+          <span class="nav-label">Tags</span>
+        </button>
+        <button class="nav-item" data-section="usuarios">
+          <span class="nav-icon">👥</span>
+          <span class="nav-label">Usuarios</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button id="logoutBtn" class="btn btn-secondary btn-block">
+          Cerrar Sesión
+        </button>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+      <!-- HEADER -->
+      <header class="admin-header">
+        <div class="header-left">
+          <h1 id="pageTitle">Dashboard</h1>
+          <p id="pageSubtitle">Bienvenido al panel administrativo</p>
+        </div>
+        <div class="header-right">
+          <div class="user-info">
+            <span id="userEmail">admin@example.com</span>
+            <div class="user-avatar">👤</div>
+          </div>
+        </div>
+      </header>
+
+      <!-- CONTENT AREA -->
+      <div class="content-area">
+        <!-- ========== DASHBOARD SECTION ========== -->
+        <section id="dashboardSection" class="section active">
+          <div class="section-header">
+            <h2>Dashboard</h2>
+            <p>Resumen del catálogo</p>
+          </div>
+
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-value" id="totalObras">0</div>
+              <div class="stat-label">Obras Totales</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value" id="totalTecnicas">0</div>
+              <div class="stat-label">Técnicas</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value" id="totalTags">0</div>
+              <div class="stat-label">Tags</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value" id="totalUsuarios">0</div>
+              <div class="stat-label">Usuarios Admin</div>
+            </div>
+          </div>
+
+          <div class="recent-section">
+            <h3>Últimas Obras</h3>
+            <table class="recent-table">
+              <thead>
+                <tr>
+                  <th>Título</th>
+                  <th>Artista</th>
+                  <th>Año</th>
+                  <th>Estado</th>
+                  <th>Fecha</th>
+                </tr>
+              </thead>
+              <tbody id="recentObrasList">
+                <tr>
+                  <td colspan="5" class="empty-state">Cargando obras...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- ========== OBRAS SECTION ========== -->
+        <section id="obrasSection" class="section">
+          <div class="section-header">
+            <h2>Gestionar Obras</h2>
+            <button class="btn btn-primary" id="newObraBtn">+ Nueva Obra</button>
+          </div>
+
+          <div class="filter-bar">
+            <input
+              type="text"
+              id="searchObras"
+              placeholder="Buscar por título..."
+              class="search-input"
+            />
+            <select id="filterEstado" class="select-input">
+              <option value="">Todos los estados</option>
+              <option value="borrador">Borrador</option>
+              <option value="publicado">Publicado</option>
+              <option value="archivado">Archivado</option>
+            </select>
+          </div>
+
+          <table class="obras-table">
+            <thead>
+              <tr>
+                <th>Título</th>
+                <th>Artista</th>
+                <th>Año</th>
+                <th>Técnica</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="obrasList">
+              <tr>
+                <td colspan="6" class="empty-state">Cargando obras...</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="pagination">
+            <button id="loadMoreBtn" class="btn btn-secondary">Cargar más</button>
+            <span id="obraCount" class="count-info">0 de 0</span>
+          </div>
+        </section>
+
+        <!-- ========== TÉCNICAS SECTION ========== -->
+        <section id="tecnicasSection" class="section">
+          <div class="section-header">
+            <h2>Gestionar Técnicas</h2>
+            <button class="btn btn-primary" id="newTecnicaBtn">+ Nueva Técnica</button>
+          </div>
+
+          <table class="tecnicas-table">
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Descripción</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tecnicasList">
+              <tr>
+                <td colspan="3" class="empty-state">Cargando técnicas...</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- ========== TAGS SECTION ========== -->
+        <section id="tagsSection" class="section">
+          <div class="section-header">
+            <h2>Gestionar Tags</h2>
+            <button class="btn btn-primary" id="newTagBtn">+ Nuevo Tag</button>
+          </div>
+
+          <table class="tags-table">
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Slug</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tagsList">
+              <tr>
+                <td colspan="3" class="empty-state">Cargando tags...</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- ========== USUARIOS SECTION ========== -->
+        <section id="usuariosSection" class="section">
+          <div class="section-header">
+            <h2>Gestionar Usuarios Admin</h2>
+            <button class="btn btn-primary" id="newUsuarioBtn">+ Nuevo Usuario</button>
+          </div>
+
+          <table class="usuarios-table">
+            <thead>
+              <tr>
+                <th>Email</th>
+                <th>Rol</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="usuariosList">
+              <tr>
+                <td colspan="4" class="empty-state">Cargando usuarios...</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- ========================
+       MODALES (vacíos por ahora, se llenan en 1.B-1.F)
+       ======================== -->
+  <div id="modalContainer"></div>
+
+  <!-- SCRIPTS -->
+  <!-- Supabase JS Client (v2) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+  <script src="js/auth.js" defer></script>
+  <script src="js/dashboard.js" defer></script>
+  <script src="js/obras-list.js" defer></script>
+  <script src="js/navigation.js" defer></script>
+</body>
+</html>
