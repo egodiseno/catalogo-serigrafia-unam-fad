@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+
+<html class="scroll-smooth" lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<meta content="Confirmación administrativa estática para reenviar invitación de usuario admin del Prototipo 2 para el Catálogo Digital de Obra Serigráfica — UNAM / FAD / Taller de Serigrafía." name="description"/>
+<title>Prototipo 2 Admin — Confirmación para reenviar invitación de usuario admin</title>
+<!-- Prototipo estático: Tailwind vía CDN. Sin build, backend, Auth real, Supabase, Storage ni CRUD. -->
+    <script src="../js/tailwind.config.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+<link href="css/admin.css" rel="stylesheet"/>
+</head>
+<body class="confirmation-page admin-body">
+<a class="skip-link" href="#contenido-admin">Saltar al contenido administrativo</a>
+<div class="admin-page">
+<header class="admin-header" data-admin-header="">
+<div class="admin-header-inner">
+<a aria-label="Ir al dashboard administrativo del Catálogo Digital de Obra Serigráfica" class="brand-lockup" href="index.html">
+<span class="brand-title">Catálogo digital de obra serigráfica</span>
+<span class="brand-subtitle">UNAM  /  FAD  /  Taller de Serigrafía</span>
+</a>
+<div aria-label="Controles administrativos estáticos" class="admin-header-actions">
+<span aria-label="Área administrativa" class="admin-chip">
+<svg aria-hidden="true" fill="none" viewbox="0 0 24 24"><path d="M7 10V7a5 5 0 0 1 10 0v3" stroke="currentColor" stroke-linecap="round" stroke-width="1.8"></path><rect height="10" rx="2" stroke="currentColor" stroke-width="1.8" width="14" x="5" y="10"></rect><path d="M12 14v2" stroke="currentColor" stroke-linecap="round" stroke-width="1.8"></path></svg>
+              Administración
+            </span>
+<span aria-hidden="true" class="header-separator"></span>
+<span aria-label="Usuario administrador mock" class="admin-user-placeholder">
+<span aria-hidden="true" class="admin-avatar">A</span>
+<span>Admin</span>
+<svg aria-hidden="true" fill="none" viewbox="0 0 24 24"><path d="m7 10 5 5 5-5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path></svg>
+</span>
+<span aria-hidden="true" class="header-separator"></span>
+<a class="reserved-action" href="login.html">Cerrar sesión</a>
+</div>
+</div>
+<div class="admin-mobile-bar">
+<button aria-controls="admin-mobile-menu" aria-expanded="false" aria-label="Abrir menú administrativo" class="admin-mobile-toggle" data-admin-menu-toggle="" type="button">
+<svg aria-hidden="true" fill="none" viewbox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-linecap="round" stroke-width="1.8"></path></svg>
+<span>Menú admin</span>
+</button>
+<span aria-current="page" class="mobile-current-section"><svg aria-hidden="true" fill="none" viewbox="0 0 24 24"><path d="M8 12a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm8-1a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5ZM3.5 19a4.5 4.5 0 0 1 9 0M13.5 17.5a3.7 3.7 0 0 1 7 1.5" stroke="currentColor" stroke-linecap="round" stroke-width="1.7"></path></svg>
+            Usuarios admin
+          </span>
+</div>
+<div class="admin-mobile-panel" data-admin-mobile-panel="" hidden="" id="admin-mobile-menu">
+<nav aria-label="Navegación administrativa móvil" class="admin-mobile-nav">
+<a class="admin-mobile-nav-link" href="index.html">Dashboard <span>Disponible</span></a>
+<a class="admin-mobile-nav-link" href="obras.html">Obras <span>Disponible</span></a>
+<a class="admin-mobile-nav-link" href="crear-obra.html">Crear obra <span>Disponible</span></a>
+<a class="admin-mobile-nav-link" href="tecnicas.html">Técnicas <span>Disponible</span></a>
+<a class="admin-mobile-nav-link" href="series.html">Series <span>Disponible</span></a>
+<a class="admin-mobile-nav-link" href="anos-generaciones.html">Años / generaciones <span>Disponible</span></a>
+<a class="admin-mobile-nav-link" href="tags.html">Tags <span>Disponible</span></a>
+<a class="admin-mobile-nav-link" href="imagenes.html">Imágenes <span>Disponible</span></a>
+<a aria-current="page" class="admin-mobile-nav-link is-active" href="usuarios.html">Usuarios admin <span>Actual</span></a>
+<a class="admin-mobile-nav-link" href="configuracion.html">Configuración <span>Disponible</span></a>
+<a class="admin-mobile-nav-link" href="login.html">Cerrar sesión <span>Mock</span></a>
+</nav>
+</div>
+</header>
+<div class="admin-shell">
+<aside aria-label="Navegación administrativa principal" class="admin-sidebar">
+<div class="admin-sidebar-inner">
+<p class="sidebar-label">Panel administrativo</p>
+<nav aria-label="Módulos administrativos" class="admin-sidebar-nav">
+<a class="admin-nav-link" href="index.html">
+<span aria-hidden="true" class="nav-icon"><svg fill="none" viewbox="0 0 24 24"><path d="M4 5h7v7H4V5Zm9 0h7v7h-7V5ZM4 14h7v5H4v-5Zm9 0h7v5h-7v-5Z" stroke="currentColor" stroke-linejoin="round" stroke-width="1.7"></path></svg></span>
+                Dashboard
+              </a>
+<a class="admin-nav-link" href="obras.html">
+<span aria-hidden="true" class="nav-icon"><svg fill="none" viewbox="0 0 24 24"><path d="M7 4h8l4 4v12H7V4Z" stroke="currentColor" stroke-linejoin="round" stroke-width="1.7"></path><path d="M14 4v5h5M9 13h7M9 16h5" stroke="currentColor" stroke-linecap="round" stroke-width="1.7"></path></svg></span>
+                Obras
+              </a>
+<a class="admin-nav-link" href="crear-obra.html">
+<span aria-hidden="true" class="nav-icon"><svg fill="none" viewbox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-linecap="round" stroke-width="1.8"></path><rect height="16" rx="2.5" stroke="currentColor" stroke-width="1.7" width="16" x="4" y="4"></rect></svg></span>
+                Crear obra
+              </a>
+<a class="admin-nav-link" href="tecnicas.html">
+<span aria-hidden="true" class="nav-icon"><svg fill="none" viewbox="0 0 24 24"><path d="M5 18h14M8 18V9a4 4 0 0 1 8 0v2M7 9h10M10 21h4" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7"></path></svg></span>
+                Técnicas
+              </a>
+<a class="admin-nav-link" href="series.html">
+<span aria-hidden="true" class="nav-icon"><svg fill="none" viewbox="0 0 24 24"><path d="M8 7h12M8 12h12M8 17h12" stroke="currentColor" stroke-linecap="round" stroke-width="1.7"></path><path d="M4 7h.01M4 12h.01M4 17h.01" stroke="currentColor" stroke-linecap="round" stroke-width="3"></path></svg></span>
+                Series
+              </a>
+<a class="admin-nav-link" href="anos-generaciones.html">
+<span aria-hidden="true" class="nav-icon"><svg fill="none" viewbox="0 0 24 24"><path d="M7 4v3M17 4v3M5 9h14M6 6h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7"></path><path d="M8 13h3M8 16h6" stroke="currentColor" stroke-linecap="round" stroke-width="1.7"></path></svg></span>
+                Años / generaciones
+              </a>
+<a class="admin-nav-link" href="tags.html">
+<span aria-hidden="true" class="nav-icon"><svg fill="none" viewbox="0 0 24 24"><path d="m4 12 8-8 8 8-8 8-8-8Z" stroke="currentColor" stroke-linejoin="round" stroke-width="1.7"></path><path d="M12 8h.01" stroke="currentColor" stroke-linecap="round" stroke-width="3"></path></svg></span>
+                Tags
+              </a>
+<a class="admin-nav-link" href="imagenes.html">
+<span aria-hidden="true" class="nav-icon"><svg fill="none" viewbox="0 0 24 24"><rect height="14" rx="2" stroke="currentColor" stroke-width="1.7" width="16" x="4" y="5"></rect><path d="m6.5 16 4.2-4.2 3 3 2-2L19 16" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7"></path><path d="M8.5 9h.01" stroke="currentColor" stroke-linecap="round" stroke-width="3"></path></svg></span>
+                Imágenes
+              </a>
+<a aria-current="page" class="admin-nav-link is-active" href="usuarios.html">
+<span aria-hidden="true" class="nav-icon"><svg fill="none" viewbox="0 0 24 24"><path d="M8 12a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm8-1a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5ZM3.5 19a4.5 4.5 0 0 1 9 0M13.5 17.5a3.7 3.7 0 0 1 7 1.5" stroke="currentColor" stroke-linecap="round" stroke-width="1.7"></path></svg></span>
+                Usuarios admin
+              </a>
+<a class="admin-nav-link" href="configuracion.html">
+<span aria-hidden="true" class="nav-icon"><svg fill="none" viewbox="0 0 24 24"><path d="M12 15.5A3.5 3.5 0 1 0 12 8a3.5 3.5 0 0 0 0 7.5Z" stroke="currentColor" stroke-width="1.7"></path><path d="M19 12a7.2 7.2 0 0 0-.1-1.1l2-1.5-2-3.4-2.4 1a7 7 0 0 0-1.9-1.1L14.3 3h-4.6l-.4 2.9A7 7 0 0 0 7.4 7l-2.4-1-2 3.4 2 1.5A7.2 7.2 0 0 0 5 12c0 .4 0 .8.1 1.1l-2 1.5 2 3.4 2.4-1c.6.5 1.2.8 1.9 1.1l.4 2.9h4.6l.4-2.9c.7-.3 1.3-.6 1.9-1.1l2.4 1 2-3.4-2-1.5c.1-.3.1-.7.1-1.1Z" stroke="currentColor" stroke-linejoin="round" stroke-width="1.4"></path></svg></span>
+                Configuración
+              </a>
+</nav>
+</div>
+</aside>
+<main class="dashboard-main imagenes-main revision-image-main image-approved-success-main" id="contenido-admin" tabindex="-1">
+<section aria-labelledby="confirmar-reenvio-invitacion-usuario-title" class="dashboard-section imagenes-section create-section confirmar-reenvio-invitacion-usuario-section" id="confirmar-reenvio-invitacion-usuario">
+<nav aria-label="Ruta administrativa" class="edit-breadcrumb imagenes-breadcrumb">
+<a href="index.html">Dashboard</a>
+<span aria-hidden="true">/</span>
+<a href="usuarios.html">Usuarios admin</a>
+<span aria-hidden="true">/</span>
+<a href="invitacion-usuario-enviada-exitosamente.html">Invitación enviada</a>
+<span aria-hidden="true">/</span>
+<span>Confirmación de reenvío</span>
+</nav>
+<div class="dashboard-heading imagenes-heading create-heading">
+<div>
+<h1 id="confirmar-reenvio-invitacion-usuario-title">Confirmación para reenviar invitación de usuario admin</h1>
+<p>Revisa esta confirmación antes de reenviar visualmente la invitación de usuario admin dentro del flujo mock del prototipo.</p>
+</div>
+<div aria-label="Acciones superiores de reenvío de invitación mock" class="imagenes-top-actions create-top-actions">
+<a class="admin-primary-cta" href="invitacion-usuario-reenviada-exitosamente.html">
+<svg aria-hidden="true" fill="none" viewbox="0 0 24 24"><path d="M21 3 9.5 14.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path><path d="m21 3-7 18-4.5-6.5L3 10l18-7Z" stroke="currentColor" stroke-linejoin="round" stroke-width="1.7"></path></svg>
+<span>Confirmar reenvío de invitación</span>
+</a>
+<a class="admin-secondary-cta" href="invitacion-usuario-enviada-exitosamente.html">
+<svg aria-hidden="true" fill="none" viewbox="0 0 24 24"><path d="M15 6 9 12l6 6" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9"></path></svg>
+<span>Cancelar y volver a invitación enviada</span>
+</a>
+<a class="admin-secondary-cta" href="usuarios.html">
+<svg aria-hidden="true" fill="none" viewbox="0 0 24 24"><path d="M15 6 9 12l6 6" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9"></path></svg>
+<span>Volver a gestión de usuarios</span>
+</a>
+<a class="admin-secondary-cta" href="#confirmar-reenvio-invitacion-usuario-mock-note">
+<svg aria-hidden="true" fill="none" viewbox="0 0 24 24"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.8"></circle><path d="M12 7v5l3 2" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path></svg>
+<span>Ver actividad</span>
+</a>
+</div>
+</div>
+<div aria-label="Aviso de estado de éxito mock" class="dashboard-mock-notice imagenes-mock-notice" id="confirmar-reenvio-invitacion-usuario-mock" role="note">
+<svg aria-hidden="true" fill="none" viewbox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"></circle><path d="m8 12 2.6 2.6L16.5 9" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9"></path></svg>
+<p><strong>Confirmación mock del prototipo.</strong> Esta pantalla valida el flujo previo a reenviar una invitación de usuario admin; no crea usuarios, no reenvía correos ni modifica permisos reales.</p>
+</div>
+<section aria-label="Confirmación de reenvío de invitación" class="success-hero dashboard-card">
+<div aria-hidden="true" class="success-hero-icon">!</div>
+<div>
+<h2>Reenvío de invitación pendiente de confirmación</h2>
+<p>Se mostrará un reenvío visual de la invitación para <strong>admin.invitado@fad.unam.mx</strong>. El acceso seguirá pendiente hasta que la persona acepte la invitación en una etapa real posterior.</p>
+</div>
+</section>
+<div class="create-layout">
+<div class="create-form-stack">
+<section aria-labelledby="invitacion-exito-resumen-title" class="dashboard-card create-card create-card-wide">
+<h2 id="invitacion-exito-resumen-title">Resumen de la invitación enviada</h2>
+<div class="revision-dual-grid">
+<dl class="revision-meta-list compact">
+<div><dt>Nombre</dt><dd>Admin invitado</dd></div>
+<div><dt>Correo mock</dt><dd>admin.invitado@fad.unam.mx</dd></div>
+<div><dt>Rol</dt><dd><span class="badge neutral">Consulta administrativa</span></dd></div>
+<div><dt>Estado simulado anterior</dt><dd><span class="badge pending">Invitación pendiente</span></dd></div>
+<div><dt>Estado si se confirma</dt><dd><span class="badge pending">Invitación reenviada</span></dd></div>
+</dl>
+<dl class="revision-meta-list compact">
+<div><dt>Fecha simulada de invitación original</dt><dd>19 mayo 2026</dd></div>
+<div><dt>Acceso previsto</dt><dd>Panel administrativo</dd></div>
+<div><dt>Tipo de cuenta</dt><dd>Usuario administrador</dd></div>
+<div><dt>Perfil público creado</dt><dd>No</dd></div>
+<div><dt>Fecha simulada de reenvío</dt><dd>19 mayo 2026</dd></div>
+<div><dt>Acción real no ejecutada</dt><dd>Sin reenvío real ni modificación de permisos</dd></div>
+</dl>
+</div>
+</section>
+<section aria-labelledby="invitacion-exito-permisos-title" class="dashboard-card create-card create-card-wide">
+<h2 id="invitacion-exito-permisos-title">Permisos visuales por rol</h2>
+<div class="revision-dual-grid">
+<dl class="revision-meta-list compact">
+<div><dt>Rol asignado</dt><dd>Consulta administrativa</dd></div>
+<div><dt>Permiso principal</dt><dd>Consultar información administrativa</dd></div>
+<div><dt>Gestión de obras</dt><dd>No permitida</dd></div>
+<div><dt>Gestión de usuarios</dt><dd>No permitida</dd></div>
+</dl>
+<ul class="review-list imagenes-review-list">
+<li><span aria-hidden="true">✓</span> Puede consultar información sin modificar registros.</li>
+<li><span aria-hidden="true">✓</span> No puede crear, editar ni publicar obras.</li>
+<li><span aria-hidden="true">✓</span> No puede gestionar usuarios administradores.</li>
+<li><span aria-hidden="true">✓</span> No puede modificar configuración general.</li>
+</ul>
+</div>
+</section>
+<section aria-labelledby="invitacion-exito-mensaje-title" class="dashboard-card create-card create-card-wide">
+<h2 id="invitacion-exito-mensaje-title">Mensaje simulado de reenvío</h2>
+<p class="mock-helper-text">Te reenviamos la invitación para colaborar en la administración del Catálogo Digital de Obra Serigráfica.</p>
+</section>
+<section aria-labelledby="invitacion-exito-impacto-title" class="dashboard-card create-card create-card-wide">
+<h2 id="invitacion-exito-impacto-title">Impacto actual</h2>
+<div class="revision-dual-grid">
+<ul class="review-list imagenes-review-list">
+<li><span aria-hidden="true">✓</span> La invitación se mostraría como reenviada dentro del flujo mock.</li>
+<li><span aria-hidden="true">✓</span> El acceso permanece pendiente de aceptación.</li>
+<li><span aria-hidden="true">✓</span> El rol administrativo permanece visualmente asociado.</li>
+</ul>
+<ul class="review-list imagenes-review-list">
+<li><span aria-hidden="true">✓</span> No se reenvía correo real.</li>
+<li><span aria-hidden="true">✓</span> No se crea usuario duplicado.</li>
+<li><span aria-hidden="true">✓</span> No se modificaron permisos, obras ni registros del catálogo.</li>
+</ul>
+</div>
+</section>
+</div>
+<aside aria-label="Panel lateral de acciones posteriores de invitación" class="create-side-panel subir-imagen-side-panel">
+<section aria-labelledby="invitacion-exito-lateral-title" class="dashboard-card side-card">
+<h2 id="invitacion-exito-lateral-title">Usuario invitado</h2>
+<h3 class="admin-record-title font-extrabold text-admin-blueDeep">Admin invitado</h3>
+<p class="mock-helper-text">admin.invitado@fad.unam.mx</p>
+<dl class="publication-summary imagenes-summary-list">
+<div><dt>Rol</dt><dd>Consulta administrativa</dd></div>
+<div><dt>Estado actual</dt><dd><span class="badge reviewed">Invitación enviada</span></dd></div>
+<div><dt>Estado anterior</dt><dd><span class="badge pending">Invitación pendiente</span></dd></div>
+<div><dt>Invitación original</dt><dd>19 mayo 2026</dd></div>
+<div><dt>Acceso</dt><dd>Panel administrativo</dd></div>
+<div><dt>Reenvío simulado</dt><dd>19 mayo 2026</dd></div>
+<div><dt>Acción real</dt><dd>No ejecutada</dd></div>
+</dl>
+</section>
+<section aria-labelledby="invitacion-datos-title" class="dashboard-card side-card">
+<h2 id="invitacion-datos-title">Datos de invitación</h2>
+<dl class="publication-summary imagenes-summary-list">
+<div><dt>Enviada originalmente</dt><dd>19 mayo 2026</dd></div>
+<div><dt>Reenvío simulado</dt><dd>19 mayo 2026</dd></div>
+<div><dt>Enviada por</dt><dd>Admin</dd></div>
+<div><dt>Estado actual</dt><dd><span class="badge reviewed">Invitación enviada</span></dd></div>
+<div><dt>Acceso activo</dt><dd>No</dd></div>
+<div><dt>Perfil público creado</dt><dd>No</dd></div>
+</dl>
+</section>
+<section aria-labelledby="invitacion-exito-acciones-title" class="dashboard-card side-card final-actions-card">
+<h2 id="invitacion-exito-acciones-title">Acciones posteriores</h2>
+<div class="side-actions">
+<a class="admin-primary-cta" href="invitacion-usuario-reenviada-exitosamente.html">Confirmar reenvío de invitación</a>
+<a class="admin-secondary-cta" href="invitacion-usuario-enviada-exitosamente.html">Cancelar y volver a invitación enviada</a>
+<a class="admin-secondary-cta" href="usuarios.html">Volver a gestión de usuarios</a>
+<a class="admin-secondary-cta" href="#confirmar-reenvio-invitacion-usuario-mock-note">Ver actividad</a>
+</div>
+</section>
+</aside>
+</div>
+<div class="dashboard-alert imagenes-admin-note" id="confirmar-reenvio-invitacion-usuario-mock-note" role="note">
+<span aria-hidden="true">i</span>
+<p>Reenviar una invitación mantiene el acceso pendiente hasta que sea aceptada. No crea usuarios duplicados, no envía correos reales ni modifica obras o registros del catálogo dentro del flujo mock.</p>
+</div>
+</section>
+</main>
+</div>
+<footer class="admin-footer">
+<div class="admin-footer-inner">
+<div>
+<p class="footer-brand">UNAM  /  FAD  /  Taller de Serigrafía</p>
+<p>Catálogo digital de obra serigráfica</p>
+</div>
+<span aria-hidden="true" class="footer-separator"></span>
+<a href="#contenido-admin">Derechos y créditos</a>
+</div>
+</footer>
+</div>
+<div class="confirmation-overlay" role="presentation">
+<section aria-describedby="confirm-resend-invite-description" aria-labelledby="confirm-resend-invite-title" aria-modal="true" class="confirmation-dialog image-review-confirmation-dialog" role="dialog">
+<div aria-hidden="true" class="confirmation-handle"></div>
+<header class="confirmation-header image-review-confirmation-header">
+<div>
+<h2 id="confirm-resend-invite-title">Reenviar invitación</h2>
+</div>
+<a aria-label="Cerrar confirmación y volver a invitación enviada" class="confirmation-close" href="invitacion-usuario-enviada-exitosamente.html">
+<svg aria-hidden="true" fill="none" viewbox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-linecap="round" stroke-width="1.9"></path></svg>
+</a>
+</header>
+<div class="confirmation-body image-review-confirmation-body">
+<p class="confirmation-question">¿Confirmas que deseas reenviar esta invitación?</p>
+<p class="confirmation-copy" id="confirm-resend-invite-description">Se registraría visualmente un reenvío de invitación para <strong>admin.invitado@fad.unam.mx</strong>. El acceso seguirá pendiente hasta que la persona acepte la invitación.</p>
+<section aria-labelledby="pending-invitation-summary-title" class="confirmation-state-card image-review-confirmation-work">
+<h3 id="pending-invitation-summary-title">Resumen de la invitación enviada</h3>
+<dl class="confirmation-meta image-review-confirmation-meta two-columns">
+<div><dt>Nombre</dt><dd>Admin invitado</dd></div>
+<div><dt>Correo mock</dt><dd>admin.invitado@fad.unam.mx</dd></div>
+<div><dt>Rol</dt><dd><span class="badge neutral">Consulta administrativa</span></dd></div>
+<div><dt>Estado actual</dt><dd><span class="badge reviewed">Invitación enviada</span></dd></div>
+<div><dt>Estado si se confirma</dt><dd><span class="badge pending">Invitación reenviada</span></dd></div>
+<div><dt>Invitación original</dt><dd>19 mayo 2026</dd></div>
+<div><dt>Reenvío simulado</dt><dd>19 mayo 2026</dd></div>
+<div><dt>Acción real</dt><dd>No ejecutada</dd></div>
+</dl>
+</section>
+<section aria-labelledby="resend-role-permissions-title" class="confirmation-state-card image-review-confirmation-work">
+<h3 id="resend-role-permissions-title">Permisos visuales del rol Consulta administrativa</h3>
+<ul class="review-list imagenes-review-list">
+<li><span aria-hidden="true">✓</span> Puede consultar información administrativa del catálogo.</li>
+<li><span aria-hidden="true">✓</span> No puede crear, editar ni publicar obras.</li>
+<li><span aria-hidden="true">✓</span> No puede gestionar usuarios administradores.</li>
+<li><span aria-hidden="true">✓</span> No puede modificar configuración general.</li>
+</ul>
+</section>
+<section aria-labelledby="resend-message-title" class="confirmation-state-card image-review-confirmation-result">
+<h3 id="resend-message-title">Mensaje simulado de reenvío</h3>
+<p class="confirmation-copy">Te reenviamos la invitación para colaborar en la administración del Catálogo Digital de Obra Serigráfica.</p>
+</section>
+<p class="confirmation-note image-review-confirmation-warning"><span aria-hidden="true">!</span> Revisa que el correo mock institucional y el rol asignado sigan siendo correctos antes de confirmar el reenvío visual.</p>
+<div aria-label="Checklist de confirmación de reenvío" class="confirmation-checklist image-review-confirmation-checklist">
+<p><span aria-hidden="true">✓</span> Se registraría nuevamente la invitación en el flujo mock.</p>
+<p><span aria-hidden="true">✓</span> El acceso seguiría pendiente hasta la aceptación.</p>
+<p><span aria-hidden="true">✓</span> No se crearía una cuenta duplicada.</p>
+<p><span aria-hidden="true">✓</span> No se modificarían permisos reales.</p>
+<p><span aria-hidden="true">✓</span> No se enviarían correos reales.</p>
+<p><span aria-hidden="true">✓</span> No se modificarían obras ni registros del catálogo.</p>
+</div>
+<div aria-label="Acciones de confirmación" class="confirmation-actions image-review-confirmation-actions">
+<a class="admin-primary-cta" href="invitacion-usuario-reenviada-exitosamente.html">Confirmar reenvío de invitación</a>
+<a class="admin-secondary-cta" href="invitacion-usuario-enviada-exitosamente.html">Cancelar y volver a invitación enviada</a>
+<a class="admin-secondary-cta" href="usuarios.html">Volver a gestión de usuarios</a>
+<a class="admin-text-cta" href="#confirmar-reenvio-invitacion-usuario-mock-note">Ver actividad</a>
+</div>
+</div>
+</section>
+</div>
+<script src="js/admin-main.js"></script>
+</body>
+</html>
