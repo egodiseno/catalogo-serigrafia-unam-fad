@@ -1,0 +1,124 @@
+/**
+ * dashboard.js — Métricas en tiempo real desde Supabase
+ * Fase 1.C
+ *
+ * Depende de: config.js (window.supabase_client)
+ * IDs DOM: totalObras, totalTecnicas, totalTags, totalUsuarios, recentObrasList
+ */
+
+document.addEventListener('DOMContentLoaded', () => {
+  const client = window.supabase_client;
+
+  // ── Referencias DOM ───────────────────────────────────
+  const elObras     = document.getElementById('totalObras');
+  const elTecnicas  = document.getElementById('totalTecnicas');
+  const elTags      = document.getElementById('totalTags');
+  const elUsuarios  = document.getElementById('totalUsuarios');
+  const elRecientes = document.getElementById('recentObrasList');
+
+  // ── Carga de estadísticas ─────────────────────────────
+  async function loadStats() {
+    setLoading(true);
+
+    try {
+      const [
+        { count: obras     },
+        { count: tecnicas  },
+        { count: tags      },
+        { count: usuarios  },
+        { data: recientes  },
+      ] = await Promise.all([
+        client.from('obras').select('*',          { count: 'exact', head: true }),
+        client.from('tecnicas').select('*',        { count: 'exact', head: true }),
+        client.from('tags').select('*',            { count: 'exact', head: true }),
+        client.from('usuarios_admin').select('*',  { count: 'exact', head: true }),
+        client.from('obras')
+              .select('id, titulo, artista, año, estado, created_at')
+              .order('created_at', { ascending: false })
+              .limit(5),
+      ]);
+
+      // Stat cards
+      elObras.textContent    = obras    ?? 0;
+      elTecnicas.textContent = tecnicas ?? 0;
+      elTags.textContent     = tags     ?? 0;
+      elUsuarios.textContent = usuarios ?? 0;
+
+      // Tabla de últimas obras
+      renderRecientes(recientes ?? []);
+
+    } catch (err) {
+      console.error('dashboard loadStats:', err);
+      renderError();
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // ── Render tabla ──────────────────────────────────────
+  function renderRecientes(obras) {
+    if (!elRecientes) return;
+
+    if (obras.length === 0) {
+      elRecientes.innerHTML =
+        '<tr><td colspan="5" class="empty-state">No hay obras registradas aún.</td></tr>';
+      return;
+    }
+
+    elRecientes.innerHTML = obras.map(obra => {
+      const fecha = obra.created_at
+        ? new Date(obra.created_at).toLocaleDateString('es-MX', {
+            day: '2-digit', month: 'short', year: 'numeric'
+          })
+        : '—';
+
+      return `
+        <tr>
+          <td>${escHtml(obra.titulo)}</td>
+          <td>${escHtml(obra.artista)}</td>
+          <td>${obra.año ?? '—'}</td>
+          <td><span class="badge badge-${obra.estado}">${obra.estado}</span></td>
+          <td>${fecha}</td>
+        </tr>`;
+    }).join('');
+  }
+
+  function renderError() {
+    if (elRecientes) {
+      elRecientes.innerHTML =
+        '<tr><td colspan="5" class="empty-state">Error al cargar datos.</td></tr>';
+    }
+    [elObras, elTecnicas, elTags, elUsuarios].forEach(el => {
+      if (el) el.textContent = '—';
+    });
+  }
+
+  function setLoading(on) {
+    if (!elRecientes) return;
+    if (on) {
+      elRecientes.innerHTML =
+        '<tr><td colspan="5" class="empty-state">Cargando…</td></tr>';
+    }
+  }
+
+  /** Escapa HTML para evitar XSS en datos del servidor */
+  function escHtml(str) {
+    if (!str) return '—';
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  // ── Recarga al volver al Dashboard desde otra sección ─
+  const dashboardNavBtn = document.querySelector('[data-section="dashboard"]');
+  if (dashboardNavBtn) {
+    dashboardNavBtn.addEventListener('click', loadStats);
+  }
+
+  // ── Carga inicial ─────────────────────────────────────
+  loadStats();
+
+  console.log('📊 dashboard.js cargado');
+});
