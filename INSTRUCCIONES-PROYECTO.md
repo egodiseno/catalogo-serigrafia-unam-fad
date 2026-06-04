@@ -68,66 +68,332 @@ Crear un **catálogo digital académico y cultural** para la consulta y exhibici
 
 ---
 
-### 🚀 FASE 1: ADMIN FUNCIONAL (2 sesiones)
+### 🚀 FASE 1: ADMIN FUNCIONAL (6 SUBFASES / 6 CHATS)
 
-**Objetivo:** Sistema admin real para alimentar el catálogo
+**Objetivo general:** Sistema admin real para alimentar el catálogo
 
-**Dependencia:** FASE 0 (Supabase setup)
+**Dependencia:** ✅ FASE 0 completada (Supabase setup con 6 tablas)
+
+**Arquitectura admin:**
+```
+app/admin/
+├── index.html (login + dashboard)
+├── css/admin.css (estilos admin)
+├── js/
+│   ├── auth.js (Supabase Auth)
+│   ├── dashboard.js (métricas)
+│   ├── obras-list.js (tabla obras)
+│   ├── obras-form.js (crear/editar)
+│   └── storage.js (upload imágenes)
+└── data/
+    └── mock.json (datos de prueba locales)
+```
+
+---
+
+### 📋 FASE 1.A: SETUP ESTRUCTURA ADMIN (1 chat)
+
+**Objetivo:** Crear base HTML/CSS limpia para admin
+
+**Dependencia:** FASE 0 ✅
 
 **Tareas:**
-1. **Login:** 
-   - Formulario email/password
-   - Supabase Auth (sign up deshabilitado)
-   - Redirect a dashboard si autenticado
+1. Crear carpeta `app/admin/` con estructura base
+2. Crear `app/admin/index.html`:
+   - Layout 2 columnas (sidebar + contenido)
+   - Sidebar con navegación: Dashboard, Obras, Técnicas, Tags, Usuarios
+   - Header con logo + logout button
+   - Área de contenido vacía (se llena en siguientes fases)
+3. Crear `app/admin/css/admin.css`:
+   - Variables de diseño (colores UNAM, espaciado, tipografía)
+   - Componentes base (botones, inputs, tablas, modales)
+   - Layout sidebar responsivo
+4. Crear `app/admin/js/config.js`:
+   - Constantes Supabase (SUPABASE_URL, SUPABASE_ANON_KEY desde .env)
+   - Inicializar cliente Supabase
+5. Testing responsivo (desktop, tablet)
 
-2. **Dashboard:** 
-   - Métricas: total obras, últimas subidas, total técnicas
-   - Gráfico simple (obras por técnica)
+**Entregables:**
+- ✅ `app/admin/index.html` (estructura limpia)
+- ✅ `app/admin/css/admin.css` (tokens + componentes)
+- ✅ `app/admin/js/config.js` (configuración Supabase)
+- ✅ Commit a GitHub: "FASE 1.A: Setup estructura admin"
 
-3. **Listado obras:** 
-   - Tabla con: titulo, artista, año, técnica, estado
-   - Filtros: año, técnica, estado
-   - Búsqueda por título
-   - Botones editar/eliminar por fila
+**Qué llevar al siguiente chat (1.B):**
+- Estructura admin creada y testeada
+- CSS listo para usar
+- Configuración Supabase funcional
 
-4. **Crear obra:**
-   - Formulario: título, artista, año, descripción, técnica, tags, estado
-   - Upload imagen (Supabase Storage)
-   - Preview de imagen
-   - Guardar → Supabase
-   - Feedback (éxito/error)
+---
 
-5. **Editar obra:**
-   - Cargar datos existentes
-   - Modificar campos
-   - Cambiar imagen si aplica
-   - Guardar → Supabase
+### 🔐 FASE 1.B: LOGIN (SUPABASE AUTH) (1 chat)
 
-6. **Eliminar obra:**
-   - Confirmación modal
-   - Eliminar imagen también
-   - Actualizar DB
+**Objetivo:** Implementar autenticación real con Supabase Auth
 
-7. **Gestión técnicas** (CRUD simple):
-   - Listar técnicas
-   - Crear nueva
-   - Editar
-   - Eliminar
+**Dependencia:** FASE 1.A ✅
 
-8. **Gestión tags** (CRUD simple):
-   - Listar tags
-   - Crear nuevo
-   - Editar
-   - Eliminar
+**Tareas:**
+1. En `app/admin/index.html`:
+   - Crear página de login (formulario email/password)
+   - Input email, input password, botón "Ingresar"
+   - Mensaje de error dinámico
+   - Link "¿Olvidaste contraseña?" (texto, no funcional aún)
 
-**Patrón reutilizable:** 
-```
-Formulario → Validación → Supabase → Actualizar UI → Feedback
-```
+2. Crear `app/admin/js/auth.js`:
+   - Función `loginWithEmail(email, password)` → Supabase Auth
+   - Función `logout()` → Supabase
+   - Función `checkAuthStatus()` → verifica si usuario está logueado
+   - Si NO logueado → mostrar login
+   - Si logueado → mostrar dashboard
 
-**No hacer:** Dashboard complejo, reportes, etc. Mínimo funcional.
+3. En `app/admin/index.html`:
+   - Estado inicial: página de login visible
+   - Después de login: dashboard/navbar visible
+   - Botón logout en header
 
-**Archivo:** app/admin/index.html (nuevo inicio admin)
+4. Validaciones básicas:
+   - Email válido (regex simple)
+   - Password no vacío
+   - Mostrar errores de Supabase (usuario no existe, contraseña incorrecta)
+
+5. Testing:
+   - Crear usuario admin en Supabase Auth (email: admin@test.com, password: test123)
+   - Verificar login funciona
+   - Verificar logout funciona
+   - Verificar token se guarda (localStorage)
+
+**Entregables:**
+- ✅ `app/admin/js/auth.js` (login/logout funcionales)
+- ✅ `app/admin/index.html` actualizado (formulario login)
+- ✅ Usuario admin creado en Supabase Auth
+- ✅ Commit a GitHub: "FASE 1.B: Implementa Supabase Auth (login)"
+
+**Qué llevar al siguiente chat (1.C):**
+- Auth funcional (login/logout)
+- Usuario admin creado en Supabase
+- Token guardado en localStorage
+
+---
+
+### 📊 FASE 1.C: DASHBOARD (MÉTRICAS BÁSICAS) (1 chat)
+
+**Objetivo:** Dashboard con estadísticas básicas de la DB
+
+**Dependencia:** FASE 1.B ✅ (auth funcional)
+
+**Tareas:**
+1. En `app/admin/index.html`:
+   - Crear sección Dashboard (después de login)
+   - Grid de 4 tarjetas:
+     * Total obras (número grande)
+     * Total técnicas (número)
+     * Total tags (número)
+     * Últimas obras subidas (lista con 3-5 últimas)
+
+2. Crear `app/admin/js/dashboard.js`:
+   - Función `loadDashboardStats()`:
+     * SELECT COUNT(*) FROM obras
+     * SELECT COUNT(*) FROM tecnicas
+     * SELECT COUNT(*) FROM tags
+     * SELECT * FROM obras ORDER BY created_at DESC LIMIT 5
+   - Actualizar DOM con datos
+
+3. Estilos:
+   - Tarjetas con color azul UNAM (#013b75)
+   - Números grandes y legibles
+   - Tabla de últimas obras simple
+
+4. Testing:
+   - Insertar datos de prueba en Supabase (SQL o manualmente)
+   - Verificar que dashboard muestra números correctos
+   - Verificar que tabla de últimas obras es correcta
+
+**Entregables:**
+- ✅ `app/admin/js/dashboard.js` (queries a DB)
+- ✅ `app/admin/index.html` actualizado (sección dashboard)
+- ✅ Datos de prueba en Supabase
+- ✅ Commit a GitHub: "FASE 1.C: Crea Dashboard con métricas"
+
+**Qué llevar al siguiente chat (1.D):**
+- Dashboard funcional
+- Queries a Supabase funcionando
+- Datos de prueba en DB
+
+---
+
+### 📋 FASE 1.D: LISTADO OBRAS (TABLA DESDE DB) (1 chat)
+
+**Objetivo:** Tabla dinámica de obras desde Supabase con filtros básicos
+
+**Dependencia:** FASE 1.C ✅ (queries funcionales)
+
+**Tareas:**
+1. En `app/admin/index.html`:
+   - Crear sección "Obras" (en navbar)
+   - Tabla con columnas:
+     * Título
+     * Artista
+     * Año
+     * Técnica
+     * Estado (borrador/publicado/archivado)
+     * Acciones (editar, eliminar)
+
+2. Crear `app/admin/js/obras-list.js`:
+   - Función `loadObrasList()`:
+     * SELECT * FROM obras ORDER BY created_at DESC
+     * Renderizar tabla dinámicamente
+   - Función `deleteObra(id)`:
+     * DELETE FROM obras WHERE id = ?
+     * Mostrar confirmación antes
+     * Actualizar tabla
+
+3. Filtros simples (en tabla):
+   - Búsqueda por título (en tiempo real)
+   - Dropdown: filtrar por estado (todos, borrador, publicado, archivado)
+   - Botón "Cargar más" (lazy load, 10 obras por página)
+
+4. Paginación:
+   - Mostrar contador: "Mostrando X de Y obras"
+   - Botón "Cargar más" para siguiente página
+
+5. Testing:
+   - Verificar tabla carga obras de DB
+   - Verificar búsqueda funciona
+   - Verificar filtro de estado funciona
+   - Verificar delete funciona (con confirmación)
+
+**Entregables:**
+- ✅ `app/admin/js/obras-list.js` (tabla + filtros)
+- ✅ `app/admin/index.html` actualizado (sección obras)
+- ✅ Tabla funcional, filtros, paginación, delete
+- ✅ Commit a GitHub: "FASE 1.D: Implementa tabla de Obras"
+
+**Qué llevar al siguiente chat (1.E):**
+- Tabla de obras funcional
+- Filtros y búsqueda funcionales
+- Delete funcional
+
+---
+
+### ✏️ FASE 1.E: CREAR/EDITAR OBRA (FORMULARIO) (1 chat)
+
+**Objetivo:** Formulario para crear/editar obras en Supabase
+
+**Dependencia:** FASE 1.D ✅ (listado funcional)
+
+**Tareas:**
+1. En `app/admin/index.html`:
+   - Crear modal/página de formulario "Crear Obra"
+   - Botón "Nueva Obra" en sección obras abre modal
+   - Botón "Editar" en tabla abre modal con datos precargados
+
+2. Crear `app/admin/js/obras-form.js`:
+   - Formulario con campos:
+     * Título (text, required)
+     * Artista (text, required)
+     * Año (number, 1800-2100)
+     * Técnica (dropdown desde tecnicas)
+     * Descripción (textarea)
+     * Estado (radio: borrador/publicado/archivado)
+   - Validaciones:
+     * Título y artista no vacíos
+     * Año válido
+   - Funciones:
+     * `saveObra(obra)` → INSERT/UPDATE en DB
+     * `loadTecnicas()` → SELECT FROM tecnicas (dropdown)
+     * `loadObraToEdit(id)` → cargar datos para editar
+
+3. Modal/formulario UI:
+   - Botones: Guardar, Cancelar
+   - Mostrar mensajes de éxito/error
+   - Cerrar modal después de guardar
+   - Actualizar tabla de obras
+
+4. Testing:
+   - Crear obra nueva (verificar en DB)
+   - Editar obra existente (verificar cambios en DB)
+   - Validaciones funcionan (sin título, año inválido)
+   - Dropdown técnicas carga dinámicamente
+
+**Entregables:**
+- ✅ `app/admin/js/obras-form.js` (formulario CRUD)
+- ✅ `app/admin/index.html` actualizado (modal formulario)
+- ✅ CREATE + UPDATE funcionando en DB
+- ✅ Validaciones básicas
+- ✅ Commit a GitHub: "FASE 1.E: Formulario crear/editar Obras"
+
+**Qué llevar al siguiente chat (1.F):**
+- Formulario funcional (create/update)
+- Validaciones funcionando
+- Dropdown técnicas dinámico
+
+---
+
+### 📸 FASE 1.F: UPLOAD IMÁGENES (SUPABASE STORAGE) (1 chat)
+
+**Objetivo:** Upload de imágenes a Supabase Storage y asociar a obras
+
+**Dependencia:** FASE 1.E ✅ (formulario obra funcional)
+
+**Tareas:**
+1. En Supabase:
+   - Crear bucket "artworks" en Storage (acceso público para lectura)
+   - Configurar permisos RLS (anon: upload, authenticated: all)
+
+2. En `app/admin/index.html`:
+   - Agregar input file en formulario obra
+   - Preview de imagen antes de guardar
+   - Mostrar URL de imagen después de upload
+
+3. Crear `app/admin/js/storage.js`:
+   - Función `uploadImage(file)`:
+     * Upload a Supabase Storage /artworks/
+     * Retorna URL pública
+     * Genera nombre único (timestamp + hash)
+   - Función `deleteImage(url)`:
+     * Elimina archivo de Storage
+   - Manejo de errores (archivo muy grande, formato inválido)
+
+4. En `obras-form.js`:
+   - Integrar upload en guardar obra
+   - Asociar imagen URL a tabla imagenes
+   - Marcar como principal si es la primera
+
+5. Testing:
+   - Upload imagen JPG/PNG
+   - Verificar archivo en Supabase Storage
+   - Verificar URL en tabla imagenes
+   - Verificar preview funciona
+   - Verificar delete imagen funciona
+
+**Entregables:**
+- ✅ `app/admin/js/storage.js` (upload/delete imágenes)
+- ✅ `app/admin/index.html` actualizado (input file + preview)
+- ✅ Upload a Supabase Storage funcional
+- ✅ Imágenes asociadas a obras en DB
+- ✅ Bucket "artworks" configurado en Supabase
+- ✅ Commit a GitHub: "FASE 1.F: Upload de imágenes a Supabase Storage"
+
+**Qué llevar al siguiente chat (FASE 2):**
+- Admin completo y funcional
+- Upload de imágenes funcional
+- CRUD obras 100% operacional
+
+---
+
+### ✅ FASE 1 COMPLETADA CUANDO:
+
+- ✅ 1.A: Estructura admin creada
+- ✅ 1.B: Login funcional (usuario logueado/deslogueado)
+- ✅ 1.C: Dashboard muestra estadísticas reales
+- ✅ 1.D: Tabla de obras con filtros y delete
+- ✅ 1.E: Crear y editar obras en DB
+- ✅ 1.F: Upload de imágenes a Storage
+- ✅ Testing E2E: crear obra → upload imagen → aparecer en tabla
+- ✅ 6 commits a GitHub (uno por subfase)
+- ✅ Documentación en CLAUDE_WORKFLOW.md
+
+**Total estimado:** 6 chats (1-2 horas cada uno)
 
 ---
 
