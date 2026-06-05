@@ -27,11 +27,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const fTecnica     = document.getElementById('fTecnica');
   const fDescripcion = document.getElementById('fDescripcion');
 
-  // Upload de imagen
-  const fImagen       = document.getElementById('fImagen');
-  const imagenPreview = document.getElementById('imagenPreview');
-  const previewImg    = document.getElementById('previewImg');
-  const removeImgBtn  = document.getElementById('removeImageBtn');
+  // Tag selector
+  const addTagBtn = document.getElementById('addTagBtn');
+  const tagSelect = document.getElementById('tagSelect');
 
   if (!modal) return;
 
@@ -153,26 +151,27 @@ document.addEventListener('DOMContentLoaded', () => {
         obraId = data.id;
       }
 
-      // ── Upload de imagen (si se seleccionó una) ──────
-      const storage = window.StorageModule;
-      if (storage && fImagen?.files?.length > 0) {
-        saveBtn.textContent = 'Subiendo imagen…';
-        const file   = fImagen.files[0];
-        const result = await storage.uploadImage(file, obraId);
-
-        if (!result.success) {
-          // La obra ya se guardó; avisamos pero no bloqueamos
-          showAlert(`Obra guardada, pero la imagen falló: ${result.error}`, 'error');
-          setTimeout(() => {
-            close();
-            document.dispatchEvent(new CustomEvent('obras:refresh'));
-          }, 1800);
-          return;
+      // ── Upload multi-imagen ───────────────────────────
+      const multi = window.MultiImageUpload;
+      if (multi) {
+        const imgs = multi.getImages();
+        if (imgs.length > 0) {
+          saveBtn.textContent = `Subiendo ${imgs.length} imagen${imgs.length > 1 ? 'es' : ''}…`;
+          const uploadResult = await multi.uploadAll(obraId);
+          if (uploadResult.success && uploadResult.urls.length > 0) {
+            await multi.saveAllImageRecords(obraId, uploadResult.urls);
+          } else if (!uploadResult.success) {
+            showAlert(`Obra guardada, pero las imágenes fallaron: ${uploadResult.error}`, 'error');
+            setTimeout(() => { close(); document.dispatchEvent(new CustomEvent('obras:refresh')); }, 1800);
+            return;
+          }
         }
+      }
 
-        // Guardar registro en tabla imagenes
-        const esPrimera = true; // primera imagen = principal
-        await storage.saveImageRecord(obraId, result.url, esPrimera);
+      // ── Guardar tags (N:M) ────────────────────────────
+      const tags = window.TagsInObra;
+      if (tags && tags.getTags().length > 0) {
+        await tags.saveTags(obraId);
       }
 
       showAlert(editId ? 'Obra actualizada correctamente.' : 'Obra creada correctamente.', 'success');
@@ -194,26 +193,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // ── Preview de imagen ─────────────────────────────────
-  if (fImagen) {
-    fImagen.addEventListener('change', async () => {
-      const file = fImagen.files[0];
-      if (!file) return;
-      const storage = window.StorageModule;
-      if (!storage) return;
-      try {
-        const dataUrl = await storage.generatePreview(file);
-        previewImg.src          = dataUrl;
-        imagenPreview.style.display = 'flex';
-      } catch { /* silencioso */ }
-    });
-  }
-
-  if (removeImgBtn) {
-    removeImgBtn.addEventListener('click', () => {
-      fImagen.value           = '';
-      previewImg.src          = '';
-      imagenPreview.style.display = 'none';
+  // ── Botón agregar tag ─────────────────────────────────
+  if (addTagBtn && tagSelect) {
+    addTagBtn.addEventListener('click', () => {
+      const id   = tagSelect.value;
+      const name = tagSelect.options[tagSelect.selectedIndex]?.text;
+      if (!id) return;
+      window.TagsInObra?.addTag(id, name);
+      tagSelect.value = '';
     });
   }
 
@@ -221,8 +208,8 @@ document.addEventListener('DOMContentLoaded', () => {
   function resetForm() {
     form.reset();
     fId.value = '';
-    if (imagenPreview) imagenPreview.style.display = 'none';
-    if (previewImg)    previewImg.src = '';
+    window.MultiImageUpload?.reset();
+    window.TagsInObra?.reset();
     hideAlert();
   }
 

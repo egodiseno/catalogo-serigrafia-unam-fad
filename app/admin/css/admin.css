@@ -1030,3 +1030,14 @@ input[type="file"]:hover {
   background-color: var(--color-surface-alt);
   border-radius: var(--radius);
 }
+
+/* ============ TAG SELECTOR ============ */
+.tag-selector {
+  display: flex;
+  gap: var(--spacing-sm);
+  align-items: center;
+}
+
+.tag-selector select {
+  flex: 1;
+}

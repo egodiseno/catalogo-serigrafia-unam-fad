@@ -341,18 +341,25 @@
                       placeholder="Breve descripción de la obra…"></textarea>
           </div>
 
-          <!-- Upload imagen -->
+          <!-- Multi-image upload -->
           <div class="form-group">
-            <label for="fImagen">Imagen principal</label>
-            <input type="file" id="fImagen" name="imagen"
-                   accept="image/jpeg,image/png,image/webp,image/gif">
-            <p class="field-hint">JPG, PNG o WebP · máx. 5 MB</p>
-
-            <div id="imagenPreview" class="imagen-preview" style="display:none;">
-              <img id="previewImg" src="" alt="Vista previa">
-              <button type="button" id="removeImageBtn"
-                      class="btn btn-sm btn-danger">✕ Quitar</button>
+            <label>Imágenes <span class="field-hint">(JPG, PNG o WebP · máx. 5 MB c/u)</span></label>
+            <div id="multiImageContainer">
+              <div id="imageList"></div>
+              <button type="button" id="addImageBtn" class="btn btn-secondary btn-sm">
+                + Agregar imagen
+              </button>
             </div>
+          </div>
+
+          <!-- Tags -->
+          <div class="form-group">
+            <label>Tags</label>
+            <div class="tag-selector">
+              <select id="tagSelect"></select>
+              <button type="button" id="addTagBtn" class="btn btn-secondary btn-sm">+ Agregar</button>
+            </div>
+            <div id="selectedTagsList"></div>
           </div>
 
           <div id="formAlert" class="form-alert" style="display:none;"></div>
