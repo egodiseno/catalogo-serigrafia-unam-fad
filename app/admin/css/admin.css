@@ -1041,3 +1041,31 @@ input[type="file"]:hover {
 .tag-selector select {
   flex: 1;
 }
+
+/* ============ TOAST STYLES ============ */
+@keyframes slideInUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.toast {
+  animation: slideInUp 300ms ease !important;
+}
+
+.toast-error {
+  /* Color ya en JS */
+}
+
+.toast-success {
+  /* Color ya en JS */
+}
+
+.toast-warning {
+  /* Color ya en JS */
+}
