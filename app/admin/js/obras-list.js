@@ -150,11 +150,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // ── Editar (stub — se implementa en FASE 1.E) ────────
+  // ── Editar ────────────────────────────────────────────
   function editObra(id) {
-    console.log('Editar obra:', id);
-    // TODO FASE 1.E: abrir modal con datos precargados
-    alert(`Editar obra (FASE 1.E)\nID: ${id}`);
+    window.obrasForm?.open(id);
   }
 
   // ── Búsqueda en tiempo real (debounce 300ms) ──────────
@@ -182,13 +180,9 @@ document.addEventListener('DOMContentLoaded', () => {
     loadMoreBtn.addEventListener('click', () => loadObras(false));
   }
 
-  // ── Nueva obra (stub — FASE 1.E) ──────────────────────
+  // ── Nueva obra ────────────────────────────────────────
   if (newObraBtn) {
-    newObraBtn.addEventListener('click', () => {
-      console.log('Nueva obra');
-      // TODO FASE 1.E: abrir modal vacío
-      alert('Crear obra nueva (FASE 1.E)');
-    });
+    newObraBtn.addEventListener('click', () => window.obrasForm?.open());
   }
 
   // ── Recargar al entrar a la sección Obras ─────────────
@@ -217,6 +211,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!str) return '';
     return String(str).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
+
+  // ── Escuchar evento de obras-form.js ─────────────────
+  document.addEventListener('obras:refresh', () => loadObras(true));
 
   // ── Carga inicial ─────────────────────────────────────
   loadObras(true);

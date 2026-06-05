@@ -281,7 +281,73 @@
   <!-- ========================
        MODALES (vacíos por ahora, se llenan en 1.B-1.F)
        ======================== -->
-  <div id="modalContainer"></div>
+  <!-- ========================
+       MODAL: CREAR / EDITAR OBRA
+       ======================== -->
+  <div id="obraModal" class="modal-overlay" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-dialog">
+
+      <div class="modal-header">
+        <h3 id="modalTitle">Nueva Obra</h3>
+        <button class="modal-close" id="modalCloseBtn" aria-label="Cerrar">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <form id="obraForm" novalidate>
+          <input type="hidden" id="fId" name="id">
+
+          <div class="form-group">
+            <label for="fTitulo">Título <span class="required">*</span></label>
+            <input type="text" id="fTitulo" name="titulo"
+                   placeholder="Título de la obra" required>
+          </div>
+
+          <div class="form-group">
+            <label for="fArtista">Artista <span class="required">*</span></label>
+            <input type="text" id="fArtista" name="artista"
+                   placeholder="Nombre del artista" required>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="fAno">Año</label>
+              <input type="number" id="fAno" name="año"
+                     min="1800" max="2100" placeholder="2024">
+            </div>
+            <div class="form-group">
+              <label for="fEstado">Estado</label>
+              <select id="fEstado" name="estado">
+                <option value="borrador">Borrador</option>
+                <option value="publicado">Publicado</option>
+                <option value="archivado">Archivado</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="fTecnica">Técnica</label>
+            <select id="fTecnica" name="tecnica_id">
+              <option value="">— Sin técnica —</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="fDescripcion">Descripción</label>
+            <textarea id="fDescripcion" name="descripcion" rows="4"
+                      placeholder="Breve descripción de la obra…"></textarea>
+          </div>
+
+          <div id="formAlert" class="form-alert" style="display:none;"></div>
+        </form>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="modalCancelBtn">Cancelar</button>
+        <button type="button" class="btn btn-primary"   id="modalSaveBtn">Guardar obra</button>
+      </div>
+
+    </div>
+  </div>
 
   <!-- SCRIPTS -->
   <!-- Supabase JS Client (v2) -->
@@ -290,6 +356,7 @@
   <script src="js/auth.js" defer></script>
   <script src="js/dashboard.js" defer></script>
   <script src="js/obras-list.js" defer></script>
+  <script src="js/obras-form.js" defer></script>
   <script src="js/navigation.js" defer></script>
 </body>
 </html>
