@@ -84,16 +84,17 @@ const TecnicasCRUD = (() => {
           .replace(/[̀-ͯ]/g, '')
           .replace(/\s+/g, '-');
 
-        const { error } = await client.from('tecnicas').insert([{
+        const { data: nueva, error } = await client.from('tecnicas').insert([{
           nombre:      data.nombre.trim(),
           slug,
           descripcion: data.descripcion?.trim() || null
-        }]);
+        }]).select('id, nombre').single();
 
         if (error) throw error;
 
         window.ErrorHandler?.showToast('✅ Técnica creada correctamente', 'success');
-        document.dispatchEvent(new CustomEvent('tecnicas:updated'));
+        // ISSUE-10: incluir detail para que obras-list pueda actualizar su filtro
+        document.dispatchEvent(new CustomEvent('tecnicas:updated', { detail: nueva }));
       }
     });
   }

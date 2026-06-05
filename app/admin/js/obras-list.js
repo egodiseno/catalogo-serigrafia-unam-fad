@@ -1,9 +1,11 @@
 /**
  * obras-list.js — Tabla dinámica de obras desde Supabase
  * Fase 1.D
+ * SPRINT2: ISSUE-08 (filtro por técnica), ISSUE-06 fix (alert en confirmDelete)
  *
  * Depende de: config.js (window.supabase_client)
- * DOM: #obrasList, #searchObras, #filterEstado, #loadMoreBtn, #obraCount, #newObraBtn
+ * DOM: #obrasList, #searchObras, #filterEstado, #filterTecnica,
+ *      #loadMoreBtn, #obraCount, #newObraBtn
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -14,24 +16,43 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ── Estado interno ────────────────────────────────────
   let state = {
-    obras:       [],   // obras cargadas hasta ahora
-    total:       0,    // total en DB con los filtros activos
-    offset:      0,    // paginación
-    query:       '',   // búsqueda por título
-    estado:      '',   // filtro por estado
-    loading:     false,
+    obras:    [],
+    total:    0,
+    offset:   0,
+    query:    '',
+    estado:   '',
+    tecnica:  '',     // ISSUE-08: filtro por técnica_id
+    loading:  false,
   };
 
   // ── Referencias DOM ───────────────────────────────────
-  const tbody       = document.getElementById('obrasList');
-  const searchInput = document.getElementById('searchObras');
-  const estadoSel   = document.getElementById('filterEstado');
-  const loadMoreBtn = document.getElementById('loadMoreBtn');
-  const obraCount   = document.getElementById('obraCount');
-  const newObraBtn  = document.getElementById('newObraBtn');
+  const tbody        = document.getElementById('obrasList');
+  const searchInput  = document.getElementById('searchObras');
+  const estadoSel    = document.getElementById('filterEstado');
+  const tecnicaSel   = document.getElementById('filterTecnica');  // ISSUE-08
+  const loadMoreBtn  = document.getElementById('loadMoreBtn');
+  const obraCount    = document.getElementById('obraCount');
+  const newObraBtn   = document.getElementById('newObraBtn');
 
-  // ── Activar módulo solo si la sección existe ──────────
   if (!tbody) return;
+
+  // ── Cargar técnicas para el select de filtro (ISSUE-08) ──
+  async function loadTecnicasFilter() {
+    if (!tecnicaSel) return;
+    try {
+      const { data } = await client
+        .from('tecnicas')
+        .select('id, nombre')
+        .order('nombre');
+
+      if (!data) return;
+      tecnicaSel.innerHTML =
+        '<option value="">— Todas las técnicas —</option>' +
+        data.map(t => `<option value="${t.id}">${escHtml(t.nombre)}</option>`).join('');
+    } catch (err) {
+      console.error('loadTecnicasFilter:', err);
+    }
+  }
 
   // ── Cargar obras desde Supabase ───────────────────────
   async function loadObras(reset = false) {
@@ -56,6 +77,9 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       if (state.estado) {
         query = query.eq('estado', state.estado);
+      }
+      if (state.tecnica) {                          // ISSUE-08
+        query = query.eq('tecnica_id', state.tecnica);
       }
 
       const { data, count, error } = await query;
@@ -104,7 +128,6 @@ document.addEventListener('DOMContentLoaded', () => {
         </tr>`;
     }).join('');
 
-    // Delegación de eventos en los botones de la tabla
     tbody.querySelectorAll('.btn-delete').forEach(btn => {
       btn.addEventListener('click', () => confirmDelete(btn.dataset.id, btn.dataset.titulo));
     });
@@ -123,8 +146,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // ── Mostrar / ocultar "Cargar más" ────────────────────
   function toggleLoadMore() {
     if (!loadMoreBtn) return;
-    const hayMas = state.obras.length < state.total;
-    loadMoreBtn.style.display = hayMas ? 'inline-block' : 'none';
+    loadMoreBtn.style.display = state.obras.length < state.total ? 'inline-block' : 'none';
   }
 
   // ── Confirmar y eliminar ──────────────────────────────
@@ -135,7 +157,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const { error } = await client.from('obras').delete().eq('id', id);
       if (error) throw error;
 
-      // Quitar de estado local y re-renderizar sin recargar todo
       state.obras  = state.obras.filter(o => o.id !== id);
       state.total  = Math.max(0, state.total - 1);
       state.offset = state.obras.length;
@@ -144,9 +165,11 @@ document.addEventListener('DOMContentLoaded', () => {
       renderContador();
       toggleLoadMore();
 
+      window.ErrorHandler?.showToast('Obra eliminada correctamente', 'success');
+
     } catch (err) {
       console.error('deleteObra:', err);
-      alert('Error al eliminar la obra. Inténtalo de nuevo.');
+      window.ErrorHandler?.showToast('Error al eliminar la obra. Inténtalo de nuevo.', 'error');
     }
   }
 
@@ -175,6 +198,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // ── Filtro por técnica (ISSUE-08) ──────────────────────
+  if (tecnicaSel) {
+    tecnicaSel.addEventListener('change', () => {
+      state.tecnica = tecnicaSel.value;
+      loadObras(true);
+    });
+  }
+
   // ── Cargar más ────────────────────────────────────────
   if (loadMoreBtn) {
     loadMoreBtn.addEventListener('click', () => loadObras(false));
@@ -189,10 +220,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const obrasNavBtn = document.querySelector('[data-section="obras"]');
   if (obrasNavBtn) {
     obrasNavBtn.addEventListener('click', () => {
-      searchInput && (searchInput.value = '');
-      estadoSel   && (estadoSel.value   = '');
-      state.query  = '';
-      state.estado = '';
+      searchInput  && (searchInput.value  = '');
+      estadoSel    && (estadoSel.value    = '');
+      tecnicaSel   && (tecnicaSel.value   = '');   // ISSUE-08
+      state.query   = '';
+      state.estado  = '';
+      state.tecnica = '';                           // ISSUE-08
       loadObras(true);
     });
   }
@@ -212,10 +245,14 @@ document.addEventListener('DOMContentLoaded', () => {
     return String(str).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
 
-  // ── Escuchar evento de obras-form.js ─────────────────
+  // ── Escuchar eventos ──────────────────────────────────
   document.addEventListener('obras:refresh', () => loadObras(true));
 
+  // Refrescar el filtro de técnicas cuando se crea/elimina una
+  document.addEventListener('tecnicas:updated', loadTecnicasFilter);
+
   // ── Carga inicial ─────────────────────────────────────
+  loadTecnicasFilter();   // ISSUE-08: poblar el select de técnicas
   loadObras(true);
 
   console.log('🎨 obras-list.js cargado');

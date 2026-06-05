@@ -152,12 +152,13 @@ const Validators = (() => {
     // Artista
     validateName(data.artista, 'Artista', 2, 100);
 
-    // Año (debe ser número entre 1900 y próximo año)
-    const year = parseInt(data.año);
+    // Año (obras históricas aceptadas desde 1800 — ISSUE-09)
+    const year        = parseInt(data.año);
     const currentYear = new Date().getFullYear();
+    const MIN_YEAR    = 1800;
 
-    if (isNaN(year) || year < 1900 || year > currentYear + 1) {
-      throw new Error(`Año debe estar entre 1900 y ${currentYear}`);
+    if (isNaN(year) || year < MIN_YEAR || year > currentYear + 1) {
+      throw new Error(`Año debe estar entre ${MIN_YEAR} y ${currentYear}`);
     }
 
     // Descripción (opcional)
