@@ -1,9 +1,10 @@
 /**
  * obras-form.js — Modal para crear / editar obras en Supabase
  * Fase 1.E
+ * SPRINT1: ISSUE-02 (inline técnica), ISSUE-03 (cargar tags al editar)
  *
  * Depende de: config.js (window.supabase_client)
- * Expone:     window.obrasForm.open(id?)  — llamado desde obras-list.js
+ * Expone:     window.obrasForm.open(id?)
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -18,7 +19,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const saveBtn     = document.getElementById('modalSaveBtn');
   const formAlert   = document.getElementById('formAlert');
 
-  // Campos del formulario
   const fId          = document.getElementById('fId');
   const fTitulo      = document.getElementById('fTitulo');
   const fArtista     = document.getElementById('fArtista');
@@ -27,9 +27,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const fTecnica     = document.getElementById('fTecnica');
   const fDescripcion = document.getElementById('fDescripcion');
 
-  // Tag selector
-  const addTagBtn = document.getElementById('addTagBtn');
-  const tagSelect = document.getElementById('tagSelect');
+  // ── Inline técnica (ISSUE-02) ─────────────────────────
+  const btnNuevaTecnicaInline   = document.getElementById('btnNuevaTecnicaInline');
+  const inlineTecnicaForm       = document.getElementById('inlineTecnicaForm');
+  const inlineTecnicaInput      = document.getElementById('inlineTecnicaInput');
+  const btnConfirmTecnicaInline = document.getElementById('btnConfirmTecnicaInline');
+  const btnCancelTecnicaInline  = document.getElementById('btnCancelTecnicaInline');
 
   if (!modal) return;
 
@@ -55,6 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function close() {
     modal.style.display = 'none';
     resetForm();
+    hideInlineTecnica();
   }
 
   // ── Cargar técnicas en el dropdown ────────────────────
@@ -67,7 +71,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (error) throw error;
 
-      // Conservar la opción vacía y agregar las técnicas
       fTecnica.innerHTML = '<option value="">— Sin técnica —</option>';
       (data ?? []).forEach(t => {
         const opt = document.createElement('option');
@@ -75,7 +78,6 @@ document.addEventListener('DOMContentLoaded', () => {
         opt.textContent = t.nombre;
         fTecnica.appendChild(opt);
       });
-
     } catch (err) {
       console.error('loadTecnicas:', err);
     }
@@ -84,14 +86,15 @@ document.addEventListener('DOMContentLoaded', () => {
   // ── Cargar obra para editar ───────────────────────────
   async function loadObraToEdit(id) {
     try {
-      const { data, error } = await client
-        .from('obras')
-        .select('*')
-        .eq('id', id)
-        .single();
+      // Obra + tags existentes en paralelo (ISSUE-03)
+      const [obraRes, tagsRes] = await Promise.all([
+        client.from('obras').select('*').eq('id', id).single(),
+        client.from('obra_tags').select('tag_id, tags(id, nombre)').eq('obra_id', id)
+      ]);
 
-      if (error) throw error;
-      if (!data)  throw new Error('Obra no encontrada');
+      if (obraRes.error) throw obraRes.error;
+      const data = obraRes.data;
+      if (!data) throw new Error('Obra no encontrada');
 
       fId.value          = data.id;
       fTitulo.value      = data.titulo      ?? '';
@@ -100,6 +103,12 @@ document.addEventListener('DOMContentLoaded', () => {
       fEstado.value      = data.estado      ?? 'borrador';
       fTecnica.value     = data.tecnica_id  ?? '';
       fDescripcion.value = data.descripcion ?? '';
+
+      // Poblar tags seleccionados (ISSUE-03)
+      window.TagsInObra?.reset();
+      (tagsRes.data ?? []).forEach(row => {
+        if (row.tags) window.TagsInObra?.addTag(row.tags.id, row.tags.nombre);
+      });
 
     } catch (err) {
       console.error('loadObraToEdit:', err);
@@ -111,7 +120,6 @@ document.addEventListener('DOMContentLoaded', () => {
   async function saveObra() {
     hideAlert();
 
-    // Validaciones
     const titulo  = fTitulo.value.trim();
     const artista = fArtista.value.trim();
     const año     = fAno.value ? parseInt(fAno.value, 10) : null;
@@ -127,9 +135,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const payload = {
       titulo,
       artista,
-      año:         año,
-      estado:      fEstado.value           || 'borrador',
-      tecnica_id:  fTecnica.value          || null,
+      año,
+      estado:      fEstado.value             || 'borrador',
+      tecnica_id:  fTecnica.value            || null,
       descripcion: fDescripcion.value.trim() || null,
     };
 
@@ -141,11 +149,9 @@ document.addEventListener('DOMContentLoaded', () => {
       let obraId   = editId;
 
       if (editId) {
-        // UPDATE
         const { error } = await client.from('obras').update(payload).eq('id', editId);
         if (error) throw error;
       } else {
-        // INSERT — recuperar el id generado
         const { data, error } = await client.from('obras').insert(payload).select('id').single();
         if (error) throw error;
         obraId = data.id;
@@ -168,9 +174,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
 
-      // ── Guardar tags (N:M) ────────────────────────────
+      // ── Guardar tags N:M — siempre (ISSUE-03) ────────
       const tags = window.TagsInObra;
-      if (tags && tags.getTags().length > 0) {
+      if (tags) {
         await tags.saveTags(obraId);
       }
 
@@ -193,14 +199,66 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // ── Botón agregar tag ─────────────────────────────────
-  if (addTagBtn && tagSelect) {
-    addTagBtn.addEventListener('click', () => {
-      const id   = tagSelect.value;
-      const name = tagSelect.options[tagSelect.selectedIndex]?.text;
-      if (!id) return;
-      window.TagsInObra?.addTag(id, name);
-      tagSelect.value = '';
+  // ── Técnica inline (ISSUE-02) ─────────────────────────
+  function showInlineTecnica() {
+    if (inlineTecnicaForm)       inlineTecnicaForm.style.display       = 'flex';
+    if (btnNuevaTecnicaInline)   btnNuevaTecnicaInline.style.display   = 'none';
+    if (inlineTecnicaInput) { inlineTecnicaInput.value = ''; inlineTecnicaInput.focus(); }
+  }
+
+  function hideInlineTecnica() {
+    if (inlineTecnicaForm)     inlineTecnicaForm.style.display   = 'none';
+    if (btnNuevaTecnicaInline) btnNuevaTecnicaInline.style.display = '';
+    if (inlineTecnicaInput)    inlineTecnicaInput.value = '';
+  }
+
+  async function confirmCreateTecnica() {
+    const nombre = inlineTecnicaInput?.value.trim();
+    if (!nombre) {
+      window.ErrorHandler?.showToast('Escribe el nombre de la técnica', 'warning');
+      inlineTecnicaInput?.focus();
+      return;
+    }
+
+    const slug = nombre
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[̀-ͯ]/g, '')
+      .replace(/\s+/g, '-');
+
+    try {
+      const { data, error } = await client
+        .from('tecnicas')
+        .insert([{ nombre, slug }])
+        .select('id, nombre')
+        .single();
+
+      if (error) throw error;
+
+      // Agregar al dropdown y seleccionarla
+      const opt = document.createElement('option');
+      opt.value       = data.id;
+      opt.textContent = data.nombre;
+      fTecnica.appendChild(opt);
+      fTecnica.value = data.id;
+
+      hideInlineTecnica();
+      window.ErrorHandler?.showToast(`Técnica "${data.nombre}" creada y seleccionada`, 'success');
+      document.dispatchEvent(new CustomEvent('tecnicas:updated'));
+
+    } catch (err) {
+      console.error('confirmCreateTecnica:', err);
+      window.ErrorHandler?.showToast('No se pudo crear la técnica', 'error');
+    }
+  }
+
+  if (btnNuevaTecnicaInline)   btnNuevaTecnicaInline.addEventListener('click',   showInlineTecnica);
+  if (btnCancelTecnicaInline)  btnCancelTecnicaInline.addEventListener('click',  hideInlineTecnica);
+  if (btnConfirmTecnicaInline) btnConfirmTecnicaInline.addEventListener('click', confirmCreateTecnica);
+  if (inlineTecnicaInput) {
+    inlineTecnicaInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter')  { e.preventDefault(); confirmCreateTecnica(); }
+      if (e.key === 'Escape') hideInlineTecnica();
     });
   }
 
@@ -211,13 +269,14 @@ document.addEventListener('DOMContentLoaded', () => {
     window.MultiImageUpload?.reset();
     window.TagsInObra?.reset();
     hideAlert();
+    hideInlineTecnica();
   }
 
   // ── Alertas del modal ─────────────────────────────────
   function showAlert(msg, type = 'error') {
-    formAlert.textContent    = msg;
-    formAlert.className      = `form-alert ${type}`;
-    formAlert.style.display  = 'block';
+    formAlert.textContent   = msg;
+    formAlert.className     = `form-alert ${type}`;
+    formAlert.style.display = 'block';
     formAlert.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
@@ -232,12 +291,10 @@ document.addEventListener('DOMContentLoaded', () => {
   cancelBtn && cancelBtn.addEventListener('click', close);
   saveBtn   && saveBtn.addEventListener('click',   saveObra);
 
-  // Cerrar al click en el overlay (fuera del dialog)
   modal.addEventListener('click', e => {
     if (e.target === modal) close();
   });
 
-  // Cerrar con Escape
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape' && modal.style.display === 'flex') close();
   });

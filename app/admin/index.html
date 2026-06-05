@@ -326,9 +326,17 @@
 
           <div class="form-group">
             <label for="fTecnica">Técnica</label>
-            <select id="fTecnica" name="tecnica_id">
-              <option value="">— Sin técnica —</option>
-            </select>
+            <div class="inline-create-wrapper">
+              <select id="fTecnica" name="tecnica_id">
+                <option value="">— Sin técnica —</option>
+              </select>
+              <button type="button" id="btnNuevaTecnicaInline" class="btn btn-secondary btn-sm">+ Nueva</button>
+            </div>
+            <div id="inlineTecnicaForm" style="display:none;" class="inline-tecnica-form">
+              <input type="text" id="inlineTecnicaInput" placeholder="Nombre de la técnica…" class="search-input">
+              <button type="button" id="btnConfirmTecnicaInline" class="btn btn-primary btn-sm">Crear</button>
+              <button type="button" id="btnCancelTecnicaInline" class="btn btn-secondary btn-sm">✕</button>
+            </div>
           </div>
 
           <div class="form-group">
@@ -351,9 +359,12 @@
           <!-- Tags -->
           <div class="form-group">
             <label>Tags</label>
-            <div class="tag-selector">
-              <select id="tagSelect"></select>
-              <button type="button" id="addTagBtn" class="btn btn-secondary btn-sm">+ Agregar</button>
+            <div class="tag-search-wrapper">
+              <div class="tag-search-row">
+                <input type="text" id="tagSearchInput" placeholder="Buscar o crear tag…" autocomplete="off" class="search-input">
+                <button type="button" id="btnNuevoTagInline" class="btn btn-secondary btn-sm">+ Nuevo</button>
+              </div>
+              <div id="tagSuggestionsDropdown" class="tag-suggestions-dropdown" style="display:none;"></div>
             </div>
             <div id="selectedTagsList"></div>
           </div>
