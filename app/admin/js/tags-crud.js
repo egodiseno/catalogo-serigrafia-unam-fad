@@ -5,16 +5,14 @@
 const TagsCRUD = (() => {
   const client = window.supabase_client;
 
-  async function init() {
-    console.log('🏷️  Tags CRUD loaded');
-
-    const btn = document.getElementById('newTagBtn');
-    if (btn) {
-      btn.addEventListener('click', openCreateModal);
-    }
-  }
-
   function openCreateModal() {
+    console.log('🏷️  Abriendo modal tags...');
+    
+    if (!window.ModalManager) {
+      alert('❌ ModalManager no cargado');
+      return;
+    }
+
     window.ModalManager.open({
       title: 'Nuevo Tag',
       fields: [
@@ -22,6 +20,8 @@ const TagsCRUD = (() => {
         { name: 'slug', label: 'Slug', type: 'text', required: true }
       ],
       onSave: async (data) => {
+        console.log('💾 Guardando tag:', data);
+        
         const { error } = await client
           .from('tags')
           .insert([{
@@ -29,18 +29,43 @@ const TagsCRUD = (() => {
             slug: data.slug
           }]);
 
-        if (error) throw error;
+        if (error) {
+          console.error('❌ Error:', error);
+          throw error;
+        }
 
-        console.log('✅ Tag creado');
-        alert('Tag creado exitosamente');
-        location.reload();
+        console.log('✅ Tag guardado');
+        alert('✅ Tag creado. Recargando...');
+        
+        setTimeout(() => location.reload(), 500);
       }
     });
   }
 
-  document.addEventListener('DOMContentLoaded', init);
+  function init() {
+    console.log('🏷️  Inicializando TagsCRUD...');
+    
+    const btn = document.getElementById('newTagBtn');
+    
+    if (btn) {
+      console.log('✅ Botón encontrado, agregando listener...');
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        openCreateModal();
+      });
+    } else {
+      console.warn('⚠️  Botón newTagBtn no encontrado');
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
 
   return { openCreateModal };
 })();
 
 window.TagsCRUD = TagsCRUD;
+console.log('✅ TagsCRUD loaded');

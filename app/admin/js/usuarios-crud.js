@@ -5,16 +5,14 @@
 const UsuariosCRUD = (() => {
   const client = window.supabase_client;
 
-  async function init() {
-    console.log('👥 Usuarios CRUD loaded');
-
-    const btn = document.getElementById('newUsuarioBtn');
-    if (btn) {
-      btn.addEventListener('click', openCreateModal);
-    }
-  }
-
   function openCreateModal() {
+    console.log('👥 Abriendo modal usuarios...');
+    
+    if (!window.ModalManager) {
+      alert('❌ ModalManager no cargado');
+      return;
+    }
+
     window.ModalManager.open({
       title: 'Nuevo Usuario Admin',
       fields: [
@@ -32,37 +30,66 @@ const UsuariosCRUD = (() => {
         }
       ],
       onSave: async (data) => {
-        // Crear en Supabase Auth
-        const { data: authData, error: authError } = await client.auth.admin.createUser({
-          email: data.email,
-          password: Math.random().toString(36).substring(7) + 'Temp123!',
-          email_confirm: true
-        });
-
-        if (authError) throw authError;
-
-        // Guardar en tabla usuarios_admin
-        const { error } = await client
-          .from('usuarios_admin')
-          .insert([{
-            id: authData.user.id,
+        console.log('💾 Guardando usuario:', data);
+        
+        try {
+          // Crear en Supabase Auth
+          const { data: authData, error: authError } = await client.auth.admin.createUser({
             email: data.email,
-            rol: data.rol,
-            estado: true
-          }]);
+            password: Math.random().toString(36).substring(7) + 'Temp123!',
+            email_confirm: true
+          });
 
-        if (error) throw error;
+          if (authError) throw authError;
 
-        console.log('✅ Usuario creado');
-        alert('Usuario creado. Se envió email de invitación.');
-        location.reload();
+          // Guardar en tabla usuarios_admin
+          const { error } = await client
+            .from('usuarios_admin')
+            .insert([{
+              id: authData.user.id,
+              email: data.email,
+              rol: data.rol,
+              estado: true
+            }]);
+
+          if (error) throw error;
+
+          console.log('✅ Usuario guardado');
+          alert('✅ Usuario creado. Se envió email de invitación.');
+          
+          setTimeout(() => location.reload(), 500);
+        } catch (error) {
+          console.error('❌ Error:', error);
+          throw error;
+        }
       }
     });
   }
 
-  document.addEventListener('DOMContentLoaded', init);
+  function init() {
+    console.log('👥 Inicializando UsuariosCRUD...');
+    
+    const btn = document.getElementById('newUsuarioBtn');
+    
+    if (btn) {
+      console.log('✅ Botón encontrado, agregando listener...');
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        openCreateModal();
+      });
+    } else {
+      console.warn('⚠️  Botón newUsuarioBtn no encontrado');
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
 
   return { openCreateModal };
 })();
 
 window.UsuariosCRUD = UsuariosCRUD;
+console.log('✅ UsuariosCRUD loaded');
