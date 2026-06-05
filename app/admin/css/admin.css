@@ -906,3 +906,91 @@ input[type="file"]:hover {
     font-size: 12px;
   }
 }
+
+/* ============ MULTI-IMAGE UPLOAD STYLES ============ */
+.image-input-group {
+  background-color: var(--color-surface-alt);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius);
+  padding: var(--spacing-lg);
+  margin-bottom: var(--spacing-lg);
+}
+
+.image-input-row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.image-input-row label {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text);
+}
+
+.image-input-controls {
+  display: flex;
+  gap: var(--spacing-md);
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.image-input-controls input[type="file"] {
+  flex: 1;
+  min-width: 200px;
+}
+
+.checkbox-principal {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkbox-principal input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.image-preview-container {
+  margin-top: var(--spacing-md);
+}
+
+.image-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: var(--spacing-lg);
+  margin-top: var(--spacing-lg);
+}
+
+.image-gallery-item {
+  position: relative;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background-color: var(--color-surface-alt);
+}
+
+.image-gallery-item img {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+}
+
+.image-gallery-item.principal {
+  border-color: var(--color-gold);
+  border-width: 3px;
+}
+
+.image-gallery-badge {
+  position: absolute;
+  top: var(--spacing-sm);
+  right: var(--spacing-sm);
+  background-color: var(--color-gold);
+  color: var(--color-blue);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: var(--font-weight-bold);
+}
