@@ -27,6 +27,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const fTecnica     = document.getElementById('fTecnica');
   const fDescripcion = document.getElementById('fDescripcion');
 
+  // Upload de imagen
+  const fImagen       = document.getElementById('fImagen');
+  const imagenPreview = document.getElementById('imagenPreview');
+  const previewImg    = document.getElementById('previewImg');
+  const removeImgBtn  = document.getElementById('removeImageBtn');
+
   if (!modal) return;
 
   // ── Abrir modal ───────────────────────────────────────
@@ -124,8 +130,8 @@ document.addEventListener('DOMContentLoaded', () => {
       titulo,
       artista,
       año:         año,
-      estado:      fEstado.value      || 'borrador',
-      tecnica_id:  fTecnica.value     || null,
+      estado:      fEstado.value           || 'borrador',
+      tecnica_id:  fTecnica.value          || null,
       descripcion: fDescripcion.value.trim() || null,
     };
 
@@ -133,29 +139,46 @@ document.addEventListener('DOMContentLoaded', () => {
     saveBtn.textContent = 'Guardando…';
 
     try {
-      const id = fId.value;
+      const editId = fId.value;
+      let obraId   = editId;
 
-      if (id) {
+      if (editId) {
         // UPDATE
-        const { error } = await client
-          .from('obras')
-          .update(payload)
-          .eq('id', id);
+        const { error } = await client.from('obras').update(payload).eq('id', editId);
         if (error) throw error;
       } else {
-        // INSERT
-        const { error } = await client
-          .from('obras')
-          .insert(payload);
+        // INSERT — recuperar el id generado
+        const { data, error } = await client.from('obras').insert(payload).select('id').single();
         if (error) throw error;
+        obraId = data.id;
       }
 
-      showAlert(id ? 'Obra actualizada correctamente.' : 'Obra creada correctamente.', 'success');
+      // ── Upload de imagen (si se seleccionó una) ──────
+      const storage = window.StorageModule;
+      if (storage && fImagen?.files?.length > 0) {
+        saveBtn.textContent = 'Subiendo imagen…';
+        const file   = fImagen.files[0];
+        const result = await storage.uploadImage(file, obraId);
 
-      // Refrescar la tabla de obras después de 800ms y cerrar
+        if (!result.success) {
+          // La obra ya se guardó; avisamos pero no bloqueamos
+          showAlert(`Obra guardada, pero la imagen falló: ${result.error}`, 'error');
+          setTimeout(() => {
+            close();
+            document.dispatchEvent(new CustomEvent('obras:refresh'));
+          }, 1800);
+          return;
+        }
+
+        // Guardar registro en tabla imagenes
+        const esPrimera = true; // primera imagen = principal
+        await storage.saveImageRecord(obraId, result.url, esPrimera);
+      }
+
+      showAlert(editId ? 'Obra actualizada correctamente.' : 'Obra creada correctamente.', 'success');
+
       setTimeout(() => {
         close();
-        // Notificar a obras-list.js para recargar
         document.dispatchEvent(new CustomEvent('obras:refresh'));
       }, 800);
 
@@ -171,10 +194,35 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // ── Preview de imagen ─────────────────────────────────
+  if (fImagen) {
+    fImagen.addEventListener('change', async () => {
+      const file = fImagen.files[0];
+      if (!file) return;
+      const storage = window.StorageModule;
+      if (!storage) return;
+      try {
+        const dataUrl = await storage.generatePreview(file);
+        previewImg.src          = dataUrl;
+        imagenPreview.style.display = 'flex';
+      } catch { /* silencioso */ }
+    });
+  }
+
+  if (removeImgBtn) {
+    removeImgBtn.addEventListener('click', () => {
+      fImagen.value           = '';
+      previewImg.src          = '';
+      imagenPreview.style.display = 'none';
+    });
+  }
+
   // ── Resetear formulario ───────────────────────────────
   function resetForm() {
     form.reset();
     fId.value = '';
+    if (imagenPreview) imagenPreview.style.display = 'none';
+    if (previewImg)    previewImg.src = '';
     hideAlert();
   }
 
