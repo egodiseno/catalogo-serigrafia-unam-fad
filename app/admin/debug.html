@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Debug Admin</title>
+  <style>
+    body { font-family: monospace; background: #1e1e1e; color: #0f0; padding: 20px; }
+    .ok { color: #0f0; }
+    .error { color: #f00; }
+    h2 { color: #0ff; margin-top: 20px; }
+    code { background: #333; padding: 2px 6px; border-radius: 3px; }
+  </style>
+</head>
+<body>
+  <h1>🔍 DEBUG ADMIN PANEL</h1>
+  
+  <h2>1. Window Objects</h2>
+  <div id="debug"></div>
+
+  <h2>2. Console (F12)</h2>
+  <p>Abre la consola (F12 → Console) y busca errores rojos.</p>
+
+  <script>
+    const debug = document.getElementById('debug');
+
+    const checks = {
+      'window.supabase_client': window.supabase_client ? '✅ OK' : '❌ NO',
+      'window.supabaseConfig': window.supabaseConfig ? '✅ OK' : '❌ NO',
+      'window.StorageModule': window.StorageModule ? '✅ OK' : '❌ NO',
+      'window.MultiImageUpload': window.MultiImageUpload ? '✅ OK' : '❌ NO',
+      'window.TagsInObra': window.TagsInObra ? '✅ OK' : '❌ NO',
+      'window.ModalManager': window.ModalManager ? '✅ OK' : '❌ NO',
+      'window.TecnicasCRUD': window.TecnicasCRUD ? '✅ OK' : '❌ NO',
+      'window.TagsCRUD': window.TagsCRUD ? '✅ OK' : '❌ NO',
+      'window.UsuariosCRUD': window.UsuariosCRUD ? '✅ OK' : '❌ NO',
+    };
+
+    for (const [key, value] of Object.entries(checks)) {
+      const p = document.createElement('p');
+      p.innerHTML = `<code>${key}</code> → ${value}`;
+      p.className = value.includes('❌') ? 'error' : 'ok';
+      debug.appendChild(p);
+    }
+
+    console.log('✅ Debug loaded');
+    console.log('Objetos globales:', checks);
+  </script>
+</body>
+</html>
