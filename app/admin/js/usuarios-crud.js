@@ -1,12 +1,32 @@
 /**
  * usuarios-crud.js — CRUD de Usuarios Admin
  * SPRINT1: ISSUE-01 (sin location.reload), ISSUE-06 (sin alert)
+ * SPRINT3: ISSUE-15 — documenta deuda técnica en creación de usuarios
  *
  * Depende de: config.js, modals.js, error-handler.js
  * Expone:     window.UsuariosCRUD
  *
- * NOTA: La creación usa supabase.auth.signUp() (anon key).
- *       El usuario recibirá un email de confirmación antes de poder ingresar.
+ * ──────────────────────────────────────────────────────────────────
+ * ⚠️  DEUDA TÉCNICA — Creación de usuarios:
+ *
+ * Se usa `supabase.auth.signUp()` con la anon key (SPRINT 1 fix).
+ * Esto funciona pero tiene limitaciones:
+ *
+ *  1. El nuevo usuario recibe un email de confirmación; no puede
+ *     iniciar sesión hasta confirmar su dirección.
+ *  2. No es posible asignar una contraseña temporal sin que el
+ *     usuario la reciba por email.
+ *  3. `auth.admin.createUser()` (la alternativa que no requiere
+ *     confirmación) exige la SERVICE ROLE KEY — nunca debe
+ *     exponerse en el frontend.
+ *
+ * TODO para producción:
+ *  → Crear una Supabase Edge Function que reciba email + rol y
+ *    llame a `auth.admin.inviteUserByEmail()` usando la service
+ *    role key en el servidor.
+ *  → Refs: https://supabase.com/docs/guides/functions
+ *          https://supabase.com/docs/reference/javascript/auth-admin-inviteuserbyemail
+ * ──────────────────────────────────────────────────────────────────
  */
 
 const UsuariosCRUD = (() => {
@@ -26,7 +46,10 @@ const UsuariosCRUD = (() => {
       if (error) throw error;
 
       if (!data || data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" class="empty-state">No hay usuarios registrados.</td></tr>';
+        tbody.innerHTML = `<tr><td colspan="4" class="empty-state">
+          Sin usuarios. <a href="#" class="cta-link"
+            onclick="window.UsuariosCRUD?.openCreateModal(); return false">Invitar primero →</a>
+        </td></tr>`;
         return;
       }
 

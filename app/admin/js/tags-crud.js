@@ -23,7 +23,10 @@ const TagsCRUD = (() => {
       if (error) throw error;
 
       if (!data || data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="3" class="empty-state">No hay tags registrados.</td></tr>';
+        tbody.innerHTML = `<tr><td colspan="3" class="empty-state">
+          Sin tags. <a href="#" class="cta-link"
+            onclick="window.TagsCRUD?.openCreateModal(); return false">Crear primer tag →</a>
+        </td></tr>`;
         return;
       }
 

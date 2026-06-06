@@ -296,7 +296,15 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape' && modal.style.display === 'flex') close();
+    if (e.key === 'Escape' && modal.style.display === 'flex') {
+      close();
+      return;
+    }
+    // ISSUE-12: Ctrl+S / Cmd+S guarda el modal si está abierto
+    if ((e.ctrlKey || e.metaKey) && e.key === 's' && modal.style.display === 'flex') {
+      e.preventDefault();
+      saveObra();
+    }
   });
 
   // ── API pública ───────────────────────────────────────

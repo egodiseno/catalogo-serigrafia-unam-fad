@@ -23,7 +23,10 @@ const TecnicasCRUD = (() => {
       if (error) throw error;
 
       if (!data || data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="3" class="empty-state">No hay técnicas registradas.</td></tr>';
+        tbody.innerHTML = `<tr><td colspan="3" class="empty-state">
+          Sin técnicas. <a href="#" class="cta-link"
+            onclick="window.TecnicasCRUD?.openCreateModal(); return false">Crear primera técnica →</a>
+        </td></tr>`;
         return;
       }
 

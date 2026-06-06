@@ -62,13 +62,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (reset) {
       state.obras  = [];
       state.offset = 0;
-      tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Cargando…</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Cargando…</td></tr>';
     }
 
     try {
       let query = client
         .from('obras')
-        .select('id, titulo, artista, año, estado, created_at, tecnicas(nombre)', { count: 'exact' })
+        .select('id, titulo, artista, año, estado, created_at, tecnicas(nombre), imagenes(url_storage, principal)', { count: 'exact' })  // ISSUE-14: thumbnail
         .order('created_at', { ascending: false })
         .range(state.offset, state.offset + PAGE_SIZE - 1);
 
@@ -96,7 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     } catch (err) {
       console.error('obras-list loadObras:', err);
-      tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Error al cargar obras.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Error al cargar obras.</td></tr>';
     } finally {
       state.loading = false;
     }
@@ -105,14 +105,30 @@ document.addEventListener('DOMContentLoaded', () => {
   // ── Render tabla ──────────────────────────────────────
   function renderTabla() {
     if (state.obras.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No hay obras con ese criterio.</td></tr>';
+      // ISSUE-13: CTA accionable solo cuando no hay filtros activos
+      const noFiltros = !state.query && !state.estado && !state.tecnica;
+      const msg = noFiltros
+        ? `No hay obras aún. <a href="#" class="cta-link"
+             onclick="window.obrasForm?.open(); return false">Crear primera obra →</a>`
+        : 'No hay obras con ese criterio.';
+      tbody.innerHTML = `<tr><td colspan="7" class="empty-state">${msg}</td></tr>`;
       return;
     }
 
     tbody.innerHTML = state.obras.map(obra => {
       const tecnica = obra.tecnicas?.nombre ?? '—';
+
+      // ISSUE-14: thumbnail de imagen principal
+      const imgUrl = obra.imagenes?.find(i => i.principal)?.url_storage
+                  ?? obra.imagenes?.[0]?.url_storage;
+      const thumb = imgUrl
+        ? `<img src="${imgUrl}" alt="thumb" class="obra-thumb"
+               data-src="${escAttr(imgUrl)}" title="Ver imagen">`
+        : '<span class="no-thumb">—</span>';
+
       return `
         <tr data-id="${obra.id}">
+          <td class="td-thumb">${thumb}</td>
           <td>${escHtml(obra.titulo)}</td>
           <td>${escHtml(obra.artista)}</td>
           <td>${obra.año ?? '—'}</td>
@@ -133,6 +149,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     tbody.querySelectorAll('.btn-edit').forEach(btn => {
       btn.addEventListener('click', () => editObra(btn.dataset.id));
+    });
+    // ISSUE-14: click en thumbnail abre imagen en nueva pestaña
+    tbody.querySelectorAll('.obra-thumb').forEach(img => {
+      img.addEventListener('click', () => window.open(img.dataset.src, '_blank'));
     });
   }
 
