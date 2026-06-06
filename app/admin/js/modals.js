@@ -130,7 +130,7 @@ const ModalManager = (() => {
   }
 
   function createField(field) {
-    const { name, label, type = 'text', required = false, options = [] } = field;
+    const { name, label, type = 'text', required = false, options = [], defaultValue = '' } = field;
 
     const labelHtml = `<label for="${name}">${sanitize(label)}${required ? ' *' : ''}</label>`;
 
@@ -138,7 +138,7 @@ const ModalManager = (() => {
       return `
         <div class="form-group">
           ${labelHtml}
-          <textarea name="${name}" id="${name}" ${required ? 'required' : ''}></textarea>
+          <textarea name="${name}" id="${name}" ${required ? 'required' : ''}>${sanitize(defaultValue)}</textarea>
         </div>
       `;
     }
@@ -149,7 +149,11 @@ const ModalManager = (() => {
           ${labelHtml}
           <select name="${name}" id="${name}" ${required ? 'required' : ''}>
             <option value="">-- Seleccionar --</option>
-            ${options.map(opt => `<option value="${sanitize(opt.value)}">${sanitize(opt.label)}</option>`).join('')}
+            ${options.map(opt => `
+              <option value="${sanitize(opt.value)}"
+                ${opt.value === defaultValue ? 'selected' : ''}>
+                ${sanitize(opt.label)}
+              </option>`).join('')}
           </select>
         </div>
       `;
@@ -158,7 +162,9 @@ const ModalManager = (() => {
     return `
       <div class="form-group">
         ${labelHtml}
-        <input type="${type}" name="${name}" id="${name}" ${required ? 'required' : ''} />
+        <input type="${type}" name="${name}" id="${name}"
+               ${required ? 'required' : ''}
+               value="${sanitize(defaultValue)}" />
       </div>
     `;
   }
@@ -198,9 +204,57 @@ const ModalManager = (() => {
     console.error(`⚠️  Modal error shown: ${message}`);
   }
 
-  return { 
-    open, 
-    close, 
+  // ── Modal de confirmación (CRIT-05) ───────────────────
+  function openConfirm({ title, message, confirmText = 'Confirmar', cancelText = 'Cancelar', onConfirm, onCancel } = {}) {
+    const modalId = `modal-confirm-${Date.now()}`;
+
+    const html = `
+      <div class="modal-overlay" id="${modalId}" role="alertdialog" aria-modal="true">
+        <div class="modal-dialog modal-dialog--sm">
+          <div class="modal-header">
+            <h2>${sanitize(title || '¿Confirmar acción?')}</h2>
+          </div>
+          <div class="modal-body">
+            <p class="confirm-message">${sanitize(message || '')}</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary modal-cancel">${sanitize(cancelText)}</button>
+            <button type="button" class="btn btn-danger modal-confirm">${sanitize(confirmText)}</button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    modalContainer.innerHTML = html;
+    const modal = document.getElementById(modalId);
+    modal.style.display = 'flex';
+
+    modal.querySelector('.modal-confirm').addEventListener('click', async () => {
+      close(modalId);
+      if (onConfirm) await onConfirm();
+    });
+
+    const cancelHandler = () => {
+      close(modalId);
+      if (onCancel) onCancel();
+    };
+
+    modal.querySelector('.modal-cancel').addEventListener('click', cancelHandler);
+    modal.addEventListener('click', e => { if (e.target === modal) cancelHandler(); });
+
+    const escHandler = e => {
+      if (e.key === 'Escape') { cancelHandler(); document.removeEventListener('keydown', escHandler); }
+    };
+    document.addEventListener('keydown', escHandler);
+
+    // Focus en el botón de cancelar (más seguro por defecto)
+    modal.querySelector('.modal-cancel').focus();
+  }
+
+  return {
+    open,
+    openConfirm,
+    close,
     isAvailable: () => !!modalContainer
   };
 })();

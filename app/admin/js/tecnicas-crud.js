@@ -1,6 +1,7 @@
 /**
  * tecnicas-crud.js — CRUD de Técnicas
  * SPRINT1: ISSUE-01 (sin location.reload), ISSUE-06 (sin alert)
+ * UX-AUDIT SPRINT-A: CRIT-01 (openEditModal), CRIT-03 (generateSlug), CRIT-05 (openConfirm)
  *
  * Depende de: config.js, modals.js, error-handler.js
  * Expone:     window.TecnicasCRUD
@@ -8,6 +9,7 @@
 
 const TecnicasCRUD = (() => {
   const client = window.supabase_client;
+  let tecnicasData = [];   // caché local para edición
 
   // ── Cargar y renderizar lista de técnicas ──────────────
   async function loadTecnicas() {
@@ -22,7 +24,9 @@ const TecnicasCRUD = (() => {
         .order('nombre');
       if (error) throw error;
 
-      if (!data || data.length === 0) {
+      tecnicasData = data ?? [];
+
+      if (tecnicasData.length === 0) {
         tbody.innerHTML = `<tr><td colspan="3" class="empty-state">
           Sin técnicas. <a href="#" class="cta-link"
             onclick="window.TecnicasCRUD?.openCreateModal(); return false">Crear primera técnica →</a>
@@ -30,18 +34,23 @@ const TecnicasCRUD = (() => {
         return;
       }
 
-      tbody.innerHTML = data.map(t => `
+      tbody.innerHTML = tecnicasData.map(t => `
         <tr>
           <td>${escapeHtml(t.nombre)}</td>
           <td>${t.descripcion ? escapeHtml(t.descripcion) : '<span class="text-muted">—</span>'}</td>
           <td class="actions-cell">
+            <button class="btn btn-sm btn-secondary"
+                    data-edit-id="${t.id}" title="Editar">✏️ Editar</button>
             <button class="btn btn-sm btn-danger"
                     data-del-id="${t.id}"
-                    data-del-nombre="${escapeHtml(t.nombre)}">Eliminar</button>
+                    data-del-nombre="${escapeHtml(t.nombre)}" title="Eliminar">🗑️</button>
           </td>
         </tr>
       `).join('');
 
+      tbody.querySelectorAll('[data-edit-id]').forEach(btn => {
+        btn.addEventListener('click', () => openEditModal(btn.dataset.editId));
+      });
       tbody.querySelectorAll('[data-del-id]').forEach(btn => {
         btn.addEventListener('click', () => deleteTecnica(btn.dataset.delId, btn.dataset.delNombre));
       });
@@ -49,20 +58,6 @@ const TecnicasCRUD = (() => {
     } catch (err) {
       console.error('loadTecnicas:', err);
       tbody.innerHTML = '<tr><td colspan="3" class="empty-state">Error al cargar técnicas.</td></tr>';
-    }
-  }
-
-  // ── Eliminar técnica ───────────────────────────────────
-  async function deleteTecnica(id, nombre) {
-    if (!confirm(`¿Eliminar la técnica "${nombre}"?\nEsta acción no se puede deshacer.`)) return;
-    try {
-      const { error } = await client.from('tecnicas').delete().eq('id', id);
-      if (error) throw error;
-      window.ErrorHandler?.showToast(`Técnica "${nombre}" eliminada`, 'success');
-      document.dispatchEvent(new CustomEvent('tecnicas:updated'));
-    } catch (err) {
-      console.error('deleteTecnica:', err);
-      window.ErrorHandler?.showToast('No se pudo eliminar la técnica.', 'error');
     }
   }
 
@@ -80,13 +75,7 @@ const TecnicasCRUD = (() => {
         { name: 'descripcion', label: 'Descripción', type: 'textarea', required: false }
       ],
       onSave: async (data) => {
-        const slug = data.nombre
-          .trim()
-          .toLowerCase()
-          .normalize('NFD')
-          .replace(/[̀-ͯ]/g, '')
-          .replace(/\s+/g, '-');
-
+        const slug = (window.generateSlug ?? slugFallback)(data.nombre);
         const { data: nueva, error } = await client.from('tecnicas').insert([{
           nombre:      data.nombre.trim(),
           slug,
@@ -96,13 +85,77 @@ const TecnicasCRUD = (() => {
         if (error) throw error;
 
         window.ErrorHandler?.showToast('✅ Técnica creada correctamente', 'success');
-        // ISSUE-10: incluir detail para que obras-list pueda actualizar su filtro
         document.dispatchEvent(new CustomEvent('tecnicas:updated', { detail: nueva }));
       }
     });
   }
 
-  // ── Utilidad ───────────────────────────────────────────
+  // ── Abrir modal de edición (CRIT-01) ──────────────────
+  function openEditModal(id) {
+    const tecnica = tecnicasData.find(t => t.id === id);
+    if (!tecnica) {
+      window.ErrorHandler?.showToast('Técnica no encontrada', 'error');
+      return;
+    }
+
+    if (!window.ModalManager) {
+      window.ErrorHandler?.showToast('Error interno: módulo de modal no disponible', 'error');
+      return;
+    }
+
+    window.ModalManager.open({
+      title: 'Editar Técnica',
+      submitText: 'Guardar cambios',
+      fields: [
+        { name: 'nombre',      label: 'Nombre',      type: 'text',     required: true,  defaultValue: tecnica.nombre        },
+        { name: 'descripcion', label: 'Descripción', type: 'textarea', required: false, defaultValue: tecnica.descripcion ?? '' }
+      ],
+      onSave: async (data) => {
+        const slug = (window.generateSlug ?? slugFallback)(data.nombre);
+        const { error } = await client.from('tecnicas').update({
+          nombre:      data.nombre.trim(),
+          slug,
+          descripcion: data.descripcion?.trim() || null
+        }).eq('id', id);
+
+        if (error) throw error;
+
+        window.ErrorHandler?.showToast('✅ Técnica actualizada', 'success');
+        document.dispatchEvent(new CustomEvent('tecnicas:updated'));
+      }
+    });
+  }
+
+  // ── Eliminar técnica (CRIT-05: openConfirm) ───────────
+  async function deleteTecnica(id, nombre) {
+    if (window.ModalManager?.openConfirm) {
+      window.ModalManager.openConfirm({
+        title:       '¿Eliminar técnica?',
+        message:     `Se eliminará "${nombre}". Esta acción no se puede deshacer.`,
+        confirmText: 'Eliminar',
+        cancelText:  'Cancelar',
+        onConfirm:   async () => _doDeleteTecnica(id, nombre)
+      });
+    } else {
+      // Fallback a confirm() nativo si openConfirm no está disponible
+      if (!confirm(`¿Eliminar la técnica "${nombre}"?`)) return;
+      await _doDeleteTecnica(id, nombre);
+    }
+  }
+
+  async function _doDeleteTecnica(id, nombre) {
+    try {
+      const { error } = await client.from('tecnicas').delete().eq('id', id);
+      if (error) throw error;
+      window.ErrorHandler?.showToast(`Técnica "${nombre}" eliminada`, 'success');
+      document.dispatchEvent(new CustomEvent('tecnicas:updated'));
+    } catch (err) {
+      console.error('deleteTecnica:', err);
+      window.ErrorHandler?.showToast('No se pudo eliminar la técnica.', 'error');
+    }
+  }
+
+  // ── Utilidades ─────────────────────────────────────────
   function escapeHtml(str) {
     return String(str)
       .replace(/&/g, '&amp;')
@@ -111,15 +164,19 @@ const TecnicasCRUD = (() => {
       .replace(/"/g, '&quot;');
   }
 
+  function slugFallback(text) {
+    return String(text).trim().toLowerCase()
+      .normalize('NFD').replace(/[̀-ͯ]/g, '')
+      .replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '');
+  }
+
   // ── Init ───────────────────────────────────────────────
   function init() {
     const btn = document.getElementById('newTecnicaBtn');
     if (btn) btn.addEventListener('click', e => { e.preventDefault(); openCreateModal(); });
 
-    // Recargar lista cuando hay cambios
     document.addEventListener('tecnicas:updated', loadTecnicas);
 
-    // Cargar cuando el usuario navega a la sección
     document.querySelectorAll('[data-section="tecnicas"]').forEach(navBtn => {
       navBtn.addEventListener('click', () => setTimeout(loadTecnicas, 60));
     });
@@ -133,7 +190,7 @@ const TecnicasCRUD = (() => {
     init();
   }
 
-  return { openCreateModal, loadTecnicas };
+  return { openCreateModal, openEditModal, deleteTecnica, loadTecnicas };
 })();
 
 window.TecnicasCRUD = TecnicasCRUD;

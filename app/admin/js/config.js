@@ -57,3 +57,17 @@ window.supabaseConfig = {
   logout,
   onAuthStateChange,
 };
+
+
+// ── Utilidad global: generar slug desde texto (CRIT-03) ───────
+window.generateSlug = function generateSlug(text) {
+  return String(text)
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')   // eliminar diacríticos
+    .replace(/[^a-z0-9\s-]/g, '')     // solo alfanumérico + espacios + guión
+    .replace(/\s+/g, '-')             // espacios → guión
+    .replace(/-+/g, '-')              // colapsar guiones múltiples
+    .replace(/^-+|-+$/g, '');         // limpiar extremos
+};
