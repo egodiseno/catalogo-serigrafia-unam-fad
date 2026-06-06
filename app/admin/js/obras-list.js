@@ -62,13 +62,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (reset) {
       state.obras  = [];
       state.offset = 0;
-      tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Cargando…</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="8" class="empty-state">Cargando…</td></tr>';
     }
 
     try {
       let query = client
         .from('obras')
-        .select('id, titulo, artista, año, estado, created_at, tecnicas(nombre), imagenes(url_storage, principal)', { count: 'exact' })  // ISSUE-14: thumbnail
+        .select('id, titulo, artista, año, estado, created_at, tecnicas(nombre), imagenes(url_storage, principal), obra_tags(tags(nombre))', { count: 'exact' })
         .order('created_at', { ascending: false })
         .range(state.offset, state.offset + PAGE_SIZE - 1);
 
@@ -96,7 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     } catch (err) {
       console.error('obras-list loadObras:', err);
-      tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Error al cargar obras.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="8" class="empty-state">Error al cargar obras.</td></tr>';
     } finally {
       state.loading = false;
     }
@@ -111,20 +111,28 @@ document.addEventListener('DOMContentLoaded', () => {
         ? `No hay obras aún. <a href="#" class="cta-link"
              onclick="window.obrasForm?.open(); return false">Crear primera obra →</a>`
         : 'No hay obras con ese criterio.';
-      tbody.innerHTML = `<tr><td colspan="7" class="empty-state">${msg}</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="8" class="empty-state">${msg}</td></tr>`;
       return;
     }
 
     tbody.innerHTML = state.obras.map(obra => {
       const tecnica = obra.tecnicas?.nombre ?? '—';
 
-      // ISSUE-14: thumbnail de imagen principal
+      // Thumbnail de imagen principal
       const imgUrl = obra.imagenes?.find(i => i.principal)?.url_storage
                   ?? obra.imagenes?.[0]?.url_storage;
       const thumb = imgUrl
         ? `<img src="${imgUrl}" alt="thumb" class="obra-thumb"
                data-src="${escAttr(imgUrl)}" title="Ver imagen">`
         : '<span class="no-thumb">—</span>';
+
+      // Tags de la obra (N:M via obra_tags)
+      const tagNames = (obra.obra_tags ?? [])
+        .map(ot => ot.tags?.nombre)
+        .filter(Boolean);
+      const tagsHtml = tagNames.length
+        ? tagNames.map(n => `<span class="tag-badge">${escHtml(n)}</span>`).join('')
+        : '<span class="text-muted">—</span>';
 
       return `
         <tr data-id="${obra.id}">
@@ -133,6 +141,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <td>${escHtml(obra.artista)}</td>
           <td>${obra.año ?? '—'}</td>
           <td>${escHtml(tecnica)}</td>
+          <td class="tags-cell">${tagsHtml}</td>
           <td><span class="badge badge-${obra.estado}">${obra.estado}</span></td>
           <td class="actions-cell">
             <button class="btn btn-sm btn-secondary btn-edit"
@@ -170,26 +179,39 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ── Confirmar y eliminar ──────────────────────────────
-  async function confirmDelete(id, titulo) {
-    if (!confirm(`¿Eliminar la obra "${titulo}"?\n\nEsta acción no se puede deshacer.`)) return;
+  function confirmDelete(id, titulo) {
+    const doDelete = async () => {
+      try {
+        const { error } = await client.from('obras').delete().eq('id', id);
+        if (error) throw error;
 
-    try {
-      const { error } = await client.from('obras').delete().eq('id', id);
-      if (error) throw error;
+        state.obras  = state.obras.filter(o => o.id !== id);
+        state.total  = Math.max(0, state.total - 1);
+        state.offset = state.obras.length;
 
-      state.obras  = state.obras.filter(o => o.id !== id);
-      state.total  = Math.max(0, state.total - 1);
-      state.offset = state.obras.length;
+        renderTabla();
+        renderContador();
+        toggleLoadMore();
 
-      renderTabla();
-      renderContador();
-      toggleLoadMore();
+        window.ErrorHandler?.showToast('Obra eliminada correctamente', 'success');
+      } catch (err) {
+        console.error('deleteObra:', err);
+        window.ErrorHandler?.showToast('Error al eliminar la obra. Inténtalo de nuevo.', 'error');
+      }
+    };
 
-      window.ErrorHandler?.showToast('Obra eliminada correctamente', 'success');
-
-    } catch (err) {
-      console.error('deleteObra:', err);
-      window.ErrorHandler?.showToast('Error al eliminar la obra. Inténtalo de nuevo.', 'error');
+    if (window.ModalManager?.openConfirm) {
+      window.ModalManager.openConfirm({
+        title:       '¿Eliminar obra?',
+        message:     `Se eliminará "${titulo}". Esta acción no se puede deshacer.`,
+        confirmText: 'Eliminar',
+        cancelText:  'Cancelar',
+        onConfirm:   doDelete,
+      });
+    } else {
+      if (confirm(`¿Eliminar la obra "${titulo}"?\n\nEsta acción no se puede deshacer.`)) {
+        doDelete();
+      }
     }
   }
 
