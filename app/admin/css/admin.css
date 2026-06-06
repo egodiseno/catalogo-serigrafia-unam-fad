@@ -1209,3 +1209,155 @@ input[type="file"]:hover {
 .toast-warning {
   /* Color ya en JS */
 }
+
+
+/* ═══════════════════════════════════════════════════════════ */
+/* RESPONSIVE ADDITIONS — Complemento tablet + mobile          */
+/* Breakpoints existentes: 768px, 480px                        */
+/* Añadidos aquí: gaps de cobertura + 375px nuevo              */
+/* ═══════════════════════════════════════════════════════════ */
+
+/* ── Contenedor de scroll horizontal para tablas ─────────── */
+.table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: var(--radius);
+}
+
+/* ── 768px: gaps del bloque existente ───────────────────── */
+@media (max-width: 768px) {
+  /* form-row: 2 → 1 columna en tablet */
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  /* Modal: reducir max-width para dejar respirar los bordes */
+  .modal-dialog {
+    max-width: calc(100vw - var(--spacing-2xl));
+  }
+
+  /* Botones: touch target mínimo WCAG (44px) */
+  .btn {
+    min-height: 44px;
+  }
+
+  /* Modal overlay: padding más pequeño en tablet */
+  .modal-overlay {
+    padding: var(--spacing-lg);
+  }
+}
+
+/* ── 480px: modal más compacto ──────────────────────────── */
+@media (max-width: 480px) {
+  .modal-overlay {
+    padding: var(--spacing-md);
+  }
+
+  .modal-header {
+    padding: var(--spacing-lg);
+  }
+
+  .modal-body {
+    padding: var(--spacing-lg);
+  }
+
+  .modal-footer {
+    padding: var(--spacing-md) var(--spacing-lg);
+    gap: var(--spacing-md);
+  }
+
+  /* actions-cell: permitir wrap en pantallas pequeñas */
+  .actions-cell {
+    flex-wrap: wrap;
+  }
+}
+
+/* ── 375px: mobile pequeño (iPhone SE, etc.) ─────────────── */
+@media (max-width: 375px) {
+
+  /* Overlay: espacio mínimo para maximizar el diálogo */
+  .modal-overlay {
+    padding: 6px;
+  }
+
+  /* Diálogo: casi full-screen en vertical */
+  .modal-dialog {
+    max-height: 95vh;
+    max-width: calc(100vw - 12px);
+  }
+
+  /* Body del modal: scroll propio con altura calculada */
+  .modal-body {
+    padding: var(--spacing-md);
+    /* header ~56px + footer ~72px + algo de margen */
+    max-height: calc(95vh - 148px);
+  }
+
+  /* Footer apila botones; primary action abajo (más accesible con pulgar) */
+  .modal-footer {
+    flex-direction: column;
+    padding: var(--spacing-md);
+    gap: var(--spacing-sm);
+  }
+
+  /* Solo los botones dentro de un modal-footer van full-width */
+  .modal-footer .btn {
+    width: 100%;
+    min-height: 48px; /* touch target iOS */
+  }
+
+  /* Touch target global (sin imponer 100% de ancho) */
+  .btn {
+    min-height: 48px;
+  }
+
+  /* Prevenir zoom automático en iOS al hacer focus en inputs */
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  textarea,
+  select {
+    font-size: 1rem;
+  }
+
+  /* Inline-create-wrapper: stack en mobile */
+  .inline-create-wrapper {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  /* Dropdown de tags: limitar altura en pantalla pequeña */
+  .tag-suggestions-dropdown {
+    max-height: 160px;
+    overflow-y: auto;
+  }
+
+  /* Tag chips: wrap normal */
+  .tag-chip {
+    font-size: var(--font-size-sm);
+  }
+
+  /* Paginación: stack */
+  .pagination {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--spacing-md);
+  }
+
+  .pagination .btn {
+    width: 100%;
+  }
+}
+
+/* ── Utilidades responsive ───────────────────────────────── */
+
+/* Ocultar en tablet (768px y menos) */
+@media (max-width: 768px) {
+  .hide-tablet { display: none !important; }
+  .show-tablet { display: revert !important; }
+}
+
+/* Ocultar en mobile pequeño (375px y menos) */
+@media (max-width: 375px) {
+  .hide-mobile { display: none !important; }
+  .show-mobile { display: revert !important; }
+}
+
