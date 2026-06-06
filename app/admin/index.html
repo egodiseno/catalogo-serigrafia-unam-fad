@@ -365,10 +365,13 @@
             <label>Tags</label>
             <div class="tag-search-wrapper">
               <div class="tag-search-row">
-                <input type="text" id="tagSearchInput" placeholder="Buscar o crear tag…" autocomplete="off" class="search-input">
+                <input type="text" id="tagSearchInput" placeholder="Buscar o crear tag…" autocomplete="off" class="search-input"
+                       role="combobox" aria-label="Buscar tags" aria-autocomplete="list"
+                       aria-expanded="false" aria-controls="tagSuggestionsDropdown" aria-haspopup="listbox">
                 <button type="button" id="btnNuevoTagInline" class="btn btn-secondary btn-sm">+ Nuevo</button>
               </div>
-              <div id="tagSuggestionsDropdown" class="tag-suggestions-dropdown" style="display:none;"></div>
+              <div id="tagSuggestionsDropdown" class="tag-suggestions-dropdown" style="display:none;"
+                   role="listbox" aria-label="Sugerencias de tags"></div>
             </div>
             <div id="selectedTagsList"></div>
           </div>

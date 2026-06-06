@@ -33,9 +33,24 @@ const TagsInObra = (() => {
 
     if (!input || !dropdown) return;
 
+    let focusedIndex = -1;
+
+    // Cerrar y actualizar ARIA
+    function hideDrop() {
+      dropdown.style.display = 'none';
+      input.setAttribute('aria-expanded', 'false');
+      focusedIndex = -1;
+    }
+
+    // Actualizar foco visual en items del dropdown
+    function updateFocus(items) {
+      items.forEach((item, i) => item.classList.toggle('focused', i === focusedIndex));
+    }
+
     input.addEventListener('input', () => {
+      focusedIndex = -1;
       const q = input.value.trim();
-      q ? renderDropdown(q, input, dropdown) : (dropdown.style.display = 'none');
+      q ? renderDropdown(q, input, dropdown) : hideDrop();
     });
 
     input.addEventListener('focus', () => {
@@ -43,11 +58,44 @@ const TagsInObra = (() => {
       if (q) renderDropdown(q, input, dropdown);
     });
 
+    // IMP-02: Navegación teclado ↑↓ en dropdown
+    input.addEventListener('keydown', (e) => {
+      const items = Array.from(dropdown.querySelectorAll('.tag-suggestion-item'));
+      const count = items.length;
+
+      if (dropdown.style.display === 'none') return;
+
+      switch (e.key) {
+        case 'ArrowDown':
+          e.preventDefault();
+          focusedIndex = count > 0 ? Math.min(focusedIndex + 1, count - 1) : -1;
+          updateFocus(items);
+          break;
+
+        case 'ArrowUp':
+          e.preventDefault();
+          focusedIndex = Math.max(focusedIndex - 1, -1);
+          updateFocus(items);
+          break;
+
+        case 'Enter':
+          if (focusedIndex >= 0 && focusedIndex < count) {
+            e.preventDefault();
+            items[focusedIndex].click();
+            focusedIndex = -1;
+          }
+          break;
+
+        case 'Escape':
+          e.preventDefault();
+          hideDrop();
+          break;
+      }
+    });
+
     // Cerrar dropdown al hacer clic fuera
     document.addEventListener('click', e => {
-      if (!e.target.closest('.tag-search-wrapper')) {
-        dropdown.style.display = 'none';
-      }
+      if (!e.target.closest('.tag-search-wrapper')) hideDrop();
     });
 
     // Botón "+ Nuevo tag": crear con el texto actual del input
@@ -74,7 +122,7 @@ const TagsInObra = (() => {
     const exactMatch = allTags.some(t => t.nombre.toLowerCase() === q);
 
     let html = filtered.map(t => `
-      <div class="tag-suggestion-item" data-id="${t.id}" data-nombre="${escapeHtml(t.nombre)}">
+      <div class="tag-suggestion-item" role="option" data-id="${t.id}" data-nombre="${escapeHtml(t.nombre)}">
         ${escapeHtml(t.nombre)}
       </div>
     `).join('');
@@ -89,17 +137,20 @@ const TagsInObra = (() => {
 
     if (!html) {
       dropdown.style.display = 'none';
+      input.setAttribute('aria-expanded', 'false');
       return;
     }
 
     dropdown.innerHTML = html;
     dropdown.style.display = 'block';
+    input.setAttribute('aria-expanded', 'true');
 
     dropdown.querySelectorAll('.tag-suggestion-item').forEach(item => {
       item.addEventListener('click', () => {
         addTag(item.dataset.id, item.dataset.nombre);
         input.value = '';
         dropdown.style.display = 'none';
+        input.setAttribute('aria-expanded', 'false');
       });
     });
 
@@ -139,7 +190,22 @@ const TagsInObra = (() => {
       document.dispatchEvent(new CustomEvent('tags:updated'));
     } catch (err) {
       console.error('createAndAddTag:', err);
-      window.ErrorHandler?.showToast('No se pudo crear el tag', 'error');
+      // NTH-03: error de duplicado (constraint unique/PK de Postgres)
+      if (err.code === '23505' || err.message?.includes('duplicate') || err.message?.includes('unique')) {
+        const existing = allTags.find(t =>
+          t.nombre.toLowerCase() === name.trim().toLowerCase()
+        );
+        if (existing) {
+          addTag(existing.id, existing.nombre);
+          if (input)    input.value = '';
+          if (dropdown) { dropdown.style.display = 'none'; input?.setAttribute('aria-expanded', 'false'); }
+          window.ErrorHandler?.showToast(`Tag «${existing.nombre}» ya existe, fue agregado`, 'warning');
+        } else {
+          window.ErrorHandler?.showToast(`Ya existe un tag similar a «${name.trim()}»`, 'warning');
+        }
+      } else {
+        window.ErrorHandler?.showToast('No se pudo crear el tag', 'error');
+      }
     }
   }
 
@@ -206,7 +272,7 @@ const TagsInObra = (() => {
     selectedTags = [];
     renderChips();
     const input = document.getElementById('tagSearchInput');
-    if (input) input.value = '';
+    if (input) { input.value = ''; input.setAttribute('aria-expanded', 'false'); }
     const dropdown = document.getElementById('tagSuggestionsDropdown');
     if (dropdown) dropdown.style.display = 'none';
   }

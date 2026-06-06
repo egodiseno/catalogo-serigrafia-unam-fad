@@ -210,6 +210,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (inlineTecnicaForm)     inlineTecnicaForm.style.display   = 'none';
     if (btnNuevaTecnicaInline) btnNuevaTecnicaInline.style.display = '';
     if (inlineTecnicaInput)    inlineTecnicaInput.value = '';
+    // NTH-02: devolver foco al select cuando se cancela (solo si el modal sigue abierto)
+    if (fTecnica && modal?.style.display === 'flex') fTecnica.focus();
   }
 
   async function confirmCreateTecnica() {
