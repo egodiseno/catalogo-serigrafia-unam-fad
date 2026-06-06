@@ -15,7 +15,8 @@ const ModalManager = (() => {
     // Devolver API que previene errores
     return {
       open: () => {
-        alert('❌ Error: Modal container not found. Please add <div id="modalContainer"></div> to HTML.');
+        window.ErrorHandler?.showToast('Error crítico: #modalContainer no encontrado en HTML', 'error');
+        console.error('Agregar <div id="modalContainer"></div> antes de </body>');
       },
       close: () => {},
       isAvailable: () => false

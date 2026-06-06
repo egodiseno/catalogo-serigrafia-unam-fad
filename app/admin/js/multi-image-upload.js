@@ -25,7 +25,7 @@ const MultiImageUpload = (() => {
     if (addImageBtn) {
       addImageBtn.addEventListener('click', () => {
         if (images.length >= MAX_IMAGES) {
-          alert(`Máximo ${MAX_IMAGES} imágenes`);
+          window.ErrorHandler?.showToast(`Máximo ${MAX_IMAGES} imágenes permitidas`, 'warning');
           return;
         }
         addImageInput();
