@@ -32,7 +32,8 @@ const ModalManager = (() => {
       fields = [],
       onSave,
       onCancel,
-      submitText = 'Guardar'
+      submitText = 'Guardar',
+      closeOnOverlayClick = false   // false: no cerrar al clicar fuera (evita pérdida de datos)
     } = config;
 
     if (!title) {
@@ -117,13 +118,15 @@ const ModalManager = (() => {
     };
     document.addEventListener('keydown', escHandler);
 
-    // Cerrar al clickear fuera
-    modal.addEventListener('click', (e) => {
-      if (e.target === modal) {
-        close(modalId);
-        document.removeEventListener('keydown', escHandler);
-      }
-    });
+    // Cerrar al clickear fuera (solo si closeOnOverlayClick = true)
+    if (closeOnOverlayClick) {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          close(modalId);
+          document.removeEventListener('keydown', escHandler);
+        }
+      });
+    }
 
     console.log(`✅ Modal abierto: ${title}`);
     modal.style.display = 'flex';

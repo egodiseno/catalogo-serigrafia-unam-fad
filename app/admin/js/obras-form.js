@@ -293,9 +293,9 @@ document.addEventListener('DOMContentLoaded', () => {
   cancelBtn && cancelBtn.addEventListener('click', close);
   saveBtn   && saveBtn.addEventListener('click',   saveObra);
 
-  modal.addEventListener('click', e => {
-    if (e.target === modal) close();
-  });
+  // No cerrar al clicar fuera: el modal de obra tiene muchos campos
+  // y un click accidental destruiría el trabajo del usuario.
+  // ESC sigue funcionando (ver listener keydown abajo).
 
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape' && modal.style.display === 'flex') {
