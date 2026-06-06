@@ -117,6 +117,18 @@ document.addEventListener('DOMContentLoaded', () => {
     dashboardNavBtn.addEventListener('click', loadStats);
   }
 
+  // ── NTH-04: Botón "Nueva Obra" de acceso rápido ───────
+  const quickNewObraBtn = document.getElementById('dashboardQuickNewObra');
+  if (quickNewObraBtn) {
+    quickNewObraBtn.addEventListener('click', () => {
+      // Navegar a la sección Obras
+      const obrasTab = document.querySelector('[data-section="obras"]');
+      if (obrasTab) obrasTab.click();
+      // Abrir el formulario de nueva obra (espera a que la sección sea visible)
+      setTimeout(() => window.obrasForm?.open?.(), 200);
+    });
+  }
+
   // ── Carga inicial ─────────────────────────────────────
   loadStats();
 
