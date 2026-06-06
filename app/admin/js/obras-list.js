@@ -68,7 +68,13 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       let query = client
         .from('obras')
-        .select('id, titulo, artista, año, estado, created_at, tecnicas(nombre), imagenes(url_storage, principal), obra_tags(tags(nombre))', { count: 'exact' })
+        .select(
+          'id, titulo, artista, año, estado, created_at,' +
+          'tecnicas(nombre),' +
+          'imagenes(url_storage, principal),' +
+          'obra_tags(tags(id, nombre))',
+          { count: 'exact' }
+        )
         .order('created_at', { ascending: false })
         .range(state.offset, state.offset + PAGE_SIZE - 1);
 
