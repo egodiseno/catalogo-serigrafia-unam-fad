@@ -153,8 +153,21 @@ const UsuariosCRUD = (() => {
       return;
     }
 
-    if (!confirm(`¿Eliminar el usuario "${email}"?\nEsta acción no se puede deshacer.`)) return;
+    if (window.ModalManager?.openConfirm) {
+      window.ModalManager.openConfirm({
+        title:       '¿Eliminar usuario?',
+        message:     `Se eliminará "${email}". Esta acción no se puede deshacer.`,
+        confirmText: 'Eliminar',
+        cancelText:  'Cancelar',
+        onConfirm:   async () => _doDeleteUsuario(id, email)
+      });
+    } else {
+      if (!confirm(`¿Eliminar el usuario "${email}"?\nEsta acción no se puede deshacer.`)) return;
+      await _doDeleteUsuario(id, email);
+    }
+  }
 
+  async function _doDeleteUsuario(id, email) {
     try {
       const { error } = await client.from('usuarios_admin').delete().eq('id', id);
       if (error) throw error;
@@ -164,6 +177,35 @@ const UsuariosCRUD = (() => {
       console.error('deleteUsuario:', err);
       window.ErrorHandler?.showToast('No se pudo eliminar el usuario.', 'error');
     }
+  }
+
+  // ── Toggle contraseña (icono ojo) ─────────────────────
+  function setupPasswordToggle() {
+    // El input puede estar recién creado por ModalManager (DOM síncrono)
+    const passwordInput = document.querySelector('.modal-form input[type="password"]');
+    if (!passwordInput || passwordInput.dataset.toggleDone) return;
+    passwordInput.dataset.toggleDone = '1';
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'password-toggle-wrapper';
+    passwordInput.parentNode.insertBefore(wrapper, passwordInput);
+    wrapper.appendChild(passwordInput);
+
+    const btn = document.createElement('button');
+    btn.type    = 'button';
+    btn.className = 'password-toggle-btn';
+    btn.setAttribute('aria-label', 'Mostrar contraseña');
+    btn.setAttribute('aria-pressed', 'false');
+    btn.textContent = '👁️';
+    wrapper.appendChild(btn);
+
+    btn.addEventListener('click', () => {
+      const visible = passwordInput.type === 'text';
+      passwordInput.type = visible ? 'password' : 'text';
+      btn.textContent = visible ? '👁️' : '🙈';
+      btn.setAttribute('aria-label', visible ? 'Mostrar contraseña' : 'Ocultar contraseña');
+      btn.setAttribute('aria-pressed', String(!visible));
+    });
   }
 
   // ── Abrir modal de creación ────────────────────────────
@@ -176,8 +218,8 @@ const UsuariosCRUD = (() => {
     window.ModalManager.open({
       title: 'Nuevo Usuario Admin',
       fields: [
-        { name: 'email',    label: 'Email',      type: 'email', required: true },
-        { name: 'password', label: 'Contraseña', type: 'text',  required: true },
+        { name: 'email',    label: 'Email',      type: 'email',    required: true },
+        { name: 'password', label: 'Contraseña', type: 'password', required: true },
         {
           name: 'rol',
           label: 'Rol',
@@ -216,6 +258,9 @@ const UsuariosCRUD = (() => {
         document.dispatchEvent(new CustomEvent('usuarios:updated'));
       }
     });
+
+    // ModalManager crea el DOM síncronamente → el toggle ya puede conectarse
+    setupPasswordToggle();
   }
 
   // ── Utilidad ───────────────────────────────────────────

@@ -157,7 +157,13 @@ const MultiImageUpload = (() => {
 
       for (let i = 0; i < imagesToUpload.length; i++) {
         const img = imagesToUpload[i];
-        console.log(`📤 Subiendo imagen ${i + 1}/${imagesToUpload.length}...`);
+        const label = `${i + 1}/${imagesToUpload.length}`;
+        console.log(`📤 Subiendo imagen ${label}…`);
+
+        // Feedback de progreso al usuario
+        if (imagesToUpload.length > 1) {
+          window.ErrorHandler?.showToast(`Subiendo imagen ${label}…`, 'info');
+        }
 
         const uploadResult = await window.StorageModule.uploadImage(img.file, obraId);
 
@@ -167,9 +173,9 @@ const MultiImageUpload = (() => {
             principal: img.principal,
             orden: i + 1,
           });
-          console.log(`✅ Imagen ${i + 1} subida`);
+          console.log(`✅ Imagen ${label} subida`);
         } else {
-          throw new Error(`Error en imagen ${i + 1}: ${uploadResult.error}`);
+          throw new Error(`Error en imagen ${label}: ${uploadResult.error}`);
         }
       }
 
