@@ -36,6 +36,8 @@ const MultiImageUpload = (() => {
     if (!imageList || imageList.children.length === 0) {
       addImageInput();
     }
+
+    setupDragDrop();
   }
 
   /**
@@ -217,6 +219,86 @@ const MultiImageUpload = (() => {
     init();
   }
 
+  // ── Drag-drop sobre #multiImageContainer ──────────────
+  /**
+   * Procesa archivos soltados en la zona de imágenes.
+   * Reutiliza los slots vacíos existentes; crea nuevos si es necesario.
+   */
+  async function handleDroppedFiles(files) {
+    const imageList = document.getElementById('imageList');
+    if (!imageList) return;
+
+    const imageFiles = Array.from(files).filter(f => f.type.startsWith('image/'));
+    if (imageFiles.length === 0) {
+      window.ErrorHandler?.showToast('Solo se aceptan imágenes (JPG, PNG, WebP)', 'warning');
+      return;
+    }
+
+    let added = 0;
+    for (const file of imageFiles) {
+      // Buscar un slot vacío existente
+      const emptyIndex = images.findIndex(img => img.file === null);
+
+      if (emptyIndex >= 0) {
+        // Rellenar slot vacío
+        images[emptyIndex] = { file, principal: emptyIndex === 0 };
+        const wrapper = imageList.children[emptyIndex];
+        try { if (wrapper) await showPreview(wrapper, file); } catch (_) { /* preview opcional */ }
+        added++;
+      } else if (images.length < MAX_IMAGES) {
+        // Crear slot nuevo y rellenarlo
+        addImageInput();
+        const newIndex = images.length - 1;
+        images[newIndex] = { file, principal: newIndex === 0 };
+        const wrapper = imageList.children[newIndex];
+        try { if (wrapper) await showPreview(wrapper, file); } catch (_) { /* preview opcional */ }
+        added++;
+      } else {
+        window.ErrorHandler?.showToast(`Máximo ${MAX_IMAGES} imágenes permitidas`, 'warning');
+        break;
+      }
+    }
+
+    if (added > 0) {
+      window.ErrorHandler?.showToast(
+        `✅ ${added} imagen${added > 1 ? 'es agregadas' : ' agregada'}`,
+        'success'
+      );
+    }
+  }
+
+  /**
+   * Conecta drag-and-drop al contenedor #multiImageContainer.
+   * Llamado al final de init().
+   */
+  function setupDragDrop() {
+    const container = document.getElementById('multiImageContainer');
+    if (!container) return;
+
+    // Prevenir comportamiento default del browser en todos los eventos
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(evt =>
+      container.addEventListener(evt, e => { e.preventDefault(); e.stopPropagation(); })
+    );
+
+    // Resaltar zona al arrastrar encima
+    container.addEventListener('dragenter', () => container.classList.add('drag-over'));
+
+    // Quitar resaltado solo al salir del contenedor (no de sus hijos)
+    container.addEventListener('dragleave', e => {
+      if (!container.contains(e.relatedTarget)) {
+        container.classList.remove('drag-over');
+      }
+    });
+
+    // Procesar archivos soltados
+    container.addEventListener('drop', async e => {
+      container.classList.remove('drag-over');
+      await handleDroppedFiles(e.dataTransfer.files);
+    });
+
+    console.log('🖼️  Drag-drop conectado a #multiImageContainer');
+  }
+
   // Inicializar
   document.addEventListener('DOMContentLoaded', init);
 
@@ -226,6 +308,7 @@ const MultiImageUpload = (() => {
     uploadAll,
     saveAllImageRecords,
     reset,
+    handleDroppedFiles,   // expuesto para testing
   };
 })();
 
