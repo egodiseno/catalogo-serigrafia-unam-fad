@@ -41,13 +41,18 @@ document.addEventListener('DOMContentLoaded', () => {
     resetForm();
     await loadTecnicas();
 
+    const existingSection = document.getElementById('existingImagesSection');
+
     if (id) {
       modalTitle.textContent = 'Editar Obra';
       saveBtn.textContent    = 'Guardar cambios';
+      if (existingSection) existingSection.style.display = 'block';
       await loadObraToEdit(id);
+      loadObraImages(id);        // sin await: el modal abre ya, imágenes cargan en paralelo
     } else {
       modalTitle.textContent = 'Nueva Obra';
       saveBtn.textContent    = 'Guardar obra';
+      if (existingSection) existingSection.style.display = 'none';
     }
 
     modal.style.display = 'flex';
@@ -114,6 +119,95 @@ document.addEventListener('DOMContentLoaded', () => {
       console.error('loadObraToEdit:', err);
       showAlert('No se pudo cargar la obra.', 'error');
     }
+  }
+
+  // ── Imágenes existentes (al editar) ──────────────────
+
+  /** Escapa atributos HTML dentro de obras-form */
+  function escAttrF(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  /**
+   * Carga las imágenes guardadas en la tabla `imagenes` para una obra
+   * y las renderiza en #existingImagesList.
+   */
+  async function loadObraImages(obraId) {
+    const container = document.getElementById('existingImagesList');
+    if (!container) return;
+
+    container.innerHTML = '<p class="field-hint">Cargando imágenes…</p>';
+
+    try {
+      const { data, error } = await client
+        .from('imagenes')
+        .select('id, url_storage, principal, orden')
+        .eq('obra_id', obraId)
+        .order('orden', { ascending: true, nullsFirst: false });
+
+      if (error) throw error;
+
+      if (!data || data.length === 0) {
+        container.innerHTML = '<p class="field-hint">Sin imágenes guardadas.</p>';
+        return;
+      }
+
+      container.innerHTML = data.map(img => `
+        <div class="existing-image-item" data-img-id="${escAttrF(img.id)}">
+          <img src="${escAttrF(img.url_storage)}"
+               alt="Imagen de la obra"
+               class="existing-thumb"
+               data-src="${escAttrF(img.url_storage)}">
+          ${img.principal ? '<span class="badge-principal">Principal</span>' : ''}
+          <button type="button"
+                  class="btn btn-danger btn-sm btn-del-img"
+                  data-img-id="${escAttrF(img.id)}"
+                  title="Eliminar imagen">🗑️</button>
+        </div>
+      `).join('');
+
+      // Click en thumbnail → preview grande
+      container.querySelectorAll('.existing-thumb').forEach(thumb => {
+        thumb.addEventListener('click', () =>
+          window.ModalManager?.openImagePreview(thumb.dataset.src)
+        );
+      });
+
+      // Eliminar imagen con confirmación
+      container.querySelectorAll('.btn-del-img').forEach(btn => {
+        btn.addEventListener('click', () => deleteObraImage(btn.dataset.imgId, obraId));
+      });
+
+    } catch (err) {
+      console.error('loadObraImages:', err);
+      container.innerHTML =
+        '<p class="field-hint" style="color:var(--color-danger,#dc2626)">Error al cargar imágenes.</p>';
+    }
+  }
+
+  /**
+   * Confirma y elimina un registro de la tabla `imagenes`.
+   * Recarga la lista tras borrar.
+   */
+  function deleteObraImage(imgId, obraId) {
+    window.ModalManager?.openConfirm({
+      title:       '¿Eliminar imagen?',
+      message:     'La imagen se eliminará del catálogo. Esta acción no se puede deshacer.',
+      confirmText: 'Eliminar',
+      cancelText:  'Cancelar',
+      onConfirm:   async () => {
+        try {
+          const { error } = await client.from('imagenes').delete().eq('id', imgId);
+          if (error) throw error;
+          window.ErrorHandler?.showToast('Imagen eliminada', 'success');
+          loadObraImages(obraId);
+        } catch (err) {
+          console.error('deleteObraImage:', err);
+          window.ErrorHandler?.showToast('Error al eliminar la imagen', 'error');
+        }
+      },
+    });
   }
 
   // ── Guardar obra (INSERT o UPDATE) ───────────────────
@@ -272,6 +366,10 @@ document.addEventListener('DOMContentLoaded', () => {
     window.TagsInObra?.reset();
     hideAlert();
     hideInlineTecnica();
+    const existingSection = document.getElementById('existingImagesSection');
+    if (existingSection) existingSection.style.display = 'none';
+    const existingList = document.getElementById('existingImagesList');
+    if (existingList) existingList.innerHTML = '';
   }
 
   // ── Alertas del modal ─────────────────────────────────

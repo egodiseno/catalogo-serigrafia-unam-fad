@@ -254,9 +254,47 @@ const ModalManager = (() => {
     modal.querySelector('.modal-cancel').focus();
   }
 
+  // ── Preview de imagen en modal ────────────────────────
+  /**
+   * Abre el modal #imagePreviewModal con la imagen indicada.
+   * Cierra con: botón X, clic en overlay, tecla Escape.
+   * Fallback a window.open si el modal no existe en el DOM.
+   */
+  function openImagePreview(imageUrl) {
+    const modal    = document.getElementById('imagePreviewModal');
+    const imgEl    = document.getElementById('imagePreviewImg');
+    const closeBtn = document.getElementById('imagePreviewClose');
+
+    if (!modal || !imgEl) {
+      window.open(imageUrl, '_blank');
+      return;
+    }
+
+    imgEl.src = imageUrl;
+    modal.style.display = 'flex';
+
+    function closeModal() {
+      modal.style.display = 'none';
+      imgEl.src = '';
+      closeBtn.removeEventListener('click', closeModal);
+      document.removeEventListener('keydown', escHandler);
+      modal.removeEventListener('click', overlayHandler);
+    }
+
+    function escHandler(e)     { if (e.key === 'Escape') closeModal(); }
+    function overlayHandler(e) { if (e.target === modal)  closeModal(); }
+
+    closeBtn.addEventListener('click', closeModal);
+    document.addEventListener('keydown', escHandler);
+    modal.addEventListener('click', overlayHandler);
+
+    closeBtn.focus();
+  }
+
   return {
     open,
     openConfirm,
+    openImagePreview,
     close,
     isAvailable: () => !!modalContainer
   };

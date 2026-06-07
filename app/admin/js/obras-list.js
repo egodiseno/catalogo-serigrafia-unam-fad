@@ -165,9 +165,9 @@ document.addEventListener('DOMContentLoaded', () => {
     tbody.querySelectorAll('.btn-edit').forEach(btn => {
       btn.addEventListener('click', () => editObra(btn.dataset.id));
     });
-    // ISSUE-14: click en thumbnail abre imagen en nueva pestaña
+    // Click en thumbnail → modal preview (openImagePreview)
     tbody.querySelectorAll('.obra-thumb').forEach(img => {
-      img.addEventListener('click', () => window.open(img.dataset.src, '_blank'));
+      img.addEventListener('click', () => window.ModalManager?.openImagePreview(img.dataset.src));
     });
   }
 

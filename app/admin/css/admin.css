@@ -1477,3 +1477,121 @@ input[type="file"]:hover {
   vertical-align: middle;
 }
 
+/* ── IMÁGENES EXISTENTES (modal editar obra) ─────────── */
+
+.form-divider {
+  border: none;
+  border-top: 1px solid var(--color-border, #e5e7eb);
+  margin: 0.75rem 0;
+}
+
+.existing-images-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+}
+
+.existing-image-item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  background: var(--color-surface, #f9fafb);
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-radius: var(--radius-md, 8px);
+  padding: 0.5rem;
+  width: 100px;
+}
+
+.existing-thumb {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 6px;
+  cursor: pointer;
+  border: 1px solid var(--color-border, #e5e7eb);
+  transition: opacity 150ms, transform 150ms;
+  display: block;
+}
+
+.existing-thumb:hover {
+  opacity: 0.85;
+  transform: scale(1.04);
+}
+
+.badge-principal {
+  display: inline-block;
+  background: var(--color-blue, #013b75);
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 99px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+.btn-del-img {
+  width: 100%;
+  font-size: 0.7rem;
+  padding: 2px 4px;
+}
+
+/* ── MODAL PREVIEW DE IMAGEN ─────────────────────────── */
+
+.modal-dialog--image {
+  max-width: 90vw;
+  width: auto;
+  background: #000;
+  border-radius: var(--radius-lg, 12px);
+  overflow: hidden;
+}
+
+.modal-dialog--image .modal-header {
+  background: rgba(0, 0, 0, 0.8);
+  border-bottom: none;
+  padding: 0.5rem 1rem;
+}
+
+.modal-dialog--image .modal-header h3 {
+  color: #fff;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.modal-dialog--image .modal-close {
+  color: #fff;
+  background: transparent;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  transition: background 150ms;
+}
+
+.modal-dialog--image .modal-close:hover {
+  background: rgba(255,255,255,0.2);
+}
+
+.modal-body--image {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  max-height: 82vh;
+  overflow: auto;
+}
+
+.modal-body--image img {
+  max-width: 90vw;
+  max-height: 80vh;
+  width: auto;
+  height: auto;
+  display: block;
+  object-fit: contain;
+}
+

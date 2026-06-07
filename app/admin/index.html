@@ -374,6 +374,15 @@
             </div>
           </div>
 
+          <!-- Imágenes guardadas (visible solo al editar) -->
+          <div id="existingImagesSection" style="display:none;">
+            <div class="form-group">
+              <label>Imágenes guardadas</label>
+              <div id="existingImagesList" class="existing-images-list"></div>
+            </div>
+            <hr class="form-divider">
+          </div>
+
           <!-- Tags -->
           <div class="form-group">
             <label>Tags</label>
@@ -423,6 +432,22 @@
   <script src="js/usuarios-crud.js" defer></script>
   <!-- Modal Container -->
   <div id="modalContainer"></div>
+
+  <!-- ========================
+       MODAL: PREVIEW DE IMAGEN
+       ======================== -->
+  <div id="imagePreviewModal" class="modal-overlay" style="display:none;"
+       role="dialog" aria-modal="true" aria-label="Vista previa de imagen">
+    <div class="modal-dialog modal-dialog--image">
+      <div class="modal-header">
+        <h3>Vista previa</h3>
+        <button class="modal-close" id="imagePreviewClose" aria-label="Cerrar">✕</button>
+      </div>
+      <div class="modal-body modal-body--image">
+        <img id="imagePreviewImg" src="" alt="Vista previa de imagen">
+      </div>
+    </div>
+  </div>
 
   <script src="js/init.js" defer></script>
   <!-- Seed data (solo localhost) -->
