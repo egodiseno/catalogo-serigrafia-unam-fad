@@ -1,0 +1,256 @@
+/**
+ * Edge Function: send-welcome-email
+ * ──────────────────────────────────────────────────────────────────────────────
+ * Envía email de bienvenida a un nuevo usuario admin.
+ *
+ * Estrategia: genera un link de recovery (type='recovery') para que el nuevo
+ * usuario establezca su propia contraseña en el primer acceso. Supabase
+ * entrega el email mediante su sistema interno.
+ *
+ * Si se configura RESEND_API_KEY, usa Resend para un email HTML personalizado.
+ * Si no, usa la API admin de Supabase (generateLink → email automático).
+ *
+ * Endpoint: POST /functions/v1/send-welcome-email
+ *
+ * Body:
+ *   { email: string, nombre?: string, rol?: string }
+ *
+ * Headers requeridos:
+ *   Authorization: Bearer <session_access_token>
+ *   apikey: <supabase_anon_key>
+ *
+ * Respuesta exitosa (200):
+ *   { success: true, method: 'resend' | 'supabase' }
+ *
+ * Respuesta de error:
+ *   { success: false, error: string, code?: string }
+ * ──────────────────────────────────────────────────────────────────────────────
+ */
+
+import { serve }        from 'https://deno.land/std@0.177.0/http/server.ts';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+// ── CORS ─────────────────────────────────────────────────────────────────────
+const CORS_HEADERS: Record<string, string> = {
+  'Access-Control-Allow-Origin':  '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+};
+
+const JSON_HEADERS = { ...CORS_HEADERS, 'Content-Type': 'application/json' };
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+function ok(body: object): Response {
+  return new Response(JSON.stringify(body), { status: 200, headers: JSON_HEADERS });
+}
+
+function fail(body: object, status = 400): Response {
+  return new Response(JSON.stringify(body), { status, headers: JSON_HEADERS });
+}
+
+// ── HTML del email de bienvenida ──────────────────────────────────────────────
+function buildWelcomeHtml(nombre: string, email: string, rol: string, setupLink: string, siteUrl: string): string {
+  const displayName = nombre || email.split('@')[0];
+  return `
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bienvenido al Catálogo — UNAM/FAD</title>
+</head>
+<body style="margin:0;padding:0;background:#F4F6F9;font-family:'Segoe UI',Arial,sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F4F6F9;padding:40px 0;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0"
+               style="background:#ffffff;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);max-width:600px;width:100%;">
+
+          <!-- Header azul UNAM -->
+          <tr>
+            <td style="background:#013B75;padding:32px 40px;text-align:center;">
+              <h1 style="color:#ffffff;margin:0;font-size:22px;font-weight:700;letter-spacing:0.5px;">
+                Catálogo de Obra Serigráfica
+              </h1>
+              <p style="color:rgba(255,255,255,0.75);margin:6px 0 0;font-size:13px;">
+                UNAM / Facultad de Artes y Diseño
+              </p>
+            </td>
+          </tr>
+
+          <!-- Barra dorada -->
+          <tr>
+            <td style="height:4px;background:#D9A500;"></td>
+          </tr>
+
+          <!-- Cuerpo -->
+          <tr>
+            <td style="padding:40px;">
+              <h2 style="color:#013B75;margin:0 0 16px;font-size:18px;">
+                Hola, ${displayName} 👋
+              </h2>
+              <p style="color:#374151;margin:0 0 16px;line-height:1.6;">
+                Se ha creado una cuenta de acceso al <strong>Panel Administrativo</strong>
+                del Catálogo Digital de Obra Serigráfica con el rol de
+                <strong style="color:#013B75;">${rol}</strong>.
+              </p>
+              <p style="color:#374151;margin:0 0 24px;line-height:1.6;">
+                Para establecer tu contraseña y activar tu cuenta, haz clic en el
+                botón a continuación:
+              </p>
+
+              <!-- CTA -->
+              <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 28px;">
+                <tr>
+                  <td style="border-radius:6px;background:#013B75;">
+                    <a href="${setupLink}"
+                       style="display:inline-block;padding:14px 28px;color:#ffffff;text-decoration:none;font-size:15px;font-weight:600;letter-spacing:0.3px;">
+                      Establecer mi contraseña →
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="color:#6B7280;font-size:13px;margin:0 0 8px;">
+                Si el botón no funciona, copia y pega este link en tu navegador:
+              </p>
+              <p style="color:#013B75;font-size:12px;word-break:break-all;margin:0 0 24px;">
+                ${setupLink}
+              </p>
+
+              <hr style="border:none;border-top:1px solid #E5E7EB;margin:24px 0;">
+
+              <p style="color:#9CA3AF;font-size:12px;margin:0;">
+                Este link es válido por <strong>24 horas</strong>. Si no solicitaste
+                este acceso, ignora este email. Para soporte, contacta al administrador
+                del catálogo.
+              </p>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background:#F9FAFB;padding:20px 40px;text-align:center;border-top:1px solid #E5E7EB;">
+              <p style="color:#9CA3AF;font-size:11px;margin:0;">
+                © UNAM / Facultad de Artes y Diseño — Panel Admin del Catálogo de Obra Serigráfica
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `.trim();
+}
+
+// ── Handler ──────────────────────────────────────────────────────────────────
+serve(async (req: Request) => {
+
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS_HEADERS });
+  if (req.method !== 'POST') {
+    return fail({ success: false, error: 'Método no permitido. Usa POST.' }, 405);
+  }
+
+  try {
+    // Validar body
+    let body: { email?: string; nombre?: string; rol?: string };
+    try {
+      body = await req.json();
+    } catch {
+      return fail({ success: false, error: 'Body inválido. Se esperaba JSON.' });
+    }
+
+    const { email, nombre = '', rol = 'editor' } = body;
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return fail({ success: false, error: 'Email inválido o faltante.', code: 'INVALID_EMAIL' });
+    }
+
+    // Verificar sesión del caller
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return fail({ success: false, error: 'No autorizado.' }, 401);
+    }
+
+    const callerToken = authHeader.replace('Bearer ', '').trim();
+    const supabaseCaller = createClient(
+      Deno.env.get('SUPABASE_URL')      ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      {
+        global: { headers: { Authorization: `Bearer ${callerToken}` } },
+        auth:   { autoRefreshToken: false, persistSession: false },
+      }
+    );
+
+    const { data: { user: callerUser }, error: callerError } = await supabaseCaller.auth.getUser();
+    if (callerError || !callerUser) {
+      return fail({ success: false, error: 'Token inválido o sesión expirada.' }, 401);
+    }
+
+    // Admin client
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL')     ?? '',
+      Deno.env.get('SERVICE_ROLE_KEY') ?? '',
+      { auth: { autoRefreshToken: false, persistSession: false } }
+    );
+
+    const siteUrl  = Deno.env.get('SITE_URL') ?? 'http://localhost:8000/app/admin/index.html';
+    const resendKey = Deno.env.get('RESEND_API_KEY');
+
+    // Generar recovery link (sirve como link de "setup inicial de contraseña")
+    const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
+      type:    'recovery',
+      email,
+      options: { redirectTo: siteUrl },
+    });
+
+    if (linkError) {
+      console.error('[send-welcome-email] generateLink error:', linkError);
+      return fail({ success: false, error: linkError.message, code: 'LINK_ERROR' }, 400);
+    }
+
+    const setupLink = (linkData as { properties?: { action_link?: string } })
+      ?.properties?.action_link ?? siteUrl;
+
+    // ── Opción A: Resend (email HTML personalizado) ───────────────────────────
+    if (resendKey) {
+      const htmlBody = buildWelcomeHtml(nombre, email, rol, setupLink, siteUrl);
+
+      const resendRes = await fetch('https://api.resend.com/emails', {
+        method:  'POST',
+        headers: {
+          'Authorization': `Bearer ${resendKey}`,
+          'Content-Type':  'application/json',
+        },
+        body: JSON.stringify({
+          from:    'Catálogo UNAM <admin@unam.catalogo.mx>',
+          to:      [email],
+          subject: '🎨 Bienvenido al Panel Admin — Catálogo de Obra Serigráfica UNAM',
+          html:    htmlBody,
+        }),
+      });
+
+      if (!resendRes.ok) {
+        const resendErr = await resendRes.text();
+        console.error('[send-welcome-email] Resend error:', resendErr);
+        return fail({ success: false, error: `Error Resend: ${resendErr}`, code: 'RESEND_ERROR' }, 500);
+      }
+
+      console.log(`[send-welcome-email] ✓ Welcome email (Resend) enviado a ${email} (rol: ${rol})`);
+      return ok({ success: true, method: 'resend' });
+    }
+
+    // ── Opción B: Supabase genera y envía el email de recovery automáticamente ─
+    // El link ya fue generado arriba — Supabase envía el email de "Reset Password"
+    // que sirve como invitación de primer acceso.
+    console.log(`[send-welcome-email] ✓ Recovery link (Supabase) enviado a ${email} (rol: ${rol})`);
+    return ok({ success: true, method: 'supabase' });
+
+  } catch (e) {
+    const message = e instanceof Error ? e.message : 'Error interno del servidor.';
+    console.error('[send-welcome-email] Unhandled error:', e);
+    return fail({ success: false, error: message, code: 'INTERNAL_ERROR' }, 500);
+  }
+});

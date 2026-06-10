@@ -53,14 +53,17 @@ const ModalManager = (() => {
         <div class="modal-dialog">
           <div class="modal-header">
             <h2>${sanitize(title)}</h2>
-            <button type="button" class="modal-close" aria-label="Cerrar">✕</button>
+            <button type="button" class="modal-close btn btn-ghost" aria-label="Cerrar">
+              <i data-lucide="x" style="width:16px;height:16px;" aria-hidden="true"></i>
+            </button>
           </div>
           
           <form class="modal-form">
-            ${fields.map(field => createField(field)).join('')}
-            
-            <div class="modal-error" style="display: none;"></div>
-            
+            <div class="modal-body">
+              ${fields.map(field => createField(field)).join('')}
+              <div class="modal-error" style="display: none;"></div>
+            </div>
+
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary modal-cancel">Cancelar</button>
               <button type="submit" class="btn btn-primary">${sanitize(submitText)}</button>
@@ -71,6 +74,7 @@ const ModalManager = (() => {
     `;
 
     modalContainer.innerHTML = html;
+    window.IconRegistry?.init();   // renderizar iconos Lucide en el modal dinámico
     const modal = document.getElementById(modalId);
 
     // Event listeners
@@ -229,6 +233,7 @@ const ModalManager = (() => {
     `;
 
     modalContainer.innerHTML = html;
+    window.IconRegistry?.init();   // renderizar iconos Lucide en el modal de confirmación
     const modal = document.getElementById(modalId);
     modal.style.display = 'flex';
 

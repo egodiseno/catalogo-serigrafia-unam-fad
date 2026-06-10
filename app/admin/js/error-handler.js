@@ -43,14 +43,17 @@ const ErrorHandler = (() => {
 
   /**
    * Mostrar toast con mensaje
+   * @param {string} message  - Texto del mensaje
+   * @param {string} type     - 'error' | 'success' | 'warning'
+   * @param {string} [icon]   - Nombre de ícono Lucide (ej: 'mail-check', 'check-circle')
+   *                            Si se omite, se muestra solo el texto.
    */
-  function showToast(message, type = 'error') {
+  function showToast(message, type = 'error', icon = null) {
     const toast = document.createElement('div');
     const bgColor = type === 'error' ? '#ef4444' : type === 'success' ? '#10b981' : '#f59e0b';
     const textColor = '#ffffff';
 
     toast.className = `toast toast-${type}`;
-    toast.textContent = message;
     toast.setAttribute('role', 'alert');
     toast.setAttribute('aria-live', 'assertive');
 
@@ -72,7 +75,28 @@ const ErrorHandler = (() => {
       animation: slideInUp 300ms ease;
     `;
 
+    if (icon) {
+      // Layout flex: ícono Lucide + texto (cada uno en su propio nodo DOM)
+      toast.style.display    = 'flex';
+      toast.style.alignItems = 'center';
+      toast.style.gap        = '8px';
+
+      const iconEl = document.createElement('span');
+      iconEl.style.cssText  = 'display:flex;align-items:center;flex-shrink:0;';
+      iconEl.innerHTML      = `<i data-lucide="${icon}" style="width:16px;height:16px;" aria-hidden="true"></i>`;
+      toast.appendChild(iconEl);
+
+      const textEl = document.createElement('span');
+      textEl.textContent = message;
+      toast.appendChild(textEl);
+    } else {
+      toast.textContent = message;
+    }
+
     document.body.appendChild(toast);
+
+    // Renderizar el ícono Lucide si fue inyectado
+    if (icon) window.IconRegistry?.init();
 
     // Auto-remove
     setTimeout(() => {

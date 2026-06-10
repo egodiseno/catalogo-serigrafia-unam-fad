@@ -39,11 +39,17 @@ const TagsCRUD = (() => {
           <td>${escapeHtml(t.nombre)}</td>
           <td><code>${escapeHtml(t.slug)}</code></td>
           <td class="actions-cell">
-            <button class="btn btn-sm btn-secondary"
-                    data-edit-id="${t.id}" title="Editar">✏️ Editar</button>
-            <button class="btn btn-sm btn-danger"
-                    data-del-id="${t.id}"
-                    data-del-nombre="${escapeHtml(t.nombre)}" title="Eliminar">🗑️</button>
+            <div class="action-buttons">
+              <button class="btn btn-sm btn-secondary"
+                      data-edit-id="${t.id}" title="Editar">
+                <i data-lucide="pen" style="width:14px;height:14px;" aria-hidden="true"></i> Editar
+              </button>
+              <button class="btn btn-sm btn-danger btn--icon-only"
+                      data-del-id="${t.id}"
+                      data-del-nombre="${escapeHtml(t.nombre)}" title="Eliminar">
+                <i data-lucide="trash-2" style="width:14px;height:14px;" aria-hidden="true"></i>
+              </button>
+            </div>
           </td>
         </tr>
       `).join('');
@@ -54,6 +60,7 @@ const TagsCRUD = (() => {
       tbody.querySelectorAll('[data-del-id]').forEach(btn => {
         btn.addEventListener('click', () => deleteTag(btn.dataset.delId, btn.dataset.delNombre));
       });
+      window.IconRegistry?.init();
 
     } catch (err) {
       console.error('loadTagsTable:', err);

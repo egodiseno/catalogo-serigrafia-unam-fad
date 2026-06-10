@@ -161,9 +161,12 @@ document.addEventListener('DOMContentLoaded', () => {
                data-src="${escAttrF(img.url_storage)}">
           ${img.principal ? '<span class="badge-principal">Principal</span>' : ''}
           <button type="button"
-                  class="btn btn-danger btn-sm btn-del-img"
+                  class="btn-del-img image-item-delete"
                   data-img-id="${escAttrF(img.id)}"
-                  title="Eliminar imagen">🗑️</button>
+                  aria-label="Eliminar imagen">
+            <i data-lucide="trash-2" style="width:13px;height:13px;" aria-hidden="true"></i>
+            Eliminar
+          </button>
         </div>
       `).join('');
 
@@ -178,6 +181,7 @@ document.addEventListener('DOMContentLoaded', () => {
       container.querySelectorAll('.btn-del-img').forEach(btn => {
         btn.addEventListener('click', () => deleteObraImage(btn.dataset.imgId, obraId));
       });
+      window.IconRegistry?.init();
 
     } catch (err) {
       console.error('loadObraImages:', err);

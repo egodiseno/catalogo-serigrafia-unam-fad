@@ -50,7 +50,9 @@ function onAuthStateChange(callback) {
 
 // ── Namespace global ───────────────────────────────────────
 window.supabaseConfig = {
-  client: supabaseClient,
+  url:     SUPABASE_URL,       // usado por Edge Functions fetch
+  anonKey: SUPABASE_ANON_KEY,  // apikey header en llamadas a funciones
+  client:  supabaseClient,
   getCurrentUser,
   getSession,
   loginWithEmail,

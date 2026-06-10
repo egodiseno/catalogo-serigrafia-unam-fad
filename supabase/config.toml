@@ -1,0 +1,22 @@
+# Supabase local development config
+# Docs: https://supabase.com/docs/guides/cli/config
+
+[api]
+port = 54321
+
+[db]
+port = 54322
+shadow_port = 54320
+major_version = 15
+
+[studio]
+port = 54323
+
+[auth]
+site_url = "http://localhost:8000"
+additional_redirect_urls = []
+jwt_expiry = 3600
+enable_signup = true
+
+[functions]
+# Edge Functions se despliegan con: supabase functions deploy create-admin-user

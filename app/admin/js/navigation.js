@@ -10,13 +10,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const pageTitle = document.getElementById('pageTitle');
   const pageSubtitle = document.getElementById('pageSubtitle');
 
-  // Textos de secciones
+  // Textos de secciones — título siempre fijo, subtítulo describe la sección activa
   const sectionTitles = {
-    dashboard: { title: 'Dashboard', subtitle: 'Resumen del catálogo' },
-    obras: { title: 'Gestionar Obras', subtitle: 'Tabla de obras disponibles' },
-    tecnicas: { title: 'Gestionar Técnicas', subtitle: 'Métodos de impresión' },
-    tags: { title: 'Gestionar Tags', subtitle: 'Etiquetas del catálogo' },
-    usuarios: { title: 'Gestionar Usuarios', subtitle: 'Usuarios administradores' },
+    dashboard: { title: 'Catálogo de Obra Serigráfica', subtitle: 'Resumen del catálogo' },
+    obras:     { title: 'Catálogo de Obra Serigráfica', subtitle: 'Gestionar obras' },
+    tecnicas:  { title: 'Catálogo de Obra Serigráfica', subtitle: 'Gestionar técnicas' },
+    tags:      { title: 'Catálogo de Obra Serigráfica', subtitle: 'Gestionar tags' },
+    usuarios:  { title: 'Catálogo de Obra Serigráfica', subtitle: 'Gestionar usuarios' },
   };
 
   // ============ FUNCIÓN: Mostrar sección ============

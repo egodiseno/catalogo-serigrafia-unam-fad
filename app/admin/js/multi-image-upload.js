@@ -213,11 +213,11 @@ const MultiImageUpload = (() => {
    * Resetear formulario
    */
   function reset() {
-    images = [];
-    const imageList = document.getElementById('imageList');
-    if (imageList) imageList.innerHTML = '';
-    init();
-  }
+  images = [];
+  const imageList = document.getElementById('imageList');
+  if (imageList) imageList.innerHTML = '';
+  addImageInput();
+}
 
   // ── Drag-drop sobre #multiImageContainer ──────────────
   /**
@@ -300,7 +300,13 @@ const MultiImageUpload = (() => {
   }
 
   // Inicializar
-  document.addEventListener('DOMContentLoaded', init);
+  let initalized = false;
+document.addEventListener('DOMContentLoaded', () => {
+  if (!initalized) {
+    initalized = true;
+    init();
+  }
+});
 
   return {
     addImageInput,

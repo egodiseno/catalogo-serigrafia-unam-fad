@@ -150,11 +150,17 @@ document.addEventListener('DOMContentLoaded', () => {
           <td class="tags-cell">${tagsHtml}</td>
           <td><span class="badge badge-${obra.estado}">${obra.estado}</span></td>
           <td class="actions-cell">
-            <button class="btn btn-sm btn-secondary btn-edit"
-                    data-id="${obra.id}" title="Editar">✏️</button>
-            <button class="btn btn-sm btn-danger btn-delete"
-                    data-id="${obra.id}"
-                    data-titulo="${escAttr(obra.titulo)}" title="Eliminar">🗑️</button>
+            <div class="action-buttons">
+              <button class="btn btn-sm btn-secondary btn-edit"
+                      data-id="${obra.id}" title="Editar">
+                <i data-lucide="pen" style="width:14px;height:14px;" aria-hidden="true"></i>
+              </button>
+              <button class="btn btn-sm btn-danger btn-delete btn--icon-only"
+                      data-id="${obra.id}"
+                      data-titulo="${escAttr(obra.titulo)}" title="Eliminar">
+                <i data-lucide="trash-2" style="width:14px;height:14px;" aria-hidden="true"></i>
+              </button>
+            </div>
           </td>
         </tr>`;
     }).join('');
@@ -169,6 +175,8 @@ document.addEventListener('DOMContentLoaded', () => {
     tbody.querySelectorAll('.obra-thumb').forEach(img => {
       img.addEventListener('click', () => window.ModalManager?.openImagePreview(img.dataset.src));
     });
+    // Renderizar iconos Lucide inyectados en el innerHTML dinámico
+    window.IconRegistry?.init();
   }
 
   // ── Render contador ───────────────────────────────────

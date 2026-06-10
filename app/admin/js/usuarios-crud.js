@@ -1,32 +1,25 @@
 /**
  * usuarios-crud.js — CRUD de Usuarios Admin
  * SPRINT1: ISSUE-01 (sin location.reload), ISSUE-06 (sin alert)
- * SPRINT3: ISSUE-15 — documenta deuda técnica en creación de usuarios
+ * SPRINT3: ISSUE-15 — creación de usuarios via Edge Function segura
  * FASE1.I: openEditModal (rol/estado), guard "último admin"
  *
  * Depende de: config.js, modals.js, error-handler.js
  * Expone:     window.UsuariosCRUD
  *
  * ──────────────────────────────────────────────────────────────────
- * ⚠️  DEUDA TÉCNICA — Creación de usuarios:
+ * ✅  CREACIÓN DE USUARIOS — Edge Function:
  *
- * Se usa `supabase.auth.signUp()` con la anon key (SPRINT 1 fix).
- * Esto funciona pero tiene limitaciones:
+ * La creación se delega a la Edge Function `create-admin-user`
+ * (supabase/functions/create-admin-user/index.ts).
  *
- *  1. El nuevo usuario recibe un email de confirmación; no puede
- *     iniciar sesión hasta confirmar su dirección.
- *  2. No es posible asignar una contraseña temporal sin que el
- *     usuario la reciba por email.
- *  3. `auth.admin.createUser()` (la alternativa que no requiere
- *     confirmación) exige la SERVICE ROLE KEY — nunca debe
- *     exponerse en el frontend.
+ * La Edge Function usa la SERVICE_ROLE_KEY en el servidor para:
+ *   1. auth.admin.createUser() con email_confirm: true
+ *   2. INSERT en usuarios_admin con estado: 'activo'
+ *   3. Rollback automático si el INSERT falla
  *
- * TODO para producción:
- *  → Crear una Supabase Edge Function que reciba email + rol y
- *    llame a `auth.admin.inviteUserByEmail()` usando la service
- *    role key en el servidor.
- *  → Refs: https://supabase.com/docs/guides/functions
- *          https://supabase.com/docs/reference/javascript/auth-admin-inviteuserbyemail
+ * El frontend solo envía: { email, password, rol }
+ * con el JWT de sesión como Bearer token para autenticación.
  * ──────────────────────────────────────────────────────────────────
  */
 
@@ -67,11 +60,21 @@ const UsuariosCRUD = (() => {
             </span>
           </td>
           <td class="actions-cell">
-            <button class="btn btn-sm btn-secondary"
-                    data-edit-id="${u.id}" title="Editar">✏️ Editar</button>
-            <button class="btn btn-sm btn-danger"
-                    data-del-id="${u.id}"
-                    data-del-email="${escapeHtml(u.email)}" title="Eliminar">🗑️</button>
+            <div class="action-buttons">
+              <button class="btn btn-sm btn-secondary"
+                      data-edit-id="${u.id}" title="Editar">
+                <i data-lucide="pen" style="width:14px;height:14px;" aria-hidden="true"></i> Editar
+              </button>
+              <button class="btn btn-sm btn-secondary"
+                      data-reset-email="${escapeHtml(u.email)}" title="Resetear contraseña">
+                <i data-lucide="key-round" style="width:14px;height:14px;" aria-hidden="true"></i> Resetear
+              </button>
+              <button class="btn btn-sm btn-danger btn--icon-only"
+                      data-del-id="${u.id}"
+                      data-del-email="${escapeHtml(u.email)}" title="Eliminar">
+                <i data-lucide="trash-2" style="width:14px;height:14px;" aria-hidden="true"></i>
+              </button>
+            </div>
           </td>
         </tr>
       `).join('');
@@ -79,9 +82,13 @@ const UsuariosCRUD = (() => {
       tbody.querySelectorAll('[data-edit-id]').forEach(btn => {
         btn.addEventListener('click', () => openEditModal(btn.dataset.editId));
       });
+      tbody.querySelectorAll('[data-reset-email]').forEach(btn => {
+        btn.addEventListener('click', () => resetPasswordUsuario(btn.dataset.resetEmail));
+      });
       tbody.querySelectorAll('[data-del-id]').forEach(btn => {
         btn.addEventListener('click', () => deleteUsuario(btn.dataset.delId, btn.dataset.delEmail));
       });
+      window.IconRegistry?.init();
 
     } catch (err) {
       console.error('loadUsuarios:', err);
@@ -179,6 +186,61 @@ const UsuariosCRUD = (() => {
     }
   }
 
+  // ── Resetear contraseña de usuario (Edge Function) ────
+  async function resetPasswordUsuario(email) {
+    if (window.ModalManager?.openConfirm) {
+      window.ModalManager.openConfirm({
+        title:       'Resetear contraseña',
+        message:     `Se enviará un link de restablecimiento a "${email}". El usuario deberá revisar su bandeja de entrada.`,
+        confirmText: 'Enviar link',
+        cancelText:  'Cancelar',
+        onConfirm:   async () => _doResetPassword(email)
+      });
+    } else {
+      if (!confirm(`¿Enviar link de restablecimiento a "${email}"?`)) return;
+      await _doResetPassword(email);
+    }
+  }
+
+  async function _doResetPassword(email) {
+    try {
+      const { data: sessionData } = await client.auth.getSession();
+      const accessToken = sessionData?.session?.access_token;
+      if (!accessToken) throw new Error('Sesión expirada. Por favor, inicia sesión nuevamente.');
+
+      const SUPABASE_URL  = window.supabaseConfig?.url      ?? 'https://kfvjansfmhamkrnbxmgp.supabase.co';
+      const ANON_KEY      = window.supabaseConfig?.anonKey  ?? '';
+      const FUNCTION_URL  = `${SUPABASE_URL}/functions/v1/reset-user-password`;
+
+      let response;
+      try {
+        response = await fetch(FUNCTION_URL, {
+          method:  'POST',
+          headers: {
+            'Content-Type':  'application/json',
+            'Authorization': `Bearer ${accessToken}`,
+            'apikey':        ANON_KEY,
+          },
+          body: JSON.stringify({ email }),
+        });
+      } catch (networkErr) {
+        throw new Error(`Error de red: ${networkErr.message}`);
+      }
+
+      let result;
+      try { result = await response.json(); } catch { throw new Error(`Respuesta inválida (HTTP ${response.status}).`); }
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error ?? `Error ${response.status}.`);
+      }
+
+      window.ErrorHandler?.showToast(`Link de restablecimiento enviado a ${email}`, 'success', 'mail-check');
+    } catch (err) {
+      console.error('[UsuariosCRUD] resetPassword:', err);
+      window.ErrorHandler?.showToast(err.message || 'No se pudo enviar el link.', 'error');
+    }
+  }
+
   // ── Toggle contraseña (icono ojo) ─────────────────────
   function setupPasswordToggle() {
     // El input puede estar recién creado por ModalManager (DOM síncrono)
@@ -192,18 +254,22 @@ const UsuariosCRUD = (() => {
     wrapper.appendChild(passwordInput);
 
     const btn = document.createElement('button');
-    btn.type    = 'button';
+    btn.type      = 'button';
     btn.className = 'password-toggle-btn';
-    btn.setAttribute('aria-label', 'Mostrar contraseña');
+    btn.setAttribute('aria-label',   'Mostrar contraseña');
     btn.setAttribute('aria-pressed', 'false');
-    btn.textContent = '👁️';
+    btn.innerHTML = '<i data-lucide="eye" style="width:16px;height:16px;" aria-hidden="true"></i>';
     wrapper.appendChild(btn);
+    window.IconRegistry?.init();   // renderizar el icono eye recién insertado
 
     btn.addEventListener('click', () => {
       const visible = passwordInput.type === 'text';
-      passwordInput.type = visible ? 'password' : 'text';
-      btn.textContent = visible ? '👁️' : '🙈';
-      btn.setAttribute('aria-label', visible ? 'Mostrar contraseña' : 'Ocultar contraseña');
+      passwordInput.type  = visible ? 'password' : 'text';
+      btn.innerHTML = visible
+        ? '<i data-lucide="eye"     style="width:16px;height:16px;" aria-hidden="true"></i>'
+        : '<i data-lucide="eye-off" style="width:16px;height:16px;" aria-hidden="true"></i>';
+      window.IconRegistry?.init();   // re-renderizar al cambiar ícono
+      btn.setAttribute('aria-label',   visible ? 'Mostrar contraseña' : 'Ocultar contraseña');
       btn.setAttribute('aria-pressed', String(!visible));
     });
   }
@@ -233,29 +299,89 @@ const UsuariosCRUD = (() => {
         }
       ],
       onSave: async (data) => {
-        // Crear usuario en Supabase Auth (funciona con anon key)
-        const { data: authData, error: authError } = await client.auth.signUp({
-          email:    data.email,
-          password: data.password
-        });
+        // ── Obtener sesión activa del admin que ejecuta la acción ──
+        const { data: sessionData } = await client.auth.getSession();
+        const accessToken = sessionData?.session?.access_token;
 
-        if (authError) throw authError;
-        if (!authData?.user) throw new Error('No se pudo obtener el ID del usuario creado.');
+        if (!accessToken) {
+          throw new Error('Sesión expirada. Por favor, inicia sesión nuevamente.');
+        }
 
-        const { error } = await client.from('usuarios_admin').insert([{
-          id:     authData.user.id,
-          email:  data.email,
-          rol:    data.rol,
-          estado: true
-        }]);
+        // ── Construir URL de la Edge Function ─────────────────────
+        const SUPABASE_URL = window.supabaseConfig?.url
+          ?? 'https://kfvjansfmhamkrnbxmgp.supabase.co';
+        const ANON_KEY = window.supabaseConfig?.anonKey ?? '';
+        const FUNCTION_URL = `${SUPABASE_URL}/functions/v1/create-admin-user`;
 
-        if (error) throw error;
+        // ── Llamar a la Edge Function ──────────────────────────────
+        let response;
+        try {
+          response = await fetch(FUNCTION_URL, {
+            method:  'POST',
+            headers: {
+              'Content-Type':  'application/json',
+              'Authorization': `Bearer ${accessToken}`,
+              'apikey':        ANON_KEY,
+            },
+            body: JSON.stringify({
+              email:    data.email,
+              password: data.password,
+              rol:      data.rol,
+            }),
+          });
+        } catch (networkErr) {
+          throw new Error(`Error de red al contactar la Edge Function: ${networkErr.message}`);
+        }
+
+        // ── Parsear respuesta ──────────────────────────────────────
+        let result;
+        try {
+          result = await response.json();
+        } catch {
+          throw new Error(`Respuesta inválida del servidor (HTTP ${response.status}).`);
+        }
+
+        if (!response.ok || !result.success) {
+          throw new Error(result.error ?? `Error ${response.status} al crear el usuario.`);
+        }
 
         window.ErrorHandler?.showToast(
-          '✅ Usuario creado. Se envió email de confirmación al correo registrado.',
+          `✅ Usuario ${result.email} creado y activado correctamente.`,
           'success'
         );
         document.dispatchEvent(new CustomEvent('usuarios:updated'));
+
+        // ── Enviar email de bienvenida (no bloquea si falla) ────────
+        try {
+          const WELCOME_URL = `${SUPABASE_URL}/functions/v1/send-welcome-email`;
+          const welcomeRes  = await fetch(WELCOME_URL, {
+            method:  'POST',
+            headers: {
+              'Content-Type':  'application/json',
+              'Authorization': `Bearer ${accessToken}`,
+              'apikey':        ANON_KEY,
+            },
+            body: JSON.stringify({
+              email:  data.email,
+              nombre: data.email.split('@')[0],
+              rol:    data.rol,
+            }),
+          });
+          const welcomeResult = await welcomeRes.json().catch(() => ({}));
+          if (welcomeRes.ok && welcomeResult.success) {
+            console.log(`[UsuariosCRUD] Welcome email enviado (${welcomeResult.method}) → ${data.email}`);
+            window.ErrorHandler?.showToast(
+              `Email de bienvenida enviado a ${data.email}`,
+              'success',
+              'mail-check'
+            );
+          } else {
+            console.warn('[UsuariosCRUD] Welcome email no enviado:', welcomeResult.error);
+          }
+        } catch (welcomeErr) {
+          // No crítico — el usuario ya fue creado
+          console.warn('[UsuariosCRUD] Welcome email error (no crítico):', welcomeErr);
+        }
       }
     });
 
@@ -292,7 +418,7 @@ const UsuariosCRUD = (() => {
     init();
   }
 
-  return { openCreateModal, openEditModal, deleteUsuario, loadUsuarios };
+  return { openCreateModal, openEditModal, deleteUsuario, loadUsuarios, resetPasswordUsuario };
 })();
 
 window.UsuariosCRUD = UsuariosCRUD;

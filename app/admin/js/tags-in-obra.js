@@ -285,6 +285,12 @@ const TagsInObra = (() => {
       .replace(/"/g, '&quot;');
   }
 
+  function setInitialTags(tagsArray) {
+    selectedTags = tagsArray ?? [];
+    renderChips();
+  }
+
+
   // ── Init ───────────────────────────────────────────────
   async function init() {
     await loadAllTags();
@@ -296,7 +302,7 @@ const TagsInObra = (() => {
 
   document.addEventListener('DOMContentLoaded', init);
 
-  return { addTag, removeTag, saveTags, getTags, reset, loadAllTags };
+  return { addTag, removeTag, saveTags, getTags, reset, loadAllTags, setInitialTags  };
 })();
 
 window.TagsInObra = TagsInObra;

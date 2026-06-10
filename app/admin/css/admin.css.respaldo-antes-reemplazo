@@ -1,44 +1,21 @@
 /* ═══════════════════════════════════════════════════════════════════
-   ADMIN — DESIGN SYSTEM UNAM PROFESIONAL
+   ADMIN PANEL CSS - ARCHIVO ÚNICO CONSOLIDADO
    ═══════════════════════════════════════════════════════════════════
    
-   Basado en: admin-design-tokens.css (nuevo design system)
-   + Layout mínimo esencial para el panel admin
+   Contiene:
+   1. Design Tokens UNAM (colores, espaciado, tipografía, sombras)
+   2. Componentes reutilizables (botones, modales, inputs, tarjetas)
+   3. Layout específico del panel admin (sidebar, header, main)
+   4. Secciones (obras, técnicas, tags, usuarios)
+   5. Iconos y utilidades
    
-   NO imports, SIN estilos viejos, 100% nuevo design system
+   SIN IMPORTS LOCALES - todo integrado en un archivo
    ═══════════════════════════════════════════════════════════════════ */
-
-/* ═══════════════════════════════════════════════════════════════════════
-   ADMIN — DESIGN TOKENS & COMPONENTS
-   ═══════════════════════════════════════════════════════════════════════
-   
-   Archivo: admin-design-tokens.css
-   Propósito: Variables CSS centralizadas + componentes base reutilizables
-   Uso: Importar PRIMERO en app/admin/css/admin.css
-   
-   Estructura:
-   1. Google Fonts
-   2. CSS Variables (colores, espaciado, tipografía, sombras)
-   3. Reset y Base
-   4. Componentes (botones, inputs, cards, tablas, modales, alertas)
-   5. Utilidades de espaciado
-   6. Animaciones
-   
-   ═══════════════════════════════════════════════════════════════════════ */
-
-/* ╔═════════════════════════════════════════════════════════════════════╗ */
-/* ║ 1. GOOGLE FONTS                                                     ║ */
-/* ╚═════════════════════════════════════════════════════════════════════╝ */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 /* Lora es opcional para títulos editorial */
 @import url('https://fonts.googleapis.com/css2?family=Lora:wght@400;600;700&display=swap');
-
-
-/* ╔═════════════════════════════════════════════════════════════════════╗ */
-/* ║ 2. CSS VARIABLES                                                    ║ */
-/* ╚═════════════════════════════════════════════════════════════════════╝ */
 
 :root {
   /* ─────────────────────────────────────────────────────────────────
@@ -170,35 +147,41 @@
   --header-height:   64px;
   --container-max:   1200px;
 
-  /* ── Aliases de compatibilidad ────────────────────────────────────
-     Permiten que los estilos legacy sigan funcionando con los valores
-     del nuevo design system UNAM.
-     ────────────────────────────────────────────────────────────────── */
-  --color-blue:          #013B75;
-  --color-blue-dark:     #002A55;
-  --color-blue-light:    #EEF4FB;
-  --color-gold:          #D9A500;
-  --color-gold-dark:     #B58700;
-  --color-danger:        #EF4444;
+  /* ─────────────────────────────────────────────────────────────────
+     ALIASES DE COMPATIBILIDAD (sistema anterior → UNAM)
+     Permiten que el layout existente siga funcionando con los
+     nombres de variable del sistema viejo.
+     ───────────────────────────────────────────────────────────────── */
+
+  /* Colores — alias nombre viejo → valor UNAM */
+  --color-blue:          #013B75;   /* = --color-primary */
+  --color-blue-dark:     #002A55;   /* = --color-primary-dark */
+  --color-blue-light:    #EEF4FB;   /* = --color-primary-light */
+  --color-gold:          #D9A500;   /* = --color-accent */
+  --color-gold-dark:     #B58700;   /* = --color-accent-dark */
+  --color-danger:        #EF4444;   /* = --color-error */
+
+  /* Tipografía — alias nombre viejo → valor actual */
   --font-family:         'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-weight-normal:  400;
   --font-weight-medium:  500;
   --font-weight-bold:    700;
-  --font-size-sm:        0.75rem;
-  --font-size-base:      0.875rem;
-  --font-size-lg:        1rem;
-  --font-size-xl:        1.25rem;
-  --font-size-2xl:       1.5rem;
-  --spacing-xs:          0.25rem;
-  --spacing-sm:          0.5rem;
-  --spacing-md:          0.75rem;
-  --spacing-lg:          1rem;
-  --spacing-xl:          1.5rem;
-  --spacing-2xl:         2rem;
-  --radius:              8px;
-  --duration-fast:       150ms;
-  --duration-normal:     250ms;
-  --ease:                cubic-bezier(0.4, 0, 0.2, 1);
+  --font-size-sm:        0.75rem;   /* 12px */
+  --font-size-base:      0.875rem;  /* 14px */
+  --font-size-lg:        1rem;      /* 16px */
+  --font-size-xl:        1.25rem;   /* 20px */
+  --font-size-2xl:       1.5rem;    /* 24px */
+
+  /* Espaciado — alias nombre viejo → pixel equivalente */
+  --spacing-xs:          0.25rem;   /* 4px  */
+  --spacing-sm:          0.5rem;    /* 8px  */
+  --spacing-md:          0.75rem;   /* 12px */
+  --spacing-lg:          1rem;      /* 16px */
+  --spacing-xl:          1.5rem;    /* 24px */
+  --spacing-2xl:         2rem;      /* 32px */
+
+  /* Otros alias */
+  --radius:              8px;       /* radio base del sistema viejo */
 }
 
 
@@ -614,10 +597,58 @@ label {
 
 
 /* ─────────────────────────────────────────────────────────────────────
-   4.4 TABLAS — definición canónica en sección 8 (ver más abajo)
-   Los estilos de tabla están centralizados en los selectores `table …`
-   para evitar conflictos con tablas de librerías y modales.
+   4.4 TABLAS
    ───────────────────────────────────────────────────────────────────── */
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: var(--color-surface);
+}
+
+thead {
+  background-color: var(--color-primary-light);
+  border-bottom: 2px solid var(--color-border-dark);
+}
+
+th {
+  padding: var(--space-md);
+  text-align: left;
+  font-weight: var(--font-semibold);
+  color: var(--color-primary);
+  font-size: var(--text-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+td {
+  padding: var(--space-md);
+  border-bottom: 1px solid var(--color-border);
+}
+
+tbody tr {
+  transition: all var(--transition-normal);
+}
+
+tbody tr:hover {
+  background-color: var(--color-surface-alt);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02);
+}
+
+tbody tr.selected {
+  background-color: var(--color-primary-light);
+  border-left: 4px solid var(--color-primary);
+}
+
+@media (max-width: 768px) {
+  table {
+    font-size: var(--text-sm);
+  }
+  
+  th, td {
+    padding: var(--space-sm);
+  }
+}
 
 
 /* ─────────────────────────────────────────────────────────────────────
@@ -969,160 +1000,8 @@ textarea:focus-visible {
    
    ═══════════════════════════════════════════════════════════════════════ */
 
-/* ═══════════════════════════════════════════════════════════════════
-   LAYOUT ADMIN — USANDO VARIABLES DEL NUEVO DESIGN SYSTEM
-   ═══════════════════════════════════════════════════════════════════ */
-
-/* SIDEBAR */
-.sidebar {
-  width: 280px;
-  background-color: var(--color-primary);
-  color: white;
-  padding: var(--space-lg);
-  position: fixed;
-  left: 0;
-  top: 0;
-  height: 100vh;
-  overflow-y: auto;
-  box-shadow: var(--shadow-lg);
-  font-family: var(--font-sans);
-}
-
-.sidebar-header {
-  display:       flex;
-  align-items:   center;
-  margin-bottom: var(--space-xl);
-  padding-bottom: var(--space-lg);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-/* Contenedor horizontal de los dos logos institucionales */
-.sidebar-logos {
-  display:     flex;
-  align-items: center;
-  gap:         var(--space-md, 1rem);
-  width:       100%;
-}
-
-/* Ambos logos: se vuelven blancos sobre el fondo azul UNAM */
-.sidebar-logo--unam,
-.sidebar-logo--fad {
-  display:     block;
-  height:      auto;
-  flex-shrink: 0;
-  filter:      brightness(0) invert(1);   /* cualquier color → blanco */
-}
-
-.sidebar-logo--unam { width: 60px; }
-.sidebar-logo--fad  { width: 80px; }
-
-/* Separador vertical entre los dos logos */
-.sidebar-logos-sep {
-  width:      1px;
-  height:     30px;
-  background: rgba(255, 255, 255, 0.3);
-  flex-shrink: 0;
-}
-
-/* NAV ITEMS */
-.nav-item {
-  display: flex;
-  align-items: center;
-  gap: var(--space-md);
-  padding: var(--space-md) var(--space-lg);
-  margin-bottom: var(--space-sm);
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  transition: var(--transition-normal);
-  color: rgba(255, 255, 255, 0.8);
-  text-decoration: none;
-  font-size: var(--text-sm);
-}
-
-.nav-item:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-  color: white;
-}
-
-.nav-item.active {
-  background-color: var(--color-accent);
-  color: var(--color-primary);
-  font-weight: var(--font-semibold);
-}
-
-.nav-icon {
-  width: 20px;
-  height: 20px;
-}
-
-/* HEADER */
-.admin-header {
-  position: fixed;
-  top: 0;
-  left: 280px;
-  right: 0;
-  height: 64px;
-  background-color: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 var(--space-xl);
-  box-shadow: var(--shadow-sm);
-  z-index: 100;
-  font-family: var(--font-sans);
-}
-
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: var(--space-lg);
-}
-
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: var(--space-lg);
-}
-
-/* MAIN CONTENT */
-.main-content {
-  margin-left: 280px;
-  margin-top: 64px;
-  padding: var(--space-xl);
-  background-color: var(--color-bg);
-  min-height: calc(100vh - 64px);
-  font-family: var(--font-sans);
-}
-
-/* RESPONSIVE */
-@media (max-width: 768px) {
-  .sidebar {
-    width: 100%;
-    height: auto;
-    position: relative;
-  }
-  
-  .admin-header {
-    left: 0;
-  }
-  
-  .main-content {
-    margin-left: 0;
-    margin-top: 0;
-  }
-}
-
-/* ═══════════════════════════════════════════════════════════════════ */
-
-/* ═══════════════════════════════════════════════════════════════════
-   SECCIONES ADMIN — ESTILOS ESPECÍFICOS DEL PANEL
-   (sidebar completo, tables, badges, forms, images, toasts, etc.)
-   ═══════════════════════════════════════════════════════════════════ */
-  font-weight: var(--font-weight-bold);
-  line-height: 1.2;
-  margin-bottom: var(--spacing-md);
-}
+/* Nota: la tipografía h1-h6 ya está definida en la sección de tokens UNAM
+   (líneas ~228-260). Lo que sigue son estilos de layout y secciones admin. */
 
 h2 {
   font-size: var(--font-size-xl);
@@ -1191,7 +1070,16 @@ a:hover {
   box-shadow: var(--shadow-sm);
 }
 
-/* SECONDARY — ver definición canónica en sección de tokens (btn-secondary outline UNAM) */
+/* SECONDARY */
+.btn-secondary {
+  background-color: var(--color-text-light);
+  color: white;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background-color: var(--color-text-muted);
+  box-shadow: var(--shadow-md);
+}
 
 /* DANGER */
 .btn-danger {
@@ -1317,7 +1205,9 @@ select {
   font-size: var(--font-size-sm);
 }
 
-/* .link-forgot — ver definición canónica al final del archivo (Recovery section) */
+.link-forgot {
+  color: var(--color-blue);
+}
 
 /* ============ DASHBOARD LAYOUT ============ */
 .dashboard-container {
@@ -1444,14 +1334,11 @@ select {
 .header-left h1 {
   margin-bottom: 0;
   color: var(--color-blue);
-  font-size: var(--text-lg);   /* 18px */
-  font-weight: var(--font-semibold);
 }
 
 .header-left p {
   margin: 0;
   font-size: var(--font-size-sm);
-  color: var(--color-surface);
 }
 
 .header-right {
@@ -1590,68 +1477,45 @@ select {
   min-width: 200px;
 }
 
-/* ─────────────────────────────────────────────────────────────────────
-   TABLAS — Diseño canónico UNAM/FAD
-   ─────────────────────────────────────────────────────────────────────
-   Header : fondo azul claro (#EEF4FB), texto azul UNAM, uppercase
-   Bordes : 1px solid --color-border entre filas
-   Padding: --space-md (0.75 rem) en todas las celdas
-   Hover  : fondo --color-primary-light (azul muy suave)
-   ───────────────────────────────────────────────────────────────────── */
-
 table {
-  width:            100%;
-  border-collapse:  collapse;
+  width: 100%;
+  border-collapse: collapse;
   background-color: var(--color-surface);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
 }
 
 table thead {
-  background-color: var(--color-primary-light);    /* #EEF4FB — azul muy claro */
-  border-bottom:    2px solid var(--color-border-dark);
+  background-color: var(--color-surface-alt);
+  border-bottom: 2px solid var(--color-border);
 }
 
 table th {
-  padding:        var(--space-md, 0.75rem);
-  text-align:     left;
-  font-weight:    var(--font-semibold, 600);
-  color:          var(--color-primary, #013B75);   /* azul UNAM */
-  font-size:      var(--text-sm, 0.875rem);
+  padding: var(--spacing-lg);
+  text-align: left;
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  white-space:    nowrap;
+  letter-spacing: 0.5px;
 }
 
 table td {
-  padding:       var(--space-md, 0.75rem);
+  padding: var(--spacing-lg);
   border-bottom: 1px solid var(--color-border);
-  color:         var(--color-text);
-  font-size:     var(--text-sm, 0.875rem);
-  vertical-align: middle;
 }
 
 table tbody tr {
-  transition: background-color var(--duration-fast, 150ms) var(--ease);
+  transition: background-color var(--duration-fast) var(--ease);
 }
 
 table tbody tr:hover {
-  background-color: var(--color-primary-light);    /* #EEF4FB — hover azul suave */
-}
-
-table tbody tr.selected {
-  background-color: var(--color-primary-light);
-  border-left:      3px solid var(--color-primary);
+  background-color: var(--color-blue-light);
 }
 
 table tbody tr:last-child td {
   border-bottom: none;
-}
-
-@media (max-width: 768px) {
-  table th,
-  table td {
-    padding:   var(--space-sm, 0.5rem);
-    font-size: var(--text-xs, 0.75rem);
-  }
 }
 
 .empty-state {
@@ -2423,26 +2287,19 @@ input[type="file"]:hover {
 }
 
 .password-toggle-btn {
-  position:        absolute;
-  right:           8px;
-  top:             50%;
-  transform:       translateY(-50%);
-  background:      none;
-  border:          none;
-  cursor:          pointer;
-  padding:         4px;
-  opacity:         0.5;
-  border-radius:   var(--radius-sm, 4px);
-  display:         flex;
-  align-items:     center;
-  justify-content: center;
-  color:           var(--color-text-muted, #6B7280);
-  transition:      opacity 150ms, color 150ms;
-}
-
-.password-toggle-btn:hover {
-  opacity: 0.9;
-  color:   var(--color-primary, #013B75);
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.1rem;
+  line-height: 1;
+  padding: 4px 6px;
+  opacity: 0.55;
+  border-radius: 4px;
+  transition: opacity 150ms;
 }
 
 .password-toggle-btn:hover {
@@ -2597,43 +2454,36 @@ input[type="file"]:hover {
 .modal-dialog--image {
   max-width: 90vw;
   width: auto;
-  background: #111;
+  background: #000;
   border-radius: var(--radius-lg, 12px);
   overflow: hidden;
-  box-shadow: var(--shadow-xl);
 }
 
-/* Header del modal Vista previa — azul UNAM (consistente con el resto del panel) */
 .modal-dialog--image .modal-header {
-  background: var(--color-primary, #013B75);
-  border-bottom: 2px solid var(--color-accent, #D9A500);
-  padding: 0.6rem 1rem;
+  background: rgba(0, 0, 0, 0.8);
+  border-bottom: none;
+  padding: 0.5rem 1rem;
 }
 
 .modal-dialog--image .modal-header h3 {
   color: #fff;
-  font-size: var(--text-sm, 0.875rem);
-  font-weight: var(--font-semibold, 600);
+  font-size: 0.9rem;
   margin: 0;
-  letter-spacing: 0.01em;
 }
 
 .modal-dialog--image .modal-close {
-  color: rgba(255, 255, 255, 0.85);
+  color: #fff;
   background: transparent;
   border: none;
+  font-size: 1.2rem;
   cursor: pointer;
-  padding: 0.3rem;
-  border-radius: var(--radius-sm, 4px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 150ms, color 150ms;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  transition: background 150ms;
 }
 
 .modal-dialog--image .modal-close:hover {
-  background: rgba(255, 255, 255, 0.15);
-  color: #fff;
+  background: rgba(255,255,255,0.2);
 }
 
 .modal-body--image {
@@ -2787,12 +2637,8 @@ input[type="file"]:hover {
 
 .modal-header h2,
 .modal-header h3 {
-  color:       white;
-  margin:      0;
-  font-size:   var(--text-lg, 1.125rem);   /* 18px — fijo independiente del tag */
-  font-weight: var(--font-semibold, 600);
-  line-height: 1.3;
-  letter-spacing: 0.01em;
+  color: white;
+  margin: 0;
 }
 
 /* Botón cerrar sobre fondo azul */
@@ -2854,225 +2700,24 @@ input[type="file"]:hover {
 }
 
 /* Botón eliminar imagen (esquina inferior derecha) */
-/* Botón eliminar imagen — visible siempre, debajo del thumbnail */
 .image-item-delete {
-  display:         flex;
-  align-items:     center;
+  position:   absolute;
+  bottom:     0.4rem;
+  right:      0.4rem;
+  padding:    0.3rem;
+  min-width:  28px;
+  min-height: 28px;
+  background: rgba(220, 38, 38, 0.9);
+  border:     none;
+  border-radius: 4px;
+  display:    flex;
+  align-items:    center;
   justify-content: center;
-  gap:             0.3rem;
-  padding:         0.3rem 0.6rem;
-  font-size:       0.72rem;
-  font-weight:     600;
-  color:           white;
-  background:      var(--color-error, #EF4444);
-  border:          none;
-  border-radius:   var(--radius-sm, 4px);
-  cursor:          pointer;
-  width:           100%;
-  transition:      background 150ms ease, transform 100ms ease;
-  letter-spacing:  0.01em;
+  opacity:    0;
+  transition: opacity 150ms ease;
 }
 
-.image-item-delete:hover {
-  background: #dc2626;
-  transform:  translateY(-1px);
+.image-item:hover .image-item-delete {
+  opacity: 1;
 }
-
-.image-item-delete:active {
-  transform: translateY(0);
-}
-
-/* ═══════════════════════════════════════════════════════════════════
-   RECUPERACIÓN DE CONTRASEÑA — Login Sections
-   (forgotSection, newPasswordSection)
-   ═══════════════════════════════════════════════════════════════════ */
-
-.recovery-title {
-  font-size:     var(--text-lg, 1.125rem);
-  font-weight:   var(--font-semibold, 600);
-  color:         var(--color-primary, #013B75);
-  margin:        0 0 var(--spacing-sm, 0.5rem);
-  line-height:   1.3;
-}
-
-.recovery-subtitle {
-  font-size:     var(--text-sm, 0.875rem);
-  color:         var(--color-text-muted, #6B7280);
-  margin:        0 0 var(--spacing-lg, 1rem);
-  line-height:   1.5;
-}
-
-.recovery-message {
-  display:       none;
-  padding:       var(--spacing-sm, 0.5rem) var(--spacing-md, 0.75rem);
-  border-radius: var(--radius-sm, 4px);
-  font-size:     var(--text-sm, 0.875rem);
-  line-height:   1.5;
-  margin-top:    var(--spacing-sm, 0.5rem);
-}
-
-.recovery-message.success {
-  background:  #D1FAE5;
-  color:       #065F46;
-  border-left: 3px solid #10B981;
-}
-
-.recovery-message.error {
-  background:  #FEE2E2;
-  color:       #991B1B;
-  border-left: 3px solid #EF4444;
-}
-
-/* Advertencia de carpeta Spam — aparece tras envío exitoso de recovery email */
-.recovery-warning {
-  display:       flex;
-  align-items:   flex-start;
-  gap:           6px;
-  padding:       8px 10px;
-  background:    #FFFBEB;
-  color:         #78350F;
-  border-left:   3px solid #F59E0B;
-  border-radius: var(--radius-sm, 4px);
-  font-size:     0.8125rem;   /* 13px */
-  line-height:   1.5;
-  margin-top:    var(--spacing-sm, 0.5rem);
-}
-
-.recovery-warning strong {
-  font-weight: 600;
-  color:       #92400E;
-}
-
-.recovery-warning svg,
-.recovery-warning i[data-lucide] {
-  flex-shrink: 0;
-  margin-top:  1px;   /* alinear icono con primera línea del texto */
-}
-
-/* Enlace "¿Olvidaste tu contraseña?" en el footer del login */
-.link-forgot {
-  font-size:   var(--text-sm, 0.875rem);
-  color:       var(--color-primary, #013B75);
-  text-decoration: underline;
-  text-underline-offset: 2px;
-  transition:  color var(--duration-fast, 150ms) var(--ease);
-}
-
-.link-forgot:hover {
-  color: var(--color-accent, #D9A500);
-}
-
-/* "← Volver al login" */
-.link-back {
-  font-size:   var(--text-sm, 0.875rem);
-  color:       var(--color-text-muted, #6B7280);
-  text-decoration: none;
-  transition:  color var(--duration-fast, 150ms) var(--ease);
-}
-
-.link-back:hover {
-  color: var(--color-primary, #013B75);
-}
-
-
-/* ══════════════════════════════════════════════════════════════════════════
-   MFA — Multi-Factor Authentication
-   ══════════════════════════════════════════════════════════════════════════ */
-
-/* Ícono centrado en la cabecera de las pantallas MFA */
-.mfa-icon {
-  display:         flex;
-  align-items:     center;
-  justify-content: center;
-  width:           56px;
-  height:          56px;
-  background:      var(--color-primary-light, #EEF4FB);
-  border-radius:   50%;
-  margin:          0 auto var(--spacing-md, 1rem);
-  color:           var(--color-primary, #013B75);
-}
-
-/* Contenedor del QR — centrado con borde sutil */
-.mfa-qr-container {
-  display:         flex;
-  justify-content: center;
-  margin:          var(--spacing-lg, 1.25rem) 0;
-}
-
-.mfa-qr-container img {
-  width:         180px;
-  height:        180px;
-  border:        3px solid var(--color-border, #D0DCEA);
-  border-radius: var(--radius-md, 8px);
-  background:    #ffffff;
-  display:       block;
-}
-
-/* <details> para revelar el código base32 manual */
-.mfa-secret-details {
-  margin:      0 0 var(--spacing-md, 1rem);
-  font-size:   var(--text-xs, 0.8125rem);
-  color:       var(--color-text-muted, #6B7280);
-}
-
-.mfa-secret-details summary {
-  cursor:      pointer;
-  color:       var(--color-primary, #013B75);
-  font-size:   var(--text-xs, 0.8125rem);
-  user-select: none;
-}
-
-.mfa-secret-details summary:hover {
-  text-decoration: underline;
-}
-
-/* Código base32 mostrado como bloque monoespaciado */
-.mfa-secret-code {
-  display:      block;
-  margin-top:   var(--spacing-xs, 0.375rem);
-  padding:      var(--spacing-sm, 0.5rem) var(--spacing-md, 0.75rem);
-  background:   var(--color-surface, #F4F7FC);
-  border:       1px solid var(--color-border, #D0DCEA);
-  border-radius: var(--radius-sm, 4px);
-  font-family:  'Courier New', 'Courier', monospace;
-  font-size:    var(--text-sm, 0.875rem);
-  letter-spacing: 0.12em;
-  word-break:   break-all;
-  color:        var(--color-ink, #1C2B3A);
-  line-height:  1.6;
-}
-
-/* Input grande centrado para el código de 6 dígitos */
-.mfa-code-input {
-  width:          100%;
-  box-sizing:     border-box;
-  text-align:     center;
-  font-size:      1.75rem;
-  font-weight:    600;
-  letter-spacing: 0.3em;
-  padding:        var(--spacing-sm, 0.5rem) var(--spacing-md, 0.75rem);
-  font-family:    'Courier New', 'Courier', monospace;
-  border:         2px solid var(--color-border-dark, #A8B9CC);
-  border-radius:  var(--radius-md, 8px);
-  background:     var(--color-bg, #FAFAFA);
-  color:          var(--color-ink, #1C2B3A);
-  transition:     border-color 150ms ease, box-shadow 150ms ease;
-}
-
-.mfa-code-input::placeholder {
-  color:          var(--color-text-muted, #9CA3AF);
-  letter-spacing: 0.2em;
-  font-weight:    400;
-}
-
-.mfa-code-input:focus {
-  outline:      none;
-  border-color: var(--color-primary, #013B75);
-  box-shadow:   0 0 0 3px rgba(1, 59, 117, 0.12);
-}
-
-/* Eliminar flechas en inputs type=number (por si se usa) */
-.mfa-code-input::-webkit-outer-spin-button,
-.mfa-code-input::-webkit-inner-spin-button { -webkit-appearance: none; }
-.mfa-code-input[type=number]               { -moz-appearance: textfield; }
 
