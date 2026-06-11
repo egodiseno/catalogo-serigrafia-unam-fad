@@ -4078,3 +4078,94 @@ input[type="file"]:hover {
   }
 }
 
+/* ════════════════════════════════════════════════════════════════════════
+   CARDS MOBILE — Técnicas, Tags, Dashboard Recent (≤1023px)
+   Sin imagen. Patrón compartido + selectores específicos por tabla.
+   Dashboard usa .recent-table (NO obras-table).
+   ════════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 1023px) {
+
+  /* ── Reset base tabla → block para las 3 tablas ─────── */
+  table.tecnicas-table,
+  table.tags-table,
+  table.recent-table {
+    display:   block;
+    width:     100%;
+    border:    none;
+    min-width: 0 !important;
+  }
+
+  table.tecnicas-table thead,
+  table.tags-table thead,
+  table.recent-table thead {
+    display: none;
+  }
+
+  table.tecnicas-table tbody,
+  table.tags-table tbody,
+  table.recent-table tbody {
+    display:        flex;
+    flex-direction: column;
+    gap:            var(--spacing-md, 0.75rem);
+    padding:        var(--spacing-md, 0.75rem) var(--spacing-xl, 2rem);
+  }
+
+  /* ── Cada fila → card ────────────────────────────────── */
+  table.tecnicas-table tr,
+  table.tags-table tr,
+  table.recent-table tr {
+    display:        flex;
+    flex-direction: column;
+    border:         1px solid var(--color-border, #E5E7EB);
+    border-radius:  var(--radius-md, 8px);
+    overflow:       hidden;
+    background:     var(--color-surface, #fff);
+    box-shadow:     var(--shadow-sm);
+    margin:         0;
+  }
+
+  /* ── Celdas de datos ─────────────────────────────────── */
+  table.tecnicas-table td,
+  table.tags-table td,
+  table.recent-table td {
+    display:       block;
+    padding:       var(--spacing-sm, 0.5rem) var(--spacing-md, 0.75rem);
+    border:        none;
+    border-bottom: 1px solid var(--color-border, #E5E7EB);
+    font-size:     var(--text-sm, 0.875rem);
+    white-space:   normal !important;
+    word-break:    break-word;
+  }
+
+  table.tecnicas-table td:last-child,
+  table.tags-table td:last-child,
+  table.recent-table td:last-child {
+    border-bottom: none;
+  }
+
+  /* ── Acciones: botones a la derecha ──────────────────── */
+  table.tecnicas-table td.actions-cell .action-buttons,
+  table.tags-table td.actions-cell .action-buttons {
+    justify-content: flex-end;
+  }
+
+  /* ── Wrapper: no necesita scroll horizontal en cards ─── */
+  .table-wrapper:has(table.tecnicas-table),
+  .table-wrapper:has(table.tags-table),
+  .table-wrapper:has(table.recent-table) {
+    overflow-x: visible;
+    width:      100%;
+    margin:     0;
+    padding:    0;
+  }
+
+  /* ── Estado vacío: ancho completo ────────────────────── */
+  table.tecnicas-table td[colspan],
+  table.tags-table td[colspan],
+  table.recent-table td[colspan] {
+    text-align: center;
+    padding:    var(--spacing-xl, 2rem) var(--spacing-md, 0.75rem);
+  }
+}
+
