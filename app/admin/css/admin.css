@@ -3900,3 +3900,26 @@ input[type="file"]:hover {
   gap:             var(--spacing-sm, 0.5rem);
 }
 
+/* ════════════════════════════════════════════════════════════════════════
+   SIDEBAR FOOTER ACTIONS — Perfil y Configuración en drawer mobile/tablet
+   ════════════════════════════════════════════════════════════════════════ */
+
+.sidebar-footer-actions {
+  display:        flex;
+  flex-direction: column;
+  gap:            var(--spacing-sm, 0.5rem);
+  margin:         var(--spacing-md, 0.75rem) 0;
+}
+
+.btn-tertiary {
+  background:  rgba(255, 255, 255, 0.08);
+  color:       white;
+  border:      1px solid rgba(255, 255, 255, 0.15);
+  transition:  all 200ms ease;
+}
+
+.btn-tertiary:hover {
+  background:   rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
