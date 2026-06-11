@@ -12,9 +12,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const client = window.supabase_client;
 
   // ── Constantes ────────────────────────────────────────
-  const PAGE_SIZE = 10;
+  const PAGE_SIZE        = 10;
+  const MOBILE_PAGE_SIZE = 5;
 
   // ── Estado interno ────────────────────────────────────
+  let mobileVisible = MOBILE_PAGE_SIZE;   // cuántas cards muestra en mobile
+
   let state = {
     obras:    [],
     total:    0,
@@ -60,8 +63,9 @@ document.addEventListener('DOMContentLoaded', () => {
     state.loading = true;
 
     if (reset) {
-      state.obras  = [];
-      state.offset = 0;
+      state.obras    = [];
+      state.offset   = 0;
+      mobileVisible  = MOBILE_PAGE_SIZE;   // reiniciar paginación mobile
       tbody.innerHTML = '<tr><td colspan="8" class="empty-state">Cargando…</td></tr>';
     }
 
@@ -177,6 +181,63 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     // Renderizar iconos Lucide inyectados en el innerHTML dinámico
     window.IconRegistry?.init();
+
+    // ── Vista mobile: aplicar cards + paginación ────────
+    if (window.innerWidth < 1024) applyMobileView();
+  }
+
+  // ── Mobile: cards + "Ver más" ─────────────────────────
+  function applyMobileView() {
+    const rows = Array.from(tbody.querySelectorAll('tr[data-id]'));
+    if (rows.length === 0) return;
+
+    // Mostrar / ocultar rows según mobileVisible
+    rows.forEach((row, i) => {
+      row.style.display = i < mobileVisible ? '' : 'none';
+    });
+
+    // Crear el botón "Ver más" si no existe
+    let btn = document.getElementById('btnVerMasObras');
+    if (!btn) {
+      btn = document.createElement('button');
+      btn.id        = 'btnVerMasObras';
+      btn.className = 'btn-ver-mas-obras';
+
+      // Insertar después de .table-wrapper
+      const tableWrapper = document.querySelector('#obrasSection .table-wrapper')
+                        ?? tbody.closest('.table-wrapper');
+      tableWrapper
+        ? tableWrapper.insertAdjacentElement('afterend', btn)
+        : tbody.parentElement.appendChild(btn);
+
+      btn.addEventListener('click', () => {
+        mobileVisible += MOBILE_PAGE_SIZE;
+        const currentRows = Array.from(tbody.querySelectorAll('tr[data-id]'));
+
+        currentRows.forEach((row, i) => {
+          row.style.display = i < mobileVisible ? '' : 'none';
+        });
+
+        // Si hemos mostrado todos los cargados y aún hay más en DB → pedir al servidor
+        if (mobileVisible >= currentRows.length && currentRows.length < state.total) {
+          loadObras(false);   // renderTabla() re-llamará applyMobileView()
+        } else {
+          syncBtnVerMas(btn, currentRows.length);
+        }
+      });
+    }
+
+    syncBtnVerMas(btn, rows.length);
+  }
+
+  function syncBtnVerMas(btn, loadedCount) {
+    const shownCount  = Math.min(mobileVisible, loadedCount);
+    const remaining   = state.total - shownCount;
+    const hasMore     = remaining > 0;
+    const nextBatch   = Math.min(MOBILE_PAGE_SIZE, remaining);
+
+    btn.classList.toggle('hidden', !hasMore);
+    if (hasMore) btn.textContent = `Ver más (${nextBatch})`;
   }
 
   // ── Render contador ───────────────────────────────────
