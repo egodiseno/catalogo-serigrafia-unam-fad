@@ -3189,7 +3189,7 @@ input[type="file"]:hover {
     padding:          0 var(--spacing-md, 0.75rem);
     box-shadow:       var(--shadow-sm);
     z-index:          201;
-    gap:              0;
+    gap:              var(--spacing-md, 0.75rem);   /* espacio entre logos y título */
   }
 
   /* LOGOS — izquierda, color nativo de los SVG */
