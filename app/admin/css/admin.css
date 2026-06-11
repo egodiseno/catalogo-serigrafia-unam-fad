@@ -1071,9 +1071,11 @@ textarea:focus-visible {
 }
 
 .header-left {
-  display: flex;
-  align-items: center;
-  gap: var(--space-lg);
+  display:        flex;
+  flex-direction: column;      /* título arriba, subtítulo abajo en desktop */
+  align-items:    flex-start;
+  justify-content: center;
+  gap:            var(--space-xs, 0.25rem);
 }
 
 .header-right {
@@ -1442,16 +1444,17 @@ select {
 }
 
 .header-left h1 {
-  margin-bottom: 0;
-  color: var(--color-blue);
-  font-size: var(--text-lg);   /* 18px */
+  margin:      0;              /* elimina margen top/bottom del navegador */
+  color:       var(--color-blue);
+  font-size:   var(--text-lg);   /* 18px */
   font-weight: var(--font-semibold);
+  line-height: 1.2;            /* evita altura excesiva que desplace el centro */
 }
 
 .header-left p {
-  margin: 0;
-  font-size: var(--font-size-sm);
-  color: var(--color-surface);
+  margin:    0;
+  font-size: var(--font-size-sm, 0.875rem);
+  color:     var(--color-text-muted, #6B7280);   /* subtítulo legible */
 }
 
 .header-right {
