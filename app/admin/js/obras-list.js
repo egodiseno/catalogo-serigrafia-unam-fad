@@ -264,6 +264,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const { error } = await client.from('obras').delete().eq('id', id);
         if (error) throw error;
 
+        window.auditLogger?.borrarObra(id, titulo);
+
         state.obras  = state.obras.filter(o => o.id !== id);
         state.total  = Math.max(0, state.total - 1);
         state.offset = state.obras.length;

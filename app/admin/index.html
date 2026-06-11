@@ -255,6 +255,10 @@
           <i data-lucide="users" style="width:18px; height:18px;" aria-hidden="true"></i>
           <span class="nav-label">Usuarios</span>
         </button>
+        <button class="nav-item" data-section="logs">
+          <i data-lucide="activity" style="width:18px; height:18px;" aria-hidden="true"></i>
+          <span class="nav-label">Logs</span>
+        </button>
       </nav>
 
       <div class="sidebar-footer">
@@ -521,6 +525,94 @@
           </table>
           </div><!-- /.table-wrapper -->
         </section>
+        <!-- ========== LOGS SECTION ========== -->
+        <section id="logsSection" class="section">
+          <div class="section-header">
+            <div>
+              <h2>Logs de Auditoría</h2>
+              <p>Registro de todas las acciones realizadas en la plataforma</p>
+            </div>
+          </div>
+
+          <!-- FILTROS -->
+          <div class="logs-filters">
+            <div class="logs-filter-group">
+              <label for="filterLogUsuario">Usuario</label>
+              <select id="filterLogUsuario" class="select-input">
+                <option value="">— Todos —</option>
+              </select>
+            </div>
+
+            <div class="logs-filter-group">
+              <label for="filterLogAccion">Acción</label>
+              <select id="filterLogAccion" class="select-input">
+                <option value="">— Todas —</option>
+                <option value="crear">Crear</option>
+                <option value="editar">Editar</option>
+                <option value="borrar">Borrar</option>
+                <option value="login">Login</option>
+                <option value="logout">Logout</option>
+              </select>
+            </div>
+
+            <div class="logs-filter-group">
+              <label for="filterLogObjeto">Objeto</label>
+              <select id="filterLogObjeto" class="select-input">
+                <option value="">— Todos —</option>
+                <option value="obra">Obra</option>
+                <option value="tecnica">Técnica</option>
+                <option value="tag">Tag</option>
+                <option value="usuario">Usuario</option>
+              </select>
+            </div>
+
+            <div class="logs-filter-group logs-filter-group--dates">
+              <label>Rango de fechas</label>
+              <div class="logs-date-range">
+                <input type="date" id="filterLogFechaDesde" class="search-input" aria-label="Desde">
+                <span class="logs-date-sep">→</span>
+                <input type="date" id="filterLogFechaHasta" class="search-input" aria-label="Hasta">
+              </div>
+            </div>
+
+            <div class="logs-filter-actions">
+              <button id="btnAplicarFiltros" class="btn btn-primary btn-sm">
+                <i data-lucide="filter" style="width:14px;height:14px;" aria-hidden="true"></i> Aplicar
+              </button>
+              <button id="btnLimpiarFiltros" class="btn btn-secondary btn-sm">
+                <i data-lucide="x" style="width:14px;height:14px;" aria-hidden="true"></i> Limpiar
+              </button>
+            </div>
+          </div>
+
+          <!-- TABLA DE LOGS -->
+          <div class="table-wrapper">
+            <table class="logs-table">
+              <thead>
+                <tr>
+                  <th>Usuario</th>
+                  <th>Acción</th>
+                  <th>Objeto</th>
+                  <th>Nombre / Detalle</th>
+                  <th>Fecha / Hora</th>
+                </tr>
+              </thead>
+              <tbody id="logsList">
+                <tr>
+                  <td colspan="5" class="empty-state">Selecciona Logs en el menú para cargar…</td>
+                </tr>
+              </tbody>
+            </table>
+          </div><!-- /.table-wrapper -->
+
+          <!-- VER MÁS -->
+          <div id="logsVerMasContainer" style="display:none; text-align:center; margin-top:var(--spacing-lg);">
+            <button id="btnVerMasLogs" class="btn btn-secondary">
+              <i data-lucide="chevron-down" style="width:16px;height:16px;" aria-hidden="true"></i> Ver más logs
+            </button>
+          </div>
+        </section>
+
       </div>
     </main>
   </div>
@@ -645,12 +737,14 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/config.js" defer></script>
   <script src="js/permisos.js" defer></script>
+  <script src="js/audit-logger.js" defer></script>
   <script src="js/validators.js" defer></script>
   <script src="js/cache.js" defer></script>
   <script src="js/error-handler.js" defer></script>
   <script src="js/password-recovery.js" defer></script>
   <script src="js/auth.js" defer></script>
   <script src="js/navigation.js" defer></script>
+  <script src="js/logs.js" defer></script>
   <script src="js/dashboard.js" defer></script>
   <script src="js/obras-list.js" defer></script>
   <script src="js/obras-form.js" defer></script>

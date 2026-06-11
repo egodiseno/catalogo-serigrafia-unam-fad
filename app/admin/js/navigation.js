@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
     tecnicas:  { title: 'Catálogo de Obra Serigráfica', subtitle: 'Gestionar técnicas' },
     tags:      { title: 'Catálogo de Obra Serigráfica', subtitle: 'Gestionar tags' },
     usuarios:  { title: 'Catálogo de Obra Serigráfica', subtitle: 'Gestionar usuarios' },
+    logs:      { title: 'Catálogo de Obra Serigráfica', subtitle: 'Logs de auditoría' },
   };
 
   // ============ FUNCIÓN: Mostrar sección ============

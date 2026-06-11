@@ -126,10 +126,12 @@ document.addEventListener('DOMContentLoaded', async () => {
           };
           localStorage.setItem('usuarioActual', JSON.stringify(window.usuarioActual));
           console.log('👤 Usuario logueado:', window.usuarioActual);
+          window.auditLogger?.login(email);
         } catch (_rolErr) {
           console.warn('[auth] No se pudo obtener rol; usando editor por defecto.', _rolErr);
           window.usuarioActual = { email, rol: 'editor' };
           localStorage.setItem('usuarioActual', JSON.stringify(window.usuarioActual));
+          window.auditLogger?.login(email);
         }
 
         // Verificar si se necesita MFA (puede redirigir a mfaVerify/Enroll)
@@ -274,6 +276,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     logoutBtn.addEventListener('click', async () => {
       mfaFlowActive = false;
       mfaFactorId   = null;
+      // Registrar logout antes de limpiar (el logger lee window.usuarioActual)
+      window.auditLogger?.logout(window.usuarioActual?.email);
       // Limpiar datos del usuario
       window.usuarioActual = null;
       localStorage.removeItem('usuarioActual');
@@ -301,6 +305,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     } else if (event === 'SIGNED_OUT') {
       inRecoveryFlow = false;
       mfaFlowActive  = false;
+      // Registrar logout antes de limpiar (el logger lee window.usuarioActual)
+      window.auditLogger?.logout(window.usuarioActual?.email);
       // Limpiar datos del usuario
       window.usuarioActual = null;
       localStorage.removeItem('usuarioActual');

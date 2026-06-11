@@ -147,6 +147,7 @@ const UsuariosCRUD = (() => {
 
         if (error) throw error;
 
+        window.auditLogger?.editarUsuario(usuario.email);
         window.ErrorHandler?.showToast('✅ Usuario actualizado', 'success');
         document.dispatchEvent(new CustomEvent('usuarios:updated'));
       }
@@ -181,6 +182,7 @@ const UsuariosCRUD = (() => {
     try {
       const { error } = await client.from('usuarios_admin').delete().eq('id', id);
       if (error) throw error;
+      window.auditLogger?.borrarUsuario(email);
       window.ErrorHandler?.showToast(`Usuario "${email}" eliminado`, 'success');
       document.dispatchEvent(new CustomEvent('usuarios:updated'));
     } catch (err) {
@@ -348,6 +350,7 @@ const UsuariosCRUD = (() => {
           throw new Error(result.error ?? `Error ${response.status} al crear el usuario.`);
         }
 
+        window.auditLogger?.crearUsuario(result.email ?? data.email);
         window.ErrorHandler?.showToast(
           `✅ Usuario ${result.email} creado y activado correctamente.`,
           'success'

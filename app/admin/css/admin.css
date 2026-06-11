@@ -4261,3 +4261,171 @@ input[type="file"]:hover {
   }
 }
 
+
+
+/* ═══════════════════════════════════════════════════════════════════════
+   LOGS — AUDITORÍA (FASE 1)
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ── Tabla de logs ────────────────────────────────────────────────────── */
+.logs-table {
+  width:            100%;
+  border-collapse:  collapse;
+  background:       var(--color-surface);
+  border:           1px solid var(--color-border);
+  border-radius:    var(--radius-md, 8px);
+  font-size:        var(--text-sm, 0.875rem);
+}
+
+.logs-table thead {
+  background: var(--color-primary);
+  color:      #fff;
+}
+
+.logs-table th {
+  padding:    var(--spacing-sm, 0.5rem) var(--spacing-md, 0.75rem);
+  text-align: left;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.logs-table td {
+  padding:      var(--spacing-sm, 0.5rem) var(--spacing-md, 0.75rem);
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: middle;
+}
+
+.logs-table tbody tr:hover {
+  background: var(--color-primary-light);
+}
+
+.logs-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* ── Badges de acción ─────────────────────────────────────────────────── */
+.badge-log {
+  display:       inline-block;
+  padding:       2px 8px;
+  border-radius: var(--radius-sm, 4px);
+  font-size:     0.75rem;
+  font-weight:   600;
+  letter-spacing: 0.02em;
+  text-transform: capitalize;
+  white-space:   nowrap;
+}
+
+.badge-log--crear  { background: #D1FAE5; color: #065F46; }
+.badge-log--editar { background: #DBEAFE; color: #1E40AF; }
+.badge-log--borrar { background: #FEE2E2; color: #991B1B; }
+.badge-log--login  { background: #EDE9FE; color: #4C1D95; }
+.badge-log--logout { background: #F3F4F6; color: #374151; }
+
+/* ── Barra de filtros ─────────────────────────────────────────────────── */
+.logs-filters {
+  display:       flex;
+  flex-wrap:     wrap;
+  gap:           var(--spacing-md, 0.75rem);
+  align-items:   flex-end;
+  margin-bottom: var(--spacing-lg, 1.5rem);
+  padding:       var(--spacing-md, 0.75rem) var(--spacing-lg, 1.5rem);
+  background:    var(--color-primary-light);
+  border:        1px solid var(--color-border);
+  border-radius: var(--radius-md, 8px);
+}
+
+.logs-filter-group {
+  display:        flex;
+  flex-direction: column;
+  gap:            4px;
+  min-width:      160px;
+}
+
+.logs-filter-group label {
+  font-size:   var(--text-xs, 0.8125rem);
+  font-weight: 600;
+  color:       var(--color-text-muted);
+}
+
+.logs-filter-group--dates {
+  flex:      1 1 auto;
+  min-width: 260px;
+}
+
+.logs-date-range {
+  display:     flex;
+  align-items: center;
+  gap:         var(--spacing-sm, 0.5rem);
+}
+
+.logs-date-range .search-input {
+  flex: 1 1 0;
+}
+
+.logs-date-sep {
+  color:      var(--color-text-muted);
+  font-size:  0.8rem;
+  flex-shrink: 0;
+}
+
+.logs-filter-actions {
+  display:     flex;
+  gap:         var(--spacing-sm, 0.5rem);
+  align-items: flex-end;
+  padding-bottom: 1px;   /* alinear visualmente con inputs */
+}
+
+/* ── Responsive logs (< 1024 px) — cards ─────────────────────────────── */
+@media (max-width: 1023px) {
+  .logs-filters {
+    padding:        var(--spacing-md, 0.75rem);
+    flex-direction: column;
+  }
+
+  .logs-filter-group,
+  .logs-filter-group--dates {
+    min-width: 0;
+    width:     100%;
+  }
+
+  /* Tabla → cards */
+  .logs-table { display: block; border: none; }
+
+  .logs-table thead { display: none; }
+
+  .logs-table tbody { display: flex; flex-direction: column; gap: var(--spacing-md, 0.75rem); }
+
+  .logs-table tbody tr {
+    display:       flex;
+    flex-direction: column;
+    border:        1px solid var(--color-border);
+    border-radius: var(--radius-md, 8px);
+    background:    var(--color-surface);
+    overflow:      hidden;
+    box-shadow:    var(--shadow-sm);
+  }
+
+  .logs-table td {
+    display:       flex;
+    justify-content: space-between;
+    align-items:   center;
+    padding:       var(--spacing-sm, 0.5rem) var(--spacing-md, 0.75rem);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .logs-table td:last-child { border-bottom: none; }
+
+  .logs-table td::before {
+    content:     attr(data-label);
+    font-weight: 600;
+    font-size:   var(--text-xs, 0.8125rem);
+    color:       var(--color-text-muted);
+    margin-right: var(--spacing-md, 0.75rem);
+    white-space: nowrap;
+  }
+
+  /* El table-wrapper no añade scroll horizontal en modo cards */
+  .table-wrapper:has(.logs-table) {
+    overflow-x: visible;
+  }
+}

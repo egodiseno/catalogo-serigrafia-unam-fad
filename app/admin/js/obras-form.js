@@ -249,10 +249,12 @@ document.addEventListener('DOMContentLoaded', () => {
       if (editId) {
         const { error } = await client.from('obras').update(payload).eq('id', editId);
         if (error) throw error;
+        window.auditLogger?.editarObra(editId, titulo);
       } else {
         const { data, error } = await client.from('obras').insert(payload).select('id').single();
         if (error) throw error;
         obraId = data.id;
+        window.auditLogger?.crearObra(obraId, titulo);
       }
 
       // ── Upload multi-imagen ───────────────────────────
@@ -344,6 +346,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       hideInlineTecnica();
       window.ErrorHandler?.showToast(`Técnica "${data.nombre}" creada y seleccionada`, 'success');
+      window.auditLogger?.crearTecnica(data.id, data.nombre);
       document.dispatchEvent(new CustomEvent('tecnicas:updated'));
 
     } catch (err) {
