@@ -3948,7 +3948,7 @@ input[type="file"]:hover {
     display:        flex;
     flex-direction: column;
     gap:            var(--spacing-md, 0.75rem);
-    padding:        var(--spacing-md, 0.75rem);
+    padding:        var(--spacing-md, 0.75rem) var(--spacing-xl, 2rem);
   }
 
   table.obras-table tr {
@@ -4026,8 +4026,8 @@ input[type="file"]:hover {
   /* ── Botón "Ver más" mobile ──────────────────────────── */
   .btn-ver-mas-obras {
     display:       block;
-    width:         calc(100% - var(--spacing-md, 0.75rem) * 2);
-    margin:        0 var(--spacing-md, 0.75rem) var(--spacing-lg, 1.25rem);
+    width:         calc(100% - var(--spacing-xl, 2rem) * 2);
+    margin:        0 var(--spacing-xl, 2rem) var(--spacing-lg, 1.25rem);
     padding:       var(--spacing-md, 0.75rem);
     background:    var(--color-primary, #013B75);
     color:         white;
