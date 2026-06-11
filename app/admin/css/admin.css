@@ -3660,7 +3660,7 @@ input[type="file"]:hover {
   }
 
   .user-email {
-    display:       block !important;
+    display:       none !important;
     font-size:     var(--text-sm, 0.875rem);
     color:         var(--color-text, #1a1a2e);
     max-width:     150px;
@@ -3791,9 +3791,9 @@ input[type="file"]:hover {
     flex-shrink:     0;
   }
 
-  /* EMAIL */
+  /* EMAIL: oculto en desktop (solo avatar) — propiedades visuales conservadas */
   .user-email {
-    display:       block !important;
+    display:       none !important;
     color:         var(--color-text, #1a1a2e);
     font-size:     var(--text-sm, 0.875rem);
     white-space:   nowrap;
