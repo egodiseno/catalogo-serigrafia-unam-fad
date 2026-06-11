@@ -3935,9 +3935,17 @@ input[type="file"]:hover {
 
   /* ── Tabla → layout de cards ─────────────────────────── */
   table.obras-table {
-    display: block;
-    width:   100%;
-    border:  none;
+    display:   block;
+    width:     100%;
+    border:    none;
+    min-width: 0 !important;   /* anula el min-width:500px del bloque general */
+  }
+
+  /* Anular white-space:nowrap heredado del bloque mobile general */
+  table.obras-table td,
+  table.obras-table th {
+    white-space: normal !important;
+    word-break:  break-word;
   }
 
   table.obras-table thead {
@@ -4016,6 +4024,14 @@ input[type="file"]:hover {
   /* ── Acciones: botones a la derecha ──────────────────── */
   table.obras-table td.actions-cell .action-buttons {
     justify-content: flex-end;
+  }
+
+  /* Wrapper de obras: no necesita scroll horizontal en modo cards */
+  .table-wrapper:has(table.obras-table) {
+    overflow-x: visible;
+    width:      100%;
+    margin:     0;
+    padding:    0;
   }
 
   /* ── Ocultar "Cargar más" desktop en mobile ──────────── */
