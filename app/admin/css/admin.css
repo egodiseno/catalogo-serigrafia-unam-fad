@@ -4429,3 +4429,138 @@ input[type="file"]:hover {
     overflow-x: visible;
   }
 }
+
+
+/* ═══════════════════════════════════════════════════════════════════════
+   MI PERFIL (FASE 1)
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ── Info card ────────────────────────────────────────────────────────── */
+.profile-card {
+  display:       flex;
+  gap:           var(--spacing-xl, 2rem);
+  align-items:   flex-start;
+  padding:       var(--spacing-xl, 2rem);
+  background:    var(--color-surface);
+  border:        1px solid var(--color-border);
+  border-radius: var(--radius-md, 8px);
+  box-shadow:    var(--shadow-sm);
+  margin-bottom: var(--spacing-xl, 2rem);
+  max-width:     700px;
+}
+
+.profile-avatar {
+  flex-shrink: 0;
+}
+
+.avatar-circle {
+  width:           72px;
+  height:          72px;
+  border-radius:   50%;
+  background:      var(--color-accent, #D9A500);
+  color:           var(--color-primary, #013B75);
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  font-size:       1.75rem;
+  font-weight:     700;
+  letter-spacing:  -0.02em;
+  user-select:     none;
+}
+
+.profile-info {
+  flex:           1;
+  display:        flex;
+  flex-direction: column;
+  gap:            var(--spacing-sm, 0.5rem);
+}
+
+.profile-row {
+  display:        flex;
+  align-items:    center;
+  gap:            var(--spacing-md, 0.75rem);
+  padding:        var(--spacing-xs, 0.25rem) 0;
+  border-bottom:  1px solid var(--color-border);
+  font-size:      var(--text-sm, 0.875rem);
+}
+
+.profile-row:last-child { border-bottom: none; }
+
+.profile-label {
+  font-weight:  600;
+  color:        var(--color-text-muted);
+  min-width:    130px;
+  flex-shrink:  0;
+}
+
+/* ── Formulario cambio de contraseña ──────────────────────────────────── */
+.profile-section-form {
+  background:    var(--color-surface);
+  border:        1px solid var(--color-border);
+  border-radius: var(--radius-md, 8px);
+  padding:       var(--spacing-xl, 2rem);
+  box-shadow:    var(--shadow-sm);
+  max-width:     480px;
+}
+
+.profile-section-form h3 {
+  margin:      0 0 var(--spacing-lg, 1.5rem);
+  font-size:   var(--text-lg, 1.125rem);
+  font-weight: 600;
+  color:       var(--color-primary);
+}
+
+.profile-form-actions {
+  display:         flex;
+  gap:             var(--spacing-md, 0.75rem);
+  justify-content: flex-end;
+  margin-top:      var(--spacing-lg, 1.5rem);
+  padding-top:     var(--spacing-md, 0.75rem);
+  border-top:      1px solid var(--color-border);
+}
+
+/* ── Mensajes de error por campo ──────────────────────────────────────── */
+.field-error {
+  display:    none;
+  font-size:  var(--text-xs, 0.8125rem);
+  color:      var(--color-danger, #DC2626);
+  margin-top: 2px;
+}
+
+/* Input con error — usando la clase .input--error */
+.input--error {
+  border-color: var(--color-danger, #DC2626) !important;
+  background:   rgba(220, 38, 38, 0.04) !important;
+}
+
+/* ── Responsive ───────────────────────────────────────────────────────── */
+@media (max-width: 1023px) {
+  .profile-card {
+    flex-direction: column;
+    align-items:    center;
+    text-align:     center;
+    max-width:      100%;
+  }
+
+  .profile-row {
+    flex-direction: column;
+    align-items:    flex-start;
+    gap:            2px;
+  }
+
+  .profile-label { min-width: 0; }
+
+  .profile-section-form {
+    max-width:   100%;
+    padding:     var(--spacing-lg, 1.5rem);
+  }
+
+  .profile-form-actions {
+    flex-direction: column-reverse;
+  }
+
+  .profile-form-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

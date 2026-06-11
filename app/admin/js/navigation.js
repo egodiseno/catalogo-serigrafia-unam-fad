@@ -12,12 +12,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Textos de secciones — título siempre fijo, subtítulo describe la sección activa
   const sectionTitles = {
-    dashboard: { title: 'Catálogo de Obra Serigráfica', subtitle: 'Resumen del catálogo' },
-    obras:     { title: 'Catálogo de Obra Serigráfica', subtitle: 'Gestionar obras' },
-    tecnicas:  { title: 'Catálogo de Obra Serigráfica', subtitle: 'Gestionar técnicas' },
-    tags:      { title: 'Catálogo de Obra Serigráfica', subtitle: 'Gestionar tags' },
-    usuarios:  { title: 'Catálogo de Obra Serigráfica', subtitle: 'Gestionar usuarios' },
-    logs:      { title: 'Catálogo de Obra Serigráfica', subtitle: 'Logs de auditoría' },
+    dashboard:  { title: 'Catálogo de Obra Serigráfica', subtitle: 'Resumen del catálogo' },
+    obras:      { title: 'Catálogo de Obra Serigráfica', subtitle: 'Gestionar obras' },
+    tecnicas:   { title: 'Catálogo de Obra Serigráfica', subtitle: 'Gestionar técnicas' },
+    tags:       { title: 'Catálogo de Obra Serigráfica', subtitle: 'Gestionar tags' },
+    usuarios:   { title: 'Catálogo de Obra Serigráfica', subtitle: 'Gestionar usuarios' },
+    logs:       { title: 'Catálogo de Obra Serigráfica', subtitle: 'Logs de auditoría' },
+    'mi-perfil': { title: 'Catálogo de Obra Serigráfica', subtitle: 'Mi perfil' },
   };
 
   // ============ FUNCIÓN: Mostrar sección ============
@@ -44,6 +45,11 @@ document.addEventListener('DOMContentLoaded', () => {
         item.classList.add('active');
       }
     });
+
+    // Callbacks por sección
+    if (sectionId === 'mi-perfil') {
+      window.profileManager?.inicializar();
+    }
 
     // Guardar en sessionStorage (para mantener sección si recarga)
     sessionStorage.setItem('currentSection', sectionId);
@@ -130,7 +136,19 @@ document.addEventListener('DOMContentLoaded', () => {
       userDropdown.classList.remove('visible');
       document.getElementById('logoutBtn')?.click();
     });
+
+    // "Mi Perfil" en dropdown desktop → navegar a la sección
+    document.getElementById('userProfileBtn')?.addEventListener('click', () => {
+      userDropdown.classList.remove('visible');
+      showSection('mi-perfil');
+    });
   }
+
+  // "Mi Perfil" en sidebar footer (mobile/tablet) → navegar a la sección
+  document.getElementById('userProfileMobileBtn')?.addEventListener('click', () => {
+    showSection('mi-perfil');
+    closeSidebar();
+  });
 
   // ── MOBILE/TABLET: Inicial y email en drawer ─────────────────────────────
   const userAvatarDrawer = document.getElementById('userAvatarDrawer');
