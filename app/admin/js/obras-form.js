@@ -281,6 +281,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       showAlert(editId ? 'Obra actualizada correctamente.' : 'Obra creada correctamente.', 'success');
+      window.toast?.success(editId ? 'Obra actualizada correctamente' : 'Obra creada correctamente');
 
       setTimeout(() => {
         close();

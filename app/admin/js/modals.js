@@ -212,7 +212,13 @@ const ModalManager = (() => {
   }
 
   // ── Modal de confirmación (CRIT-05) ───────────────────
-  function openConfirm({ title, message, confirmText = 'Confirmar', cancelText = 'Cancelar', onConfirm, onCancel } = {}) {
+  function openConfirm({ title, message, confirmText = 'Confirmar', cancelText = 'Cancelar', onConfirm, onCancel, tipo = 'danger' } = {}) {
+    // ── Delegar al modal de confirmación premium (FASE 2) ──
+    if (window.confirmModal) {
+      window.confirmModal.abrir({ title, message, confirmText, cancelText, onConfirm, onCancel, tipo });
+      return;
+    }
+
     const modalId = `modal-confirm-${Date.now()}`;
 
     const html = `

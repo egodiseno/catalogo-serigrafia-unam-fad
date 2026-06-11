@@ -49,6 +49,16 @@ const ErrorHandler = (() => {
    *                            Si se omite, se muestra solo el texto.
    */
   function showToast(message, type = 'error', icon = null) {
+    // ── Delegar al sistema de toasts premium (FASE 2) ───
+    if (window.toast) {
+      const method = type === 'success' ? 'success'
+                   : type === 'warning' ? 'warning'
+                   : type === 'info'    ? 'info'
+                   :                      'error';
+      window.toast[method]?.(message);
+      return;
+    }
+
     const toast = document.createElement('div');
     const bgColor = type === 'error' ? '#ef4444' : type === 'success' ? '#10b981' : '#f59e0b';
     const textColor = '#ffffff';
