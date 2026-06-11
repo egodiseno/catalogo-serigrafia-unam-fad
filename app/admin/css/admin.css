@@ -3119,10 +3119,12 @@ input[type="file"]:hover {
   backdrop-filter: blur(2px);
   opacity:        0;
   transition:     opacity 250ms ease;
+  pointer-events: none;            /* nunca bloquea clicks cuando es invisible */
 }
 
 .sidebar-overlay.sidebar-overlay--visible {
-  opacity: 1;
+  opacity:        1;
+  pointer-events: auto;            /* captura clicks solo cuando el sidebar está abierto */
 }
 
 /* ── MOBILE + TABLET (< 1024px) — drawer activo en todo dispositivo no-desktop */
