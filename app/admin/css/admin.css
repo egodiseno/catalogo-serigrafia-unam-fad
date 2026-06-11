@@ -4167,5 +4167,94 @@ input[type="file"]:hover {
     text-align: center;
     padding:    var(--spacing-xl, 2rem) var(--spacing-md, 0.75rem);
   }
+
+  /* ════ USUARIOS TABLE — CARDS LAYOUT ════════════════════ */
+
+  table.usuarios-table {
+    display:   block;
+    width:     100%;
+    border:    none;
+    min-width: 0 !important;
+  }
+
+  table.usuarios-table thead {
+    display: none;
+  }
+
+  table.usuarios-table tbody {
+    display:        flex;
+    flex-direction: column;
+    gap:            var(--spacing-md, 0.75rem);
+    padding:        var(--spacing-md, 0.75rem) var(--spacing-xl, 2rem);
+  }
+
+  table.usuarios-table tr {
+    display:        flex;
+    flex-direction: column;
+    border:         1px solid var(--color-border, #E5E7EB);
+    border-radius:  var(--radius-md, 8px);
+    overflow:       hidden;
+    background:     var(--color-surface, #fff);
+    box-shadow:     var(--shadow-sm);
+    margin:         0;
+  }
+
+  /* Celdas base */
+  table.usuarios-table td {
+    display:       block;
+    padding:       var(--spacing-sm, 0.5rem) var(--spacing-md, 0.75rem);
+    border:        none;
+    border-bottom: 1px solid var(--color-border, #E5E7EB);
+    font-size:     var(--text-sm, 0.875rem);
+    white-space:   normal !important;
+    word-break:    break-word;
+  }
+
+  table.usuarios-table td:last-child {
+    border-bottom: none;
+  }
+
+  /* Email (1ª celda): destacado como título de la card */
+  table.usuarios-table td:nth-child(1) {
+    font-weight: 600;
+    font-size:   var(--text-base, 1rem);
+    color:       var(--color-text, #1F2937);
+    padding-top: var(--spacing-md, 0.75rem);
+  }
+
+  /* Rol / Estado (2ª y 3ª): texto secundario */
+  table.usuarios-table td:nth-child(2),
+  table.usuarios-table td:nth-child(3) {
+    color:     var(--color-text-muted, #6B7280);
+    font-size: var(--text-xs, 0.8125rem);
+  }
+
+  /* Acciones (última celda): botones a la derecha */
+  table.usuarios-table td.actions-cell,
+  table.usuarios-table td:last-child {
+    border-bottom: none;
+  }
+
+  table.usuarios-table td.actions-cell .action-buttons,
+  table.usuarios-table .action-buttons {
+    display:         flex;
+    gap:             var(--spacing-sm, 0.5rem);
+    justify-content: flex-end;
+    flex-wrap:       wrap;
+  }
+
+  /* Wrapper: sin scroll horizontal en modo cards */
+  .table-wrapper:has(table.usuarios-table) {
+    overflow-x: visible;
+    width:      100%;
+    margin:     0;
+    padding:    0;
+  }
+
+  /* Estado vacío */
+  table.usuarios-table td[colspan] {
+    text-align: center;
+    padding:    var(--spacing-xl, 2rem) var(--spacing-md, 0.75rem);
+  }
 }
 
