@@ -3875,9 +3875,9 @@ input[type="file"]:hover {
     z-index:    300 !important;
   }
 
-  /* Avatar del drawer: aspecto de botón */
+  /* Avatar del drawer: no clickeable */
   .user-avatar-drawer {
-    cursor: pointer;
+    cursor: default !important;
   }
 }
 
