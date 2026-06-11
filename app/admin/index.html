@@ -348,7 +348,7 @@
               <h2>Dashboard</h2>
               <p>Resumen del catálogo</p>
             </div>
-            <button class="btn btn-primary" id="dashboardQuickNewObra"><i data-lucide="plus" style="width:16px; height:16px;" aria-hidden="true"></i> Nueva Obra</button>
+            <button class="btn btn-primary" id="dashboardQuickNewObra" data-permiso="obras.crear"><i data-lucide="plus" style="width:16px; height:16px;" aria-hidden="true"></i> Nueva Obra</button>
           </div>
 
           <div class="stats-grid">
@@ -397,7 +397,7 @@
         <section id="obrasSection" class="section">
           <div class="section-header">
             <h2>Gestionar Obras</h2>
-            <button class="btn btn-primary" id="newObraBtn"><i data-lucide="plus" style="width:16px; height:16px;" aria-hidden="true"></i> Nueva Obra</button>
+            <button class="btn btn-primary" id="newObraBtn" data-permiso="obras.crear"><i data-lucide="plus" style="width:16px; height:16px;" aria-hidden="true"></i> Nueva Obra</button>
           </div>
 
           <div class="filter-bar">
@@ -450,7 +450,7 @@
         <section id="tecnicasSection" class="section">
           <div class="section-header">
             <h2>Gestionar Técnicas</h2>
-            <button class="btn btn-primary" id="newTecnicaBtn"><i data-lucide="plus" style="width:16px; height:16px;" aria-hidden="true"></i> Nueva Técnica</button>
+            <button class="btn btn-primary" id="newTecnicaBtn" data-permiso="tecnicas.crear"><i data-lucide="plus" style="width:16px; height:16px;" aria-hidden="true"></i> Nueva Técnica</button>
           </div>
 
           <div class="table-wrapper">
@@ -475,7 +475,7 @@
         <section id="tagsSection" class="section">
           <div class="section-header">
             <h2>Gestionar Tags</h2>
-            <button class="btn btn-primary" id="newTagBtn"><i data-lucide="plus" style="width:16px; height:16px;" aria-hidden="true"></i> Nuevo Tag</button>
+            <button class="btn btn-primary" id="newTagBtn" data-permiso="tags.crear"><i data-lucide="plus" style="width:16px; height:16px;" aria-hidden="true"></i> Nuevo Tag</button>
           </div>
 
           <div class="table-wrapper">
@@ -500,7 +500,7 @@
         <section id="usuariosSection" class="section">
           <div class="section-header">
             <h2>Gestionar Usuarios Admin</h2>
-            <button class="btn btn-primary" id="newUsuarioBtn"><i data-lucide="user-plus" style="width:16px; height:16px;" aria-hidden="true"></i> Nuevo Usuario</button>
+            <button class="btn btn-primary" id="newUsuarioBtn" data-permiso="usuarios.crear"><i data-lucide="user-plus" style="width:16px; height:16px;" aria-hidden="true"></i> Nuevo Usuario</button>
           </div>
 
           <div class="table-wrapper">
@@ -644,6 +644,7 @@
   <!-- Supabase JS Client (v2) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/config.js" defer></script>
+  <script src="js/permisos.js" defer></script>
   <script src="js/validators.js" defer></script>
   <script src="js/cache.js" defer></script>
   <script src="js/error-handler.js" defer></script>

@@ -46,7 +46,8 @@ const TecnicasCRUD = (() => {
               </button>
               <button class="btn btn-sm btn-danger"
                       data-del-id="${t.id}"
-                      data-del-nombre="${escapeHtml(t.nombre)}" title="Eliminar">
+                      data-del-nombre="${escapeHtml(t.nombre)}"
+                      data-permiso="tecnicas.borrar" title="Eliminar">
                 <i data-lucide="trash-2" style="width:14px;height:14px;" aria-hidden="true"></i>
               </button>
             </div>
@@ -61,6 +62,8 @@ const TecnicasCRUD = (() => {
         btn.addEventListener('click', () => deleteTecnica(btn.dataset.delId, btn.dataset.delNombre));
       });
       window.IconRegistry?.init();
+      // Aplicar permisos sobre los botones recién renderizados
+      if (typeof inicializarPermisos === 'function') inicializarPermisos();
 
     } catch (err) {
       console.error('loadTecnicas:', err);

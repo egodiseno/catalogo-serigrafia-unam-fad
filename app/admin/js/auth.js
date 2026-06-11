@@ -21,6 +21,14 @@
 
 document.addEventListener('DOMContentLoaded', async () => {
 
+  // ── Restaurar usuario desde localStorage (SYNC — antes del primer await) ──
+  // Esto garantiza que window.usuarioActual esté disponible para los demás
+  // módulos (obras-list, tecnicas-crud…) que también escuchan DOMContentLoaded.
+  try {
+    const _saved = localStorage.getItem('usuarioActual');
+    if (_saved) window.usuarioActual = JSON.parse(_saved);
+  } catch (_e) { /* JSON inválido — ignorar */ }
+
   // ── Referencias DOM ────────────────────────────────────────────────────────
   const loginPage     = document.getElementById('loginPage');
   const dashboardPage = document.getElementById('dashboardPage');
@@ -53,6 +61,26 @@ document.addEventListener('DOMContentLoaded', async () => {
   } else {
     const session = await window.supabaseConfig.getSession();
     if (session?.user) {
+      // ── Actualizar rol si localStorage está vacío o es de otro usuario ────
+      if (!window.usuarioActual || window.usuarioActual.email !== session.user.email) {
+        try {
+          const { data: _ud } = await window.supabase_client
+            .from('usuarios_admin')
+            .select('rol')
+            .eq('email', session.user.email)
+            .single();
+
+          window.usuarioActual = {
+            email: session.user.email,
+            rol:   _ud?.rol || 'editor'
+          };
+          localStorage.setItem('usuarioActual', JSON.stringify(window.usuarioActual));
+        } catch (_e) {
+          window.usuarioActual = { email: session.user.email, rol: 'editor' };
+          localStorage.setItem('usuarioActual', JSON.stringify(window.usuarioActual));
+        }
+      }
+
       // Hay sesión activa — verificar nivel de aseguramiento MFA
       const needsMFA = await checkMFARequired();
       if (!needsMFA) showDashboard(session.user.email);
@@ -83,6 +111,27 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       if (result.success) {
         inRecoveryFlow = false;
+
+        // ── Obtener rol del usuario desde Supabase ──────────────────────────
+        try {
+          const { data: _rolData } = await window.supabase_client
+            .from('usuarios_admin')
+            .select('rol')
+            .eq('email', email)
+            .single();
+
+          window.usuarioActual = {
+            email: email,
+            rol:   _rolData?.rol || 'editor'
+          };
+          localStorage.setItem('usuarioActual', JSON.stringify(window.usuarioActual));
+          console.log('👤 Usuario logueado:', window.usuarioActual);
+        } catch (_rolErr) {
+          console.warn('[auth] No se pudo obtener rol; usando editor por defecto.', _rolErr);
+          window.usuarioActual = { email, rol: 'editor' };
+          localStorage.setItem('usuarioActual', JSON.stringify(window.usuarioActual));
+        }
+
         // Verificar si se necesita MFA (puede redirigir a mfaVerify/Enroll)
         const needsMFA = await checkMFARequired();
         if (!needsMFA) showDashboard(email);
@@ -225,6 +274,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     logoutBtn.addEventListener('click', async () => {
       mfaFlowActive = false;
       mfaFactorId   = null;
+      // Limpiar datos del usuario
+      window.usuarioActual = null;
+      localStorage.removeItem('usuarioActual');
       await window.supabaseConfig.logout();
       loginForm.reset();
       showLogin();
@@ -249,6 +301,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     } else if (event === 'SIGNED_OUT') {
       inRecoveryFlow = false;
       mfaFlowActive  = false;
+      // Limpiar datos del usuario
+      window.usuarioActual = null;
+      localStorage.removeItem('usuarioActual');
       showLogin();
     }
   });
@@ -371,6 +426,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     loginPage.style.display     = 'none';
     dashboardPage.style.display = 'flex';
     if (userEmail) userEmail.textContent = email;
+    // Aplicar visibilidad de botones / secciones según el rol
+    if (typeof inicializarPermisos === 'function') inicializarPermisos();
   }
 
   function showRecovery() {

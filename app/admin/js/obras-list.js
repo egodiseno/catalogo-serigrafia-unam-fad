@@ -161,7 +161,8 @@ document.addEventListener('DOMContentLoaded', () => {
               </button>
               <button class="btn btn-sm btn-danger btn-delete btn--icon-only"
                       data-id="${obra.id}"
-                      data-titulo="${escAttr(obra.titulo)}" title="Eliminar">
+                      data-titulo="${escAttr(obra.titulo)}"
+                      data-permiso="obras.borrar" title="Eliminar">
                 <i data-lucide="trash-2" style="width:14px;height:14px;" aria-hidden="true"></i>
               </button>
             </div>
@@ -181,6 +182,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     // Renderizar iconos Lucide inyectados en el innerHTML dinámico
     window.IconRegistry?.init();
+
+    // Aplicar permisos sobre los botones recién renderizados
+    if (typeof inicializarPermisos === 'function') inicializarPermisos();
 
     // ── Vista mobile: aplicar cards + paginación ────────
     if (window.innerWidth < 1024) applyMobileView();

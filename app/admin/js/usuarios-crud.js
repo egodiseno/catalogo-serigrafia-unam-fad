@@ -71,7 +71,8 @@ const UsuariosCRUD = (() => {
               </button>
               <button class="btn btn-sm btn-danger btn--icon-only"
                       data-del-id="${u.id}"
-                      data-del-email="${escapeHtml(u.email)}" title="Eliminar">
+                      data-del-email="${escapeHtml(u.email)}"
+                      data-permiso="usuarios.borrar" title="Eliminar">
                 <i data-lucide="trash-2" style="width:14px;height:14px;" aria-hidden="true"></i>
               </button>
             </div>
@@ -89,6 +90,8 @@ const UsuariosCRUD = (() => {
         btn.addEventListener('click', () => deleteUsuario(btn.dataset.delId, btn.dataset.delEmail));
       });
       window.IconRegistry?.init();
+      // Aplicar permisos sobre los botones recién renderizados
+      if (typeof inicializarPermisos === 'function') inicializarPermisos();
 
     } catch (err) {
       console.error('loadUsuarios:', err);
@@ -118,9 +121,9 @@ const UsuariosCRUD = (() => {
           type: 'select',
           required: true,
           options: [
-            { value: 'admin',  label: 'Admin'  },
-            { value: 'editor', label: 'Editor' },
-            { value: 'viewer', label: 'Viewer' }
+            { value: 'admin',        label: 'Admin'        },
+            { value: 'super_editor', label: 'Super Editor' },
+            { value: 'editor',       label: 'Editor'       }
           ]
         },
         {
@@ -292,9 +295,9 @@ const UsuariosCRUD = (() => {
           type: 'select',
           required: true,
           options: [
-            { value: 'admin',  label: 'Admin'  },
-            { value: 'editor', label: 'Editor' },
-            { value: 'viewer', label: 'Viewer' }
+            { value: 'admin',        label: 'Admin'        },
+            { value: 'super_editor', label: 'Super Editor' },
+            { value: 'editor',       label: 'Editor'       }
           ]
         }
       ],
