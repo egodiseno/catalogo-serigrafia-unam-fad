@@ -151,4 +151,21 @@ document.addEventListener('DOMContentLoaded', () => {
     observer.observe(userEmailEl, { childList: true, characterData: true, subtree: true });
   }
 
+  // ════ DROPDOWN EN MOBILE/TABLET ════════════════════════════════════════
+  // Reutiliza userAvatarDrawer (declarado arriba, línea ~135) y
+  // userDropdown (declarado en el bloque desktop, línea ~112).
+  if (userAvatarDrawer && userDropdown) {
+    userAvatarDrawer.addEventListener('click', (e) => {
+      e.stopPropagation();
+      userDropdown.classList.toggle('visible');
+    });
+
+    // Cerrar al click fuera (listener adicional al ya existente en desktop)
+    document.addEventListener('click', (e) => {
+      if (!userAvatarDrawer.contains(e.target) && !userDropdown.contains(e.target)) {
+        userDropdown.classList.remove('visible');
+      }
+    });
+  }
+
 });

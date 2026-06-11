@@ -3862,6 +3862,23 @@ input[type="file"]:hover {
   .header-right {
     display: none !important;
   }
+
+  /* Dropdown: posición fija desde el pie del drawer */
+  .user-dropdown {
+    position:   fixed !important;
+    bottom:     120px !important;
+    right:      var(--spacing-lg, 1.25rem) !important;
+    left:       auto !important;
+    top:        auto !important;
+    margin-top: 0 !important;
+    min-width:  200px;
+    z-index:    300 !important;
+  }
+
+  /* Avatar del drawer: aspecto de botón */
+  .user-avatar-drawer {
+    cursor: pointer;
+  }
 }
 
 /* ════════════════════════════════════════════════════════════════════════
