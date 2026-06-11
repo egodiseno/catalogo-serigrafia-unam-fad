@@ -258,14 +258,33 @@ document.addEventListener('DOMContentLoaded', async () => {
   // ══════════════════════════════════════════════════════════════════════════
 
   /**
-   * MFA siempre obligatorio (forzado en cliente).
-   * Tras cualquier login exitoso se llama esta función.
-   * - Si el usuario ya tiene un factor TOTP enrollado → mfaVerifySection
-   * - Si no tiene ningún factor               → mfaEnrollSection (primer uso)
-   * Retorna siempre true: nunca se accede al dashboard sin completar MFA.
+   * MFA obligatorio (forzado en cliente).
+   * - Si la sesión ya está en AAL2 (MFA verificado en esta sesión) → false, ir al dashboard.
+   * - Si está en AAL1 y tiene factor TOTP enrollado                → showMFAVerify().
+   * - Si está en AAL1 y no tiene factor                            → showMFAEnroll().
+   * Retorna false si el dashboard es accesible directamente, true si se muestra pantalla MFA.
    */
   async function checkMFARequired() {
+
+    // ── 🚧 MFA DESACTIVADO TEMPORALMENTE (desarrollo) ──────────────────────────
+    // Para reactivar: eliminar estas dos líneas.
+    console.warn('[MFA] ⚠️  MFA desactivado — modo desarrollo');
+    return false;
+    // ── fin bloque temporal ────────────────────────────────────────────────────
+
     try {
+      // ── Comprobar nivel de aseguramiento actual ──────────────────────────────
+      // AAL2 = MFA ya verificado en esta sesión (persiste en localStorage).
+      // En ese caso no hay que volver a pedir el código.
+      const { data: aalData, error: aalError } =
+        await client.auth.mfa.getAuthenticatorAssuranceLevel();
+
+      if (!aalError && aalData?.currentLevel === 'aal2') {
+        console.log('[MFA] Sesión ya en AAL2 — acceso directo al dashboard');
+        return false;
+      }
+
+      // ── AAL1: necesita completar MFA ─────────────────────────────────────────
       mfaFlowActive = true;
 
       const { data: factorsData, error: factorsError } =
