@@ -265,11 +265,19 @@ export class PublicDetail {
   // showImage — cambia imagen activa en galería + lightbox
   // ─────────────────────────────────────────────────────────
   showImage(index) {
+    console.log('🖼️ showImage() llamado con index:', index);
+
     const imgs = this.sortedImages;
-    if (!imgs.length) return;
+    if (!imgs.length) {
+      console.log('⚠️ Index fuera de rango:', index, '— sortedImages vacío');
+      return;
+    }
 
     // Clamp: no pasar del primer ni último
     const idx = Math.max(0, Math.min(index, imgs.length - 1));
+    if (idx !== index) {
+      console.log('⚠️ Index fuera de rango:', index, '→ clampeado a', idx);
+    }
     this.currentIndex = idx;
 
     const img = imgs[idx];
@@ -331,16 +339,23 @@ export class PublicDetail {
     const mainImgEl = document.getElementById('mainImage');
     if (!mainImgEl) return;
 
+    console.log('🔍 setupTouchSwipe() inicializado en #mainImage');
+
     const THRESHOLD = 50; // px mínimo para considerar swipe
     let touchStartX = 0;
     let touchEndX   = 0;
 
     mainImgEl.addEventListener('touchstart', (e) => {
       touchStartX = e.changedTouches[0].clientX;
+      console.log('🟢 TOUCH START:', touchStartX);
     }, { passive: true });
 
     mainImgEl.addEventListener('touchend', (e) => {
       touchEndX = e.changedTouches[0].clientX;
+      console.log('🔴 TOUCH END:', touchEndX);
+      console.log('📏 Diferencia:', touchEndX - touchStartX);
+      console.log('📍 Imagen actual (src):', document.getElementById('mainImage').src.slice(-20));
+
       const diff = touchStartX - touchEndX;
 
       if (Math.abs(diff) < THRESHOLD) return; // ignorar micro-gestos / clicks
@@ -353,9 +368,11 @@ export class PublicDetail {
 
       if (diff > 0) {
         // Swipe left → siguiente imagen
+        console.log('➡️ Swipe LEFT (siguiente imagen):', currentIndex + 1);
         this.showImage(currentIndex + 1);
       } else {
         // Swipe right → imagen anterior
+        console.log('⬅️ Swipe RIGHT (imagen anterior):', currentIndex - 1);
         this.showImage(currentIndex - 1);
       }
     }, { passive: true });
