@@ -281,6 +281,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       // Limpiar datos del usuario
       window.usuarioActual = null;
       localStorage.removeItem('usuarioActual');
+      window.dashboardManager?.limpiar?.();
       await window.supabaseConfig.logout();
       loginForm.reset();
       showLogin();
@@ -310,6 +311,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       // Limpiar datos del usuario
       window.usuarioActual = null;
       localStorage.removeItem('usuarioActual');
+      window.dashboardManager?.limpiar?.();
       showLogin();
     }
   });
@@ -434,6 +436,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (userEmail) userEmail.textContent = email;
     // Aplicar visibilidad de botones / secciones según el rol
     if (typeof inicializarPermisos === 'function') inicializarPermisos();
+    // Recargar estadísticas con el rol del usuario actual
+    // (garantiza datos correctos tras login o cambio de sesión)
+    window.dashboardManager?.loadStats?.();
   }
 
   function showRecovery() {

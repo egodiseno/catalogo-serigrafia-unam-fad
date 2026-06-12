@@ -4796,3 +4796,22 @@ input[type="file"]:hover {
     transform:  none;
   }
 }
+
+
+/* ════════════════════════════════════════════════════════════
+   FASE 2 — Indicador de filtro por rol (Obras)
+   ════════════════════════════════════════════════════════════ */
+
+.filter-role-indicator {
+  display:       flex;
+  align-items:   center;
+  gap:           0.5rem;
+  padding:       0.625rem 1rem;
+  background:    var(--color-primary-light, #eff6ff);
+  border:        1px solid var(--color-primary, #3b5bdb);
+  border-radius: var(--radius-sm, 6px);
+  color:         var(--color-primary, #3b5bdb);
+  font-size:     var(--text-sm, 0.875rem);
+  font-weight:   500;
+  margin-bottom: var(--space-md, 1rem);
+}

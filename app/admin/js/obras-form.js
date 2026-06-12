@@ -47,7 +47,8 @@ document.addEventListener('DOMContentLoaded', () => {
       modalTitle.textContent = 'Editar Obra';
       saveBtn.textContent    = 'Guardar cambios';
       if (existingSection) existingSection.style.display = 'block';
-      await loadObraToEdit(id);
+      const loaded = await loadObraToEdit(id);
+      if (!loaded) return;       // EDITOR sin permiso — toast ya mostrado, no abrir el modal
       loadObraImages(id);        // sin await: el modal abre ya, imágenes cargan en paralelo
     } else {
       modalTitle.textContent = 'Nueva Obra';
@@ -101,6 +102,15 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = obraRes.data;
       if (!data) throw new Error('Obra no encontrada');
 
+      // ── VALIDACIÓN POR ROL ──────────────────────────────
+      const rolActual   = window.usuarioActual?.rol || 'editor';
+      const emailActual = window.usuarioActual?.email;
+      if (rolActual === 'editor' && data.artista !== emailActual) {
+        window.toast?.error('No tienes permiso para editar esta obra.');
+        console.warn(`[Seguridad] EDITOR ${emailActual} intentó editar obra de ${data.artista}`);
+        return null;
+      }
+
       fId.value          = data.id;
       fTitulo.value      = data.titulo      ?? '';
       fArtista.value     = data.artista     ?? '';
@@ -115,9 +125,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (row.tags) window.TagsInObra?.addTag(row.tags.id, row.tags.nombre);
       });
 
+      return data;   // ✅ devolver datos para que open() pueda verificar el resultado
+
     } catch (err) {
       console.error('loadObraToEdit:', err);
       showAlert('No se pudo cargar la obra.', 'error');
+      return null;
     }
   }
 

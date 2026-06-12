@@ -21,6 +21,24 @@ document.addEventListener('DOMContentLoaded', () => {
     setLoading(true);
 
     try {
+      // ── FILTRO POR ROL ──────────────────────────────────
+      const rolActual   = window.usuarioActual?.rol || 'editor';
+      const emailActual = window.usuarioActual?.email;
+
+      let obrasCountQ = client.from('obras').select('*', { count: 'exact', head: true });
+      let obrasListQ  = client.from('obras')
+            .select('id, titulo, artista, año, estado, created_at')
+            .order('created_at', { ascending: false })
+            .limit(5);
+
+      if (rolActual === 'editor' && emailActual) {
+        // EDITOR: solo ve sus propias obras (artista = su email)
+        obrasCountQ = obrasCountQ.eq('artista', emailActual);
+        obrasListQ  = obrasListQ.eq('artista', emailActual);
+        console.log(`[Dashboard] EDITOR ${emailActual} — filtrando por artista`);
+      }
+      // ADMIN / SUPER_EDITOR: sin filtro adicional
+
       const [
         { count: obras     },
         { count: tecnicas  },
@@ -28,14 +46,11 @@ document.addEventListener('DOMContentLoaded', () => {
         { count: usuarios  },
         { data: recientes  },
       ] = await Promise.all([
-        client.from('obras').select('*',          { count: 'exact', head: true }),
+        obrasCountQ,
         client.from('tecnicas').select('*',        { count: 'exact', head: true }),
         client.from('tags').select('*',            { count: 'exact', head: true }),
         client.from('usuarios_admin').select('*',  { count: 'exact', head: true }),
-        client.from('obras')
-              .select('id, titulo, artista, año, estado, created_at')
-              .order('created_at', { ascending: false })
-              .limit(5),
+        obrasListQ,
       ]);
 
       // Stat cards
@@ -131,6 +146,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ── Carga inicial ─────────────────────────────────────
   loadStats();
+
+  // ── Exponer API para recarga desde auth.js tras login/logout ──
+  window.dashboardManager = {
+    loadStats,
+    limpiar() {
+      if (elRecientes) {
+        elRecientes.innerHTML =
+          '<tr><td colspan="5" class="empty-state">—</td></tr>';
+      }
+      [elObras, elTecnicas, elTags, elUsuarios].forEach(el => {
+        if (el) el.textContent = '—';
+      });
+    }
+  };
 
   console.log('📊 dashboard.js cargado');
 });

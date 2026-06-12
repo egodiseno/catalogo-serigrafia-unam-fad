@@ -92,6 +92,16 @@ document.addEventListener('DOMContentLoaded', () => {
         query = query.eq('tecnica_id', state.tecnica);
       }
 
+      // ── FILTRO POR ROL ──────────────────────────────────
+      const rolActual   = window.usuarioActual?.rol || 'editor';
+      const emailActual = window.usuarioActual?.email;
+      if (rolActual === 'editor' && emailActual) {
+        // EDITOR: solo ve sus propias obras (artista = su email)
+        query = query.eq('artista', emailActual);
+        console.log(`[Obras] EDITOR ${emailActual} — filtrando por artista`);
+      }
+      // ADMIN / SUPER_EDITOR: sin filtro adicional
+
       const { data, count, error } = await query;
 
       if (error) throw error;
@@ -103,6 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
       renderTabla();
       renderContador();
       toggleLoadMore();
+      actualizarIndicadorFiltro();
 
     } catch (err) {
       console.error('obras-list loadObras:', err);
@@ -351,6 +362,22 @@ document.addEventListener('DOMContentLoaded', () => {
       state.tecnica = '';                           // ISSUE-08
       loadObras(true);
     });
+  }
+
+  // ── Indicador de filtro por rol ───────────────────────
+  function actualizarIndicadorFiltro() {
+    const indicador = document.getElementById('filterIndicator');
+    if (!indicador) return;
+
+    const rolActual = window.usuarioActual?.rol || 'editor';
+
+    if (rolActual === 'editor') {
+      const totalText = state.total === 1 ? '1 obra' : `${state.total} obras`;
+      indicador.textContent  = `👤 Mostrando solo tus obras — ${totalText}`;
+      indicador.style.display = 'block';
+    } else {
+      indicador.style.display = 'none';
+    }
   }
 
   // ── Helpers ───────────────────────────────────────────
