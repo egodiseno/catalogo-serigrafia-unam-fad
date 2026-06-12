@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Ficha de obra — Catálogo Digital de Obra Serigráfica — UNAM / FAD">
+  <title id="pageTitle">Obra — Catálogo de Obra Serigráfica</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:wght@500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/styles.css">
+
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+<a href="#contenido" class="skip-link">Saltar al contenido principal</a>
+
+<!-- ═══════════════════════════════════════════════════
+     HEADER — idéntico a index.html
+     ═══════════════════════════════════════════════════ -->
+<header class="site-header" data-header>
+  <div class="container">
+    <a href="index.html" class="brand" aria-label="Inicio del catálogo">
+      <span class="brand__logos" aria-hidden="true">
+        <img src="admin/assets/logos/UNAM.svg" alt="" class="logo-header" />
+        <img src="admin/assets/logos/FAD.svg" alt="" class="logo-header" />
+      </span>
+      <span class="brand__text">
+        <span class="brand__title">Catálogo Digital</span>
+        <span class="brand__subtitle">Obra Serigráfica</span>
+      </span>
+    </a>
+
+    <nav class="main-nav" aria-label="Navegación principal">
+      <a href="index.html" class="nav-link" data-i18n data-es="Catálogo" data-en="Catalog">Catálogo</a>
+      <a href="#" class="nav-link" data-i18n data-es="Acerca" data-en="About">Acerca</a>
+    </nav>
+
+    <div class="header-actions">
+      <div class="lang-toggle" role="group" aria-label="Cambiar idioma">
+        <button type="button" class="lang-btn" data-lang="es" aria-pressed="true">ES</button>
+        <button type="button" class="lang-btn" data-lang="en" aria-pressed="false">EN</button>
+      </div>
+    </div>
+
+    <details class="nav-mobile">
+      <summary class="nav-mobile__toggle">
+        <i data-lucide="menu" aria-hidden="true"></i>
+      </summary>
+      <div class="nav-mobile__panel">
+        <a href="index.html" class="nav-link nav-mobile__link" data-i18n data-es="Catálogo" data-en="Catalog">Catálogo</a>
+        <a href="#" class="nav-link nav-mobile__link" data-i18n data-es="Acerca" data-en="About">Acerca</a>
+      </div>
+    </details>
+  </div>
+</header>
+
+<!-- ═══════════════════════════════════════════════════
+     MAIN — Ficha de obra
+     ═══════════════════════════════════════════════════ -->
+<main id="contenido" class="work-page">
+  <div class="container">
+
+    <!-- ── Breadcrumb + volver ─────────────────────── -->
+    <nav class="work-breadcrumb" aria-label="Ruta de navegación">
+      <a href="index.html" class="work-back-btn" aria-label="Volver al catálogo">
+        <i data-lucide="arrow-left" aria-hidden="true"></i>
+        <span data-i18n data-es="Catálogo" data-en="Catalog">Catálogo</span>
+      </a>
+      <span class="work-breadcrumb__sep" aria-hidden="true">›</span>
+      <span class="work-breadcrumb__current" id="breadcrumbTitle" aria-current="page">—</span>
+    </nav>
+
+    <!-- ── Spinner de carga ────────────────────────── -->
+    <div id="workLoading" class="work-loading" aria-live="polite" aria-label="Cargando obra">
+      <div class="spinner"></div>
+    </div>
+
+    <!-- ── Estado de error ─────────────────────────── -->
+    <div id="workError" class="work-error" hidden role="alert">
+      <i data-lucide="alert-circle" aria-hidden="true"></i>
+      <p data-i18n data-es="No se pudo cargar la obra." data-en="Could not load the artwork.">
+        No se pudo cargar la obra.
+      </p>
+      <a href="index.html" class="btn btn--ghost" data-i18n data-es="Volver al catálogo" data-en="Back to catalog">
+        Volver al catálogo
+      </a>
+    </div>
+
+    <!-- ── Contenido principal (hidden hasta cargar) ─ -->
+    <article id="workDetail" class="work-detail" hidden>
+
+      <!-- SECCIÓN 1: Hero — galería visual -->
+      <section class="work-hero" aria-label="Galería de imágenes">
+
+        <!-- Imagen principal -->
+        <figure class="work-hero__figure">
+          <img
+            id="mainImage"
+            class="work-hero__img"
+            src=""
+            alt=""
+            loading="eager"
+          />
+        </figure>
+
+        <!-- Miniaturas (visible solo si hay más de 1 imagen) -->
+        <div id="gallery" class="work-gallery" role="list" aria-label="Miniaturas de la obra" hidden>
+          <!-- Poblado dinámicamente por public-detail.js -->
+        </div>
+
+      </section>
+
+      <!-- SECCIÓN 2: Metadata de la obra -->
+      <section class="work-meta" aria-label="Información de la obra">
+
+        <h1 id="workTitle" class="work-meta__title">—</h1>
+
+        <dl class="work-meta__dl">
+
+          <div class="work-meta__row">
+            <dt data-i18n data-es="Artista" data-en="Artist">Artista</dt>
+            <dd id="workArtist">—</dd>
+          </div>
+
+          <div class="work-meta__row">
+            <dt data-i18n data-es="Año" data-en="Year">Año</dt>
+            <dd id="workYear">—</dd>
+          </div>
+
+          <div class="work-meta__row">
+            <dt data-i18n data-es="Técnica" data-en="Technique">Técnica</dt>
+            <dd id="workTechnique">—</dd>
+          </div>
+
+          <div class="work-meta__row" id="workTagsRow" hidden>
+            <dt data-i18n data-es="Tags" data-en="Tags">Tags</dt>
+            <dd id="workTags" class="work-meta__tags"></dd>
+          </div>
+
+        </dl>
+
+        <!-- Descripción (visible solo si existe) -->
+        <div id="workDescriptionWrap" class="work-meta__description" hidden>
+          <h2 class="work-meta__desc-heading"
+              data-i18n data-es="Descripción" data-en="Description">Descripción</h2>
+          <p id="workDescription"></p>
+        </div>
+
+      </section>
+
+    </article><!-- /#workDetail -->
+
+    <!-- ── Obras relacionadas (ocultas hasta cargar) ─ -->
+    <section id="relatedWorks" class="work-related" hidden aria-label="Obras relacionadas">
+      <h2 data-i18n data-es="Más obras" data-en="More works">Más obras</h2>
+      <ul id="relatedGrid" class="artworks" aria-label="Otras obras del catálogo"></ul>
+    </section>
+
+  </div>
+</main>
+
+<!-- ═══════════════════════════════════════════════════
+     FOOTER — idéntico a index.html
+     ═══════════════════════════════════════════════════ -->
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <span class="footer-logos">
+          <img src="admin/assets/logos/UNAM.svg" alt="UNAM" class="logo-footer" />
+          <img src="admin/assets/logos/FAD.svg" alt="FAD" class="logo-footer" />
+        </span>
+        <p class="footer-text"
+           data-i18n
+           data-es="Catálogo Digital de Obra Serigráfica — UNAM FAD"
+           data-en="Digital Catalog of Printmaking Works — UNAM FAD">
+          Catálogo Digital de Obra Serigráfica
+        </p>
+      </div>
+
+      <div class="footer-col">
+        <h3 data-i18n data-es="Catálogo" data-en="Catalog">Catálogo</h3>
+        <ul>
+          <li><a href="index.html" data-i18n data-es="Todas las obras" data-en="All works">Todas las obras</a></li>
+          <li><a href="#" data-i18n data-es="Por técnica" data-en="By technique">Por técnica</a></li>
+          <li><a href="#" data-i18n data-es="Por año" data-en="By year">Por año</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h3 data-i18n data-es="Acerca" data-en="About">Acerca</h3>
+        <ul>
+          <li><a href="#" data-i18n data-es="El taller" data-en="The workshop">El taller</a></li>
+          <li><a href="#" data-i18n data-es="Equipo" data-en="Team">Equipo</a></li>
+          <li><a href="#" data-i18n data-es="Contacto" data-en="Contact">Contacto</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h3 data-i18n data-es="Social" data-en="Social">Social</h3>
+        <div class="footer-social">
+          <a href="#" aria-label="Instagram" title="Instagram">
+            <i data-lucide="camera" aria-hidden="true"></i>
+          </a>
+          <a href="#" aria-label="Facebook" title="Facebook">
+            <i data-lucide="share-2" aria-hidden="true"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p>&copy; <span data-year>2026</span> UNAM Facultad de Artes y Diseño</p>
+      <p>
+        <a href="#" data-i18n data-es="Accesibilidad" data-en="Accessibility">Accesibilidad</a> |
+        <a href="#" data-i18n data-es="Política de privacidad" data-en="Privacy policy">Política de privacidad</a> |
+        <a href="#" data-i18n data-es="Términos de uso" data-en="Terms of use">Términos de uso</a>
+      </p>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script type="module">
+  import { PublicDetail } from './js/public-detail.js';
+  import { i18n } from './js/i18n.js';
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    i18n.init();
+    const detail = new PublicDetail();
+    await detail.init();
+  });
+</script>
+
+</body>
+</html>
