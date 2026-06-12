@@ -4323,6 +4323,144 @@ input[type="file"]:hover {
 
 
 
+/* ══════════════════════════════════════════════════════════════════════
+   CSV IMPORT — modal preview + badges
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* Modal ancho para la tabla de preview */
+.modal-dialog--lg {
+  max-width: 780px;
+}
+
+.csv-preview-body {
+  overflow-y: auto;
+  max-height: calc(90vh - 160px);
+  padding: var(--spacing-xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+/* ── Resumen de badges ───────────────────────────────────── */
+.csv-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  align-items: center;
+}
+
+.csv-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--spacing-xs) var(--spacing-md);
+  border-radius: var(--radius-pill, 9999px);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  line-height: 1;
+}
+.csv-badge--crear      { background: #D1FAE5; color: #065F46; }
+.csv-badge--actualizar { background: #DBEAFE; color: #1E40AF; }
+.csv-badge--error      { background: #FEE2E2; color: #991B1B; }
+
+/* ── Bloque de errores (collapsible) ─────────────────────── */
+.csv-errors {
+  border: 1px solid #FECACA;
+  border-radius: var(--radius-md);
+  background: #FFF5F5;
+  padding: var(--spacing-md);
+}
+
+.csv-errors summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: var(--font-size-sm);
+  user-select: none;
+}
+.csv-errors summary::-webkit-details-marker { display: none; }
+
+.csv-error-list {
+  margin: var(--spacing-md) 0 0 var(--spacing-lg);
+  padding: 0;
+  list-style: disc;
+  font-size: var(--font-size-sm);
+  color: #7F1D1D;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+/* ── Tabla preview ───────────────────────────────────────── */
+.csv-table-wrapper {
+  overflow-x: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.csv-preview-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-sm);
+}
+
+.csv-preview-table th,
+.csv-preview-table td {
+  padding: var(--spacing-sm) var(--spacing-md);
+  text-align: left;
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+}
+
+.csv-preview-table thead th {
+  background: var(--color-bg, #F9FAFB);
+  font-weight: 600;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.csv-preview-table tbody tr:last-child td { border-bottom: none; }
+.csv-preview-table tbody tr:hover { background: var(--color-bg, #F9FAFB); }
+
+/* Anchos de columna */
+.csv-col-email  { min-width: 200px; }
+.csv-col-nombre { min-width: 140px; }
+.csv-col-rol    { min-width: 110px; }
+.csv-col-accion { min-width: 100px; }
+
+/* ── Badges de acción ────────────────────────────────────── */
+.csv-action {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+}
+.csv-action--crear      { background: #D1FAE5; color: #065F46; }
+.csv-action--actualizar { background: #DBEAFE; color: #1E40AF; }
+
+/* ── Estado vacío ────────────────────────────────────────── */
+.csv-empty {
+  text-align: center;
+  color: var(--color-text-muted);
+  padding: var(--spacing-xl) 0;
+  font-size: var(--font-size-sm);
+}
+
+/* ── Botones de la sección header (Importar CSV + Nuevo Usuario) */
+.section-header-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+
+
 /* ── Tabla usuarios: checkbox + columna nombre ──────────────────────── */
 .th-checkbox,
 .td-checkbox {

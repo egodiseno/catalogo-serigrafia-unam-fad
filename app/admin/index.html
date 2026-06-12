@@ -507,7 +507,15 @@
         <section id="usuariosSection" class="section">
           <div class="section-header">
             <h2>Gestionar Usuarios Admin</h2>
-            <button class="btn btn-primary" id="newUsuarioBtn" data-permiso="usuarios.crear"><i data-lucide="user-plus" style="width:16px; height:16px;" aria-hidden="true"></i> Nuevo Usuario</button>
+            <div class="section-header-actions">
+              <button class="btn btn-secondary" id="csvImportBtn" data-permiso="usuarios.crear">
+                <i data-lucide="upload" style="width:16px;height:16px;" aria-hidden="true"></i> Importar CSV
+              </button>
+              <input type="file" id="csvImportFile" accept=".csv" style="display:none;">
+              <button class="btn btn-primary" id="newUsuarioBtn" data-permiso="usuarios.crear">
+                <i data-lucide="user-plus" style="width:16px; height:16px;" aria-hidden="true"></i> Nuevo Usuario
+              </button>
+            </div>
           </div>
 
           <div class="table-wrapper">
@@ -881,6 +889,7 @@
   <script src="js/modals.js" defer></script>
   <script src="js/tecnicas-crud.js" defer></script>
   <script src="js/tags-crud.js" defer></script>
+  <script src="js/csv-import.js" defer></script>
   <script src="js/usuarios-crud.js" defer></script>
   <!-- Modal Container -->
   <div id="modalContainer"></div>

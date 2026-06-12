@@ -433,6 +433,20 @@ const UsuariosCRUD = (() => {
     const btn = document.getElementById('newUsuarioBtn');
     if (btn) btn.addEventListener('click', e => { e.preventDefault(); openCreateModal(); });
 
+    // ── CSV Import ─────────────────────────────────────────
+    const csvBtn  = document.getElementById('csvImportBtn');
+    const csvFile = document.getElementById('csvImportFile');
+    if (csvBtn && csvFile) {
+      csvBtn.addEventListener('click', () => csvFile.click());
+      csvFile.addEventListener('change', () => {
+        const file = csvFile.files?.[0];
+        if (file) {
+          window.csvImportManager?.importarUsuarios(file);
+          csvFile.value = ''; // resetear para permitir reimportar el mismo archivo
+        }
+      });
+    }
+
     document.addEventListener('usuarios:updated', loadUsuarios);
 
     document.querySelectorAll('[data-section="usuarios"]').forEach(navBtn => {
