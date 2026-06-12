@@ -61,7 +61,14 @@ const ModalManager = (() => {
           <form class="modal-form">
             <div class="modal-body">
               ${fields.map(field => createField(field)).join('')}
-              <div class="modal-error" style="display: none;"></div>
+              <div id="errorMessage" class="error-alert" style="display: none;">
+                <div class="error-icon">⚠️</div>
+                <div class="error-text">
+                  <strong id="errorTitle">Error</strong>
+                  <p id="errorDetail"></p>
+                </div>
+                <button class="error-close" onclick="this.parentElement.style.display='none';">×</button>
+              </div>
             </div>
 
             <div class="modal-footer">
@@ -95,8 +102,8 @@ const ModalManager = (() => {
           return;
         }
 
-        await onSave(data);
-        close(modalId);
+        const _result = await onSave(data);
+        if (_result !== false) close(modalId);
       } catch (error) {
         console.error('❌ Modal error:', error);
         showError(errorDiv, error.message || 'Error desconocido');
@@ -206,8 +213,17 @@ const ModalManager = (() => {
   }
 
   function showError(errorDiv, message) {
-    errorDiv.textContent = message;
-    errorDiv.style.display = 'block';
+    const titleEl  = document.getElementById('errorTitle');
+    const detailEl = document.getElementById('errorDetail');
+    const alertEl  = document.getElementById('errorMessage');
+    if (titleEl && detailEl && alertEl) {
+      titleEl.textContent  = 'Error';
+      detailEl.textContent = message;
+      alertEl.style.display = 'flex';
+    } else {
+      errorDiv.textContent = message;
+      errorDiv.style.display = 'block';
+    }
     console.error(`⚠️  Modal error shown: ${message}`);
   }
 

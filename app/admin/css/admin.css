@@ -1314,6 +1314,61 @@ select {
   border: 1px solid #f5c6cb;
 }
 
+/* ── Error alert (modal inline) ────────────────────── */
+.error-alert {
+  display: flex;
+  gap: var(--spacing-md);
+  align-items: flex-start;
+  padding: var(--spacing-lg);
+  background: #FEE2E2;
+  border: 2px solid #EF4444;
+  border-radius: var(--radius-md);
+  margin-bottom: var(--spacing-lg);
+  animation: slideDown 300ms ease-out;
+}
+
+.error-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.error-text {
+  flex: 1;
+}
+
+.error-text strong {
+  color: #991B1B;
+  display: block;
+  margin-bottom: var(--spacing-xs);
+}
+
+.error-text p {
+  color: #7F1D1D;
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.error-close {
+  background: none;
+  border: none;
+  color: #EF4444;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .login-footer {
   text-align: center;
   font-size: var(--font-size-sm);

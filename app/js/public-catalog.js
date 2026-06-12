@@ -1,0 +1,581 @@
+// app/js/public-catalog.js
+// Grid catálogo dinámico + filtros real-time + infinite scroll
+
+import { api } from './api-client.js';
+import { i18n } from './i18n.js';
+
+export class PublicCatalog {
+  constructor() {
+    this.works = [];
+    this.page = 1;
+    this.pageSize = 12;
+    this.totalWorks = 0;
+    this.isLoading = false;
+
+    this.filters = {
+      year: '',
+      technique: '',
+      tags: [],
+      search: ''
+    };
+
+    this.yearOptions = [];
+    this.techniqueOptions = [];
+    this.tagOptions = [];
+  }
+
+  async init() {
+    try {
+      console.log('🚀 Inicializando catálogo...');
+
+      // Cargar opciones de filtro
+      await this.loadFilterOptions();
+
+      // Cargar primeras obras
+      await this.loadWorks();
+
+      // Attach event listeners
+      this.attachEventListeners();
+
+      // Setup infinite scroll
+      this.setupInfiniteScroll();
+
+      console.log('✅ Catálogo inicializado');
+    } catch (error) {
+      console.error('❌ Error inicializando catálogo:', error);
+    }
+  }
+
+  /**
+   * Cargar opciones de filtro (años, técnicas, tags)
+   */
+  async loadFilterOptions() {
+    console.log('📥 Cargando opciones de filtro...');
+
+    const [years, techniques, tags] = await Promise.all([
+      api.getYears(),
+      api.getTechniques(),
+      api.getTags()
+    ]);
+
+    this.yearOptions = years;
+    this.techniqueOptions = techniques;
+    this.tagOptions = tags;
+
+    this.populateFilterOptions();
+  }
+
+  /**
+   * Llenar dropdowns y checkboxes con opciones
+   */
+  populateFilterOptions() {
+    // Años
+    const yearSelect = document.querySelector('[data-filter="year"]');
+    if (yearSelect) {
+      this.yearOptions.forEach(year => {
+        const option = document.createElement('option');
+        option.value = year;
+        option.textContent = year;
+        yearSelect.appendChild(option);
+      });
+      console.log(`✅ ${this.yearOptions.length} años cargados`);
+    }
+
+    // Técnicas
+    const techniqueSelect = document.querySelector('[data-filter="technique"]');
+    if (techniqueSelect) {
+      this.techniqueOptions.forEach(tech => {
+        const option = document.createElement('option');
+        option.value = tech.id;
+        option.textContent = tech.nombre;
+        techniqueSelect.appendChild(option);
+      });
+      console.log(`✅ ${this.techniqueOptions.length} técnicas cargadas`);
+    }
+
+    // Tags popover
+    const tagsGrid = document.getElementById('tagsGrid');
+    console.log('DEBUG populateFilterOptions — tagsGrid:', !!tagsGrid, '| tagOptions:', this.tagOptions.length);
+    if (tagsGrid) {
+      this.tagOptions.forEach(tag => {
+        console.log('  - tag:', tag.id, tag.nombre);
+        const label = document.createElement('label');
+        label.className = 'tag-checkbox-label';
+
+        const input = document.createElement('input');
+        input.type = 'checkbox';
+        input.value = tag.id;
+        input.setAttribute('data-tag-id', tag.id);
+
+        const span = document.createElement('span');
+        span.textContent = tag.nombre;
+
+        label.appendChild(input);
+        label.appendChild(span);
+        tagsGrid.appendChild(label);
+      });
+      console.log(`✅ ${this.tagOptions.length} tags cargados`);
+    }
+  }
+
+  /**
+   * Attach event listeners a filtros, búsqueda, etc.
+   */
+  attachEventListeners() {
+    // Popover tags
+    const tagsPopoverBtn = document.getElementById('tagsPopoverBtn');
+    const tagsPopover = document.getElementById('tagsPopover');
+    const tagsGrid = document.getElementById('tagsGrid');
+
+    if (tagsPopoverBtn && tagsPopover) {
+      tagsPopoverBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isHidden = tagsPopover.hasAttribute('hidden');
+        if (isHidden) {
+          tagsPopover.removeAttribute('hidden');
+          tagsPopoverBtn.setAttribute('aria-expanded', 'true');
+        } else {
+          tagsPopover.setAttribute('hidden', '');
+          tagsPopoverBtn.setAttribute('aria-expanded', 'false');
+        }
+      });
+
+      // Cerrar al hacer click fuera
+      document.addEventListener('click', (e) => {
+        if (!tagsPopoverBtn.contains(e.target) && !tagsPopover.contains(e.target)) {
+          tagsPopover.setAttribute('hidden', '');
+          tagsPopoverBtn.setAttribute('aria-expanded', 'false');
+        }
+      });
+
+      // Checkboxes dentro del popover
+      if (tagsGrid) {
+        tagsGrid.addEventListener('change', () => {
+          this.handleFilterChange();
+        });
+      }
+    }
+
+    // Botón limpiar todos los tags (footer del popover)
+    const tagsRemoveBtn = document.getElementById('tagsRemoveBtn');
+    if (tagsRemoveBtn) {
+      tagsRemoveBtn.addEventListener('click', () => {
+        document.querySelectorAll('[data-tag-id]').forEach(cb => { cb.checked = false; });
+        this.handleFilterChange();
+      });
+    }
+
+    // Debug logs popover
+    console.log('🔍 Tags popover debug:');
+    console.log('  - tagsPopoverBtn existe:', !!tagsPopoverBtn);
+    console.log('  - tagsPopover existe:', !!tagsPopover);
+    console.log('  - tagsGrid existe:', !!tagsGrid);
+    console.log('  - Checkboxes en grid:', tagsGrid?.querySelectorAll('input').length ?? 0);
+    console.log('  - tagsRemoveBtn existe:', !!document.getElementById('tagsRemoveBtn'));
+    console.log('  - tagsChipsContainer existe:', !!document.getElementById('tagsChipsContainer'));
+
+    // Filtros (cambio real-time)
+    const filterForm = document.querySelector('[data-filters]');
+    if (filterForm) {
+      const inputs = filterForm.querySelectorAll('input, select');
+      inputs.forEach(input => {
+        input.addEventListener('change', () => this.handleFilterChange());
+      });
+    }
+
+    // Botón limpiar filtros
+    const clearBtn = document.querySelector('[data-clear]');
+    if (clearBtn) {
+      clearBtn.addEventListener('click', () => this.clearFilters());
+    }
+
+    // Botón cargar más
+    const loadMoreBtn = document.querySelector('[data-loadmore]');
+    if (loadMoreBtn) {
+      loadMoreBtn.addEventListener('click', () => this.loadMore());
+    }
+
+    // Búsqueda (debounced)
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+      searchInput.addEventListener('input', this.debounce((e) => {
+        this.filters.search = e.target.value;
+        this.page = 1;
+        this.loadWorks();
+      }, 300));
+    }
+
+    console.log('✅ Event listeners attached');
+  }
+
+  /**
+   * Manejar cambios en filtros (real-time)
+   */
+  async handleFilterChange() {
+    const yearSelect = document.querySelector('[data-filter="year"]');
+    const techniqueSelect = document.querySelector('[data-filter="technique"]');
+    const tagCheckboxes = document.querySelectorAll('[data-tag-id]');
+    const selectedTags = Array.from(tagCheckboxes)
+      .filter(cb => cb.checked)
+      .map(cb => cb.value);
+
+    this.filters.year = yearSelect?.value || '';
+    this.filters.technique = techniqueSelect?.value || '';
+    this.filters.tags = selectedTags;
+
+    this.page = 1;
+    await this.loadWorks();
+    this.updateActiveFilterChips();
+  }
+
+  /**
+   * Cargar obras desde Supabase
+   */
+  async loadWorks() {
+    this.isLoading = true;
+    this.showLoadingSpinner();
+
+    try {
+      const { data, total, error } = await api.filterWorks(
+        this.filters,
+        this.page,
+        this.pageSize
+      );
+
+      if (error) {
+        console.error('❌ Error cargando obras:', error);
+        this.showEmptyState();
+        return;
+      }
+
+      if (data.length === 0 && this.page === 1) {
+        this.showEmptyState();
+        return;
+      }
+
+      this.works = data;
+      this.totalWorks = total;
+      this.renderGrid();
+    } catch (error) {
+      console.error('❌ Error:', error);
+      this.showEmptyState();
+    } finally {
+      this.isLoading = false;
+      this.hideLoadingSpinner();
+    }
+  }
+
+  /**
+   * Renderizar grid dinámico
+   */
+  renderGrid() {
+    const grid = document.querySelector('[data-grid]');
+    if (!grid) return;
+
+    grid.innerHTML = this.works
+      .map(work => this.createArtworkCard(work))
+      .join('');
+
+    // Actualizar Lucide icons
+    if (window.lucide) {
+      window.lucide.createIcons();
+    }
+
+    // Actualizar contador
+    this.updateCounter();
+
+    // Actualizar botón cargar más
+    this.updateLoadMoreButton();
+
+    console.log(`✅ Grid renderizado: ${this.works.length} obras`);
+  }
+
+  /**
+   * Crear HTML de una card de obra
+   */
+  createArtworkCard(work) {
+    // imagenes.principal es boolean (true = imagen principal)
+    const imgs = work.imagenes || [];
+    const mainImage = imgs.find(img => img.principal === true) || imgs[0] || null;
+    const imageUrl = mainImage?.url_storage || '';
+    const technique = Array.isArray(work.tecnica) ? work.tecnica[0] : work.tecnica;
+    const hasTechnique = technique?.nombre || null;
+
+    // tags: obra_tags[].tag.nombre  (puede ser array de {tag:{id,nombre,slug}})
+    const tagItems = (work.tags || [])
+      .map(t => t?.tag?.nombre)
+      .filter(Boolean);
+
+    return `
+      <li>
+        <a href="obra.html?id=${work.id}" class="artwork-card" aria-label="${work.titulo} — ${work.artista}">
+          <div class="artwork-card__media ${!imageUrl ? 'is-empty' : ''}">
+            ${imageUrl ? `<img src="${imageUrl}" alt="${work.titulo}" loading="lazy" />` : ''}
+            ${hasTechnique ? `<span class="artwork-card__badge">${hasTechnique}</span>` : ''}
+          </div>
+          <div class="artwork-card__body">
+            <h3 class="artwork-card__title">${work.titulo}</h3>
+            <dl class="artwork-card__meta">
+              <dt hidden>Artista</dt>
+              <dd>${work.artista}</dd>
+              <dt hidden>Año</dt>
+              <dd>${work.año}</dd>
+            </dl>
+            ${tagItems.length > 0 ? `
+              <div class="artwork-card__tags">
+                ${tagItems.slice(0, 2).map(n => `<span class="tag-small">${n}</span>`).join('')}
+              </div>
+            ` : ''}
+            <button type="button" class="artwork-card__cta">
+              <span data-i18n data-es="Ver obra" data-en="View work">Ver obra</span>
+              <i data-lucide="arrow-right"></i>
+            </button>
+          </div>
+        </a>
+      </li>
+    `;
+  }
+
+  /**
+   * Actualizar contador de obras
+   */
+  updateCounter() {
+    const counter = document.querySelector('[data-count]');
+    if (counter) {
+      const shown = this.page * this.pageSize;
+      const total = this.totalWorks;
+      const displayShown = Math.min(shown, total);
+
+      const text = i18n.currentLang === 'es'
+        ? `Mostrando ${displayShown} de ${total}`
+        : `Showing ${displayShown} of ${total}`;
+
+      counter.textContent = text;
+      counter.setAttribute('aria-label', text);
+    }
+  }
+
+  /**
+   * Actualizar estado del botón "Cargar más"
+   */
+  updateLoadMoreButton() {
+    const loadMoreWrap = document.querySelector('[data-loadmore-wrap]');
+    const loadMoreBtn = document.querySelector('[data-loadmore]');
+
+    if (!loadMoreBtn) return;
+
+    const shown = this.page * this.pageSize;
+    const hasMore = shown < this.totalWorks;
+
+    if (hasMore) {
+      loadMoreWrap?.removeAttribute('hidden');
+      loadMoreBtn?.removeAttribute('disabled');
+    } else {
+      loadMoreWrap?.setAttribute('hidden', '');
+      loadMoreBtn?.setAttribute('disabled', '');
+    }
+  }
+
+  /**
+   * Mostrar empty state
+   */
+  showEmptyState() {
+    const emptyState = document.querySelector('[data-empty]');
+    const grid = document.querySelector('[data-grid]');
+
+    if (emptyState) {
+      emptyState.removeAttribute('hidden');
+    }
+    if (grid) {
+      grid.innerHTML = '';
+    }
+  }
+
+  /**
+   * Mostrar/ocultar loading spinner
+   */
+  showLoadingSpinner() {
+    const spinner = document.querySelector('[data-loading]');
+    if (spinner) {
+      spinner.removeAttribute('hidden');
+    }
+  }
+
+  hideLoadingSpinner() {
+    const spinner = document.querySelector('[data-loading]');
+    if (spinner) {
+      spinner.setAttribute('hidden', '');
+    }
+  }
+
+  /**
+   * Actualizar chips de filtros activos (año, técnica) y chips inline de tags
+   */
+  updateActiveFilterChips() {
+    // ── 1. Chips de año y técnica en la barra [data-active-filters] ──────────
+    const container = document.querySelector('[data-active-filters]');
+    if (container) {
+      const chips = [];
+
+      if (this.filters.year) {
+        chips.push({ label: `Año: ${this.filters.year}`, type: 'year' });
+      }
+
+      if (this.filters.technique) {
+        const tech = this.techniqueOptions.find(t => String(t.id) === String(this.filters.technique));
+        if (tech) {
+          chips.push({ label: `Técnica: ${tech.nombre}`, type: 'technique' });
+        }
+      }
+
+      if (chips.length === 0) {
+        container.setAttribute('hidden', '');
+      } else {
+        container.removeAttribute('hidden');
+        container.innerHTML = chips
+          .map(
+            chip => `
+              <div class="filter-chip">
+                ${chip.label}
+                <button type="button" data-remove="${chip.type}" aria-label="Quitar ${chip.label}">
+                  <i data-lucide="x" style="width:13px;height:13px;"></i>
+                </button>
+              </div>
+            `
+          )
+          .join('');
+
+        container.querySelectorAll('[data-remove]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const type = btn.getAttribute('data-remove');
+            if (type === 'year') {
+              document.querySelector('[data-filter="year"]').value = '';
+            } else if (type === 'technique') {
+              document.querySelector('[data-filter="technique"]').value = '';
+            }
+            this.handleFilterChange();
+          });
+        });
+
+        if (window.lucide) window.lucide.createIcons();
+      }
+    }
+
+    // ── 2. Chips individuales de tags inline bajo el botón ───────────────────
+    const tagsChipsContainer = document.getElementById('tagsChipsContainer');
+    if (!tagsChipsContainer) return;
+
+    const selectedTags = this.filters.tags || [];
+
+    // Mostrar/ocultar footer del popover ("Limpiar selección")
+    const tagsPopoverFooter = document.getElementById('tagsPopoverFooter');
+    if (tagsPopoverFooter) {
+      if (selectedTags.length > 0) {
+        tagsPopoverFooter.removeAttribute('hidden');
+      } else {
+        tagsPopoverFooter.setAttribute('hidden', '');
+      }
+    }
+
+    if (selectedTags.length === 0) {
+      tagsChipsContainer.innerHTML = '';
+      return;
+    }
+
+    tagsChipsContainer.innerHTML = selectedTags
+      .map(tagId => {
+        const tagOption = this.tagOptions.find(t => String(t.id) === String(tagId));
+        const tagName = tagOption?.nombre || tagId;
+        return `
+          <span class="tag-chip">
+            ${tagName}
+            <button type="button" aria-label="Quitar tag ${tagName}" data-remove-tag="${tagId}">
+              <i data-lucide="x" style="width:11px;height:11px;"></i>
+            </button>
+          </span>
+        `;
+      })
+      .join('');
+
+    // Listeners para quitar un tag individual
+    tagsChipsContainer.querySelectorAll('[data-remove-tag]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tagId = btn.getAttribute('data-remove-tag');
+        const checkbox = document.querySelector(`[data-tag-id="${tagId}"]`);
+        if (checkbox) checkbox.checked = false;
+        this.handleFilterChange();
+      });
+    });
+
+    if (window.lucide) window.lucide.createIcons();
+  }
+
+  /**
+   * Cargar más obras (infinite scroll o botón)
+   */
+  async loadMore() {
+    this.page++;
+    await this.loadWorks();
+    // Auto-scroll a nuevos items
+    window.scrollBy({ top: 400, behavior: 'smooth' });
+  }
+
+  /**
+   * Limpiar filtros
+   */
+  clearFilters() {
+    this.filters = {
+      year: '',
+      technique: '',
+      tags: [],
+      search: ''
+    };
+
+    // Reset form
+    document.querySelector('[data-filter="year"]').value = '';
+    document.querySelector('[data-filter="technique"]').value = '';
+    document.querySelectorAll('[data-tag-id]').forEach(cb => { cb.checked = false; });
+    document.getElementById('searchInput').value = '';
+
+    this.page = 1;
+    this.loadWorks();
+    this.updateActiveFilterChips();
+  }
+
+  /**
+   * Setup infinite scroll con Intersection Observer
+   */
+  setupInfiniteScroll() {
+    const observer = new IntersectionObserver(
+      entries => {
+        if (entries[0].isIntersecting && !this.isLoading) {
+          const loadMoreBtn = document.querySelector('[data-loadmore]');
+          if (loadMoreBtn && !loadMoreBtn.disabled) {
+            this.loadMore();
+          }
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    const sentinel = document.querySelector('[data-loadmore-wrap]');
+    if (sentinel) {
+      observer.observe(sentinel);
+    }
+  }
+
+  /**
+   * Debounce helper
+   */
+  debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+      const later = () => {
+        clearTimeout(timeout);
+        func(...args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
+  }
+}

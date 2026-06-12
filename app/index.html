@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Catálogo Digital de Obra Serigráfica — UNAM / FAD">
+  <title>Catálogo de Obra Serigráfica</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:wght@500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/styles.css">
+
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+<a href="#contenido" class="skip-link">Saltar al contenido principal</a>
+
+<header class="site-header" data-header>
+  <div class="container">
+    <a href="/" class="brand" aria-label="Inicio del catálogo">
+      <span class="brand__logos" aria-hidden="true">
+        <img src="admin/assets/logos/UNAM.svg" alt="" class="logo-header" />
+        <img src="admin/assets/logos/FAD.svg" alt="" class="logo-header" />
+      </span>
+      <span class="brand__text">
+        <span class="brand__title">Catálogo Digital</span>
+        <span class="brand__subtitle">Obra Serigráfica</span>
+      </span>
+    </a>
+
+    <nav class="main-nav" aria-label="Navegación principal">
+      <a href="#" class="nav-link" data-i18n data-es="Catálogo" data-en="Catalog">Catálogo</a>
+      <a href="#" class="nav-link" data-i18n data-es="Acerca" data-en="About">Acerca</a>
+    </nav>
+
+    <div class="header-actions">
+      <div class="search-container">
+        <input
+          type="search"
+          id="searchInput"
+          class="search-input"
+          placeholder="Buscar obras..."
+          data-i18n-placeholder
+          data-es-placeholder="Buscar obras..."
+          data-en-placeholder="Search artworks..."
+          aria-label="Buscar obras en el catálogo"
+        />
+        <i data-lucide="search" class="search-icon" aria-hidden="true"></i>
+      </div>
+
+      <div class="lang-toggle" role="group" aria-label="Cambiar idioma">
+        <button type="button" class="lang-btn" data-lang="es" aria-pressed="true">ES</button>
+        <button type="button" class="lang-btn" data-lang="en" aria-pressed="false">EN</button>
+      </div>
+    </div>
+
+    <details class="nav-mobile">
+      <summary class="nav-mobile__toggle">
+        <i data-lucide="menu" aria-hidden="true"></i>
+      </summary>
+      <div class="nav-mobile__panel">
+        <a href="#" class="nav-link nav-mobile__link" data-i18n data-es="Catálogo" data-en="Catalog">Catálogo</a>
+        <a href="#" class="nav-link nav-mobile__link" data-i18n data-es="Acerca" data-en="About">Acerca</a>
+      </div>
+    </details>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="container">
+    <p class="hero__eyebrow" data-i18n data-es="UNAM · FAD · Taller de Serigrafía" data-en="UNAM · FAD · Printmaking Workshop">UNAM · FAD · Taller de Serigrafía</p>
+    <h1 class="hero__title">
+      <span data-i18n data-es="Catálogo de" data-en="Catalog of">Catálogo de</span> <span class="accent" data-i18n data-es="Obra Serigráfica" data-en="Printmaking Works">Obra Serigráfica</span>
+    </h1>
+    <p class="hero__lead" data-i18n data-es="Explora la colección de obras del Taller de Serigrafía de la FAD." data-en="Explore the Printmaking Workshop's collection.">Explora la colección de obras del Taller de Serigrafía de la FAD.</p>
+  </div>
+</section>
+
+<section class="filters" aria-label="Filtros del catálogo" data-filters-section>
+  <div class="container">
+    <form data-filters>
+      <div class="filter-grid">
+
+        <!-- COLUMNA 1: AÑO -->
+        <div class="filter-field">
+          <label for="filterYear" data-i18n data-es="AÑO" data-en="YEAR">AÑO</label>
+          <select id="filterYear" data-filter="year" aria-label="Filtrar por año">
+            <option value="">Todos</option>
+          </select>
+        </div>
+
+        <!-- COLUMNA 2: TÉCNICA -->
+        <div class="filter-field">
+          <label for="filterTechnique" data-i18n data-es="TÉCNICA" data-en="TECHNIQUE">TÉCNICA</label>
+          <select id="filterTechnique" data-filter="technique" aria-label="Filtrar por técnica">
+            <option value="">Todas</option>
+          </select>
+        </div>
+
+        <!-- COLUMNA 3: TAGS -->
+        <div class="filter-field">
+          <label data-i18n data-es="TAGS" data-en="TAGS">TAGS</label>
+          <div class="tags-popover-container">
+            <button
+              id="tagsPopoverBtn"
+              class="btn-popover"
+              aria-expanded="false"
+              aria-haspopup="true"
+              aria-label="Abrir filtro de tags"
+              data-i18n
+              data-es="Filtrar Tags ▼"
+              data-en="Filter Tags ▼">
+              Filtrar Tags ▼
+            </button>
+            <div id="tagsChipsContainer" class="tags-chips-container" aria-live="polite"></div>
+            <div id="tagsPopover" class="tags-popover" hidden>
+              <div id="tagsGrid" class="tags-grid">
+                <!-- Poblado dinámicamente por JS -->
+              </div>
+              <div class="tags-popover-footer" id="tagsPopoverFooter" hidden>
+                <button type="button" id="tagsRemoveBtn" class="btn-clear-tags"
+                  data-i18n data-es="Limpiar selección" data-en="Clear selection">
+                  Limpiar selección
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /.filter-grid -->
+
+      <div class="filter-actions">
+        <button type="button" data-clear data-i18n data-es="Limpiar filtros" data-en="Clear filters">
+          Limpiar filtros
+        </button>
+      </div>
+    </form>
+
+    <div class="active-filters" data-active-filters hidden></div>
+  </div>
+</section>
+
+<main id="contenido" class="catalog">
+  <div class="container">
+    <div class="catalog__head">
+      <h2 data-i18n data-es="Obras" data-en="Works">Obras</h2>
+      <p class="catalog__count" data-count aria-live="polite" aria-atomic="true"></p>
+    </div>
+
+    <ul class="artworks" data-grid aria-label="Listado de obras" role="region" aria-live="polite"></ul>
+
+    <p class="empty-state" data-empty hidden data-i18n data-es="No encontramos obras con esos filtros." data-en="No works found with those filters.">No encontramos obras con esos filtros.</p>
+
+    <div class="load-more-wrap" data-loadmore-wrap>
+      <button type="button" class="btn btn--load" data-loadmore data-i18n data-es="Cargar más" data-en="Load more">Cargar más</button>
+    </div>
+
+    <div class="loading-spinner" data-loading hidden>
+      <div class="spinner"></div>
+    </div>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <span class="footer-logos">
+          <img src="admin/assets/logos/UNAM.svg" alt="UNAM" class="logo-footer" />
+          <img src="admin/assets/logos/FAD.svg" alt="FAD" class="logo-footer" />
+        </span>
+        <p class="footer-text" data-i18n data-es="Catálogo Digital de Obra Serigráfica — UNAM FAD" data-en="Digital Catalog of Printmaking Works — UNAM FAD">Catálogo Digital de Obra Serigráfica</p>
+      </div>
+
+      <div class="footer-col">
+        <h3 data-i18n data-es="Catálogo" data-en="Catalog">Catálogo</h3>
+        <ul>
+          <li><a href="#" data-i18n data-es="Todas las obras" data-en="All works">Todas las obras</a></li>
+          <li><a href="#" data-i18n data-es="Por técnica" data-en="By technique">Por técnica</a></li>
+          <li><a href="#" data-i18n data-es="Por año" data-en="By year">Por año</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h3 data-i18n data-es="Acerca" data-en="About">Acerca</h3>
+        <ul>
+          <li><a href="#" data-i18n data-es="El taller" data-en="The workshop">El taller</a></li>
+          <li><a href="#" data-i18n data-es="Equipo" data-en="Team">Equipo</a></li>
+          <li><a href="#" data-i18n data-es="Contacto" data-en="Contact">Contacto</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h3 data-i18n data-es="Social" data-en="Social">Social</h3>
+        <div class="footer-social">
+          <a href="#" aria-label="Instagram" title="Instagram">
+            <i data-lucide="camera" aria-hidden="true"></i>
+          </a>
+          <a href="#" aria-label="Facebook" title="Facebook">
+            <i data-lucide="share-2" aria-hidden="true"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p>&copy; <span data-year>2026</span> UNAM Facultad de Artes y Diseño</p>
+      <p>
+        <a href="#" data-i18n data-es="Accesibilidad" data-en="Accessibility">Accesibilidad</a> |
+        <a href="#" data-i18n data-es="Política de privacidad" data-en="Privacy policy">Política de privacidad</a> |
+        <a href="#" data-i18n data-es="Términos de uso" data-en="Terms of use">Términos de uso</a>
+      </p>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  // Sticky filter scroll-shadow
+  (function () {
+    let ticking = false;
+    window.addEventListener('scroll', () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          document.body.classList.toggle('is-scrolled', window.scrollY > 10);
+          ticking = false;
+        });
+        ticking = true;
+      }
+    }, { passive: true });
+  })();
+</script>
+<script type="module">
+  import { PublicCatalog } from './js/public-catalog.js';
+  import { i18n } from './js/i18n.js';
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    i18n.init();
+    const catalog = new PublicCatalog();
+    await catalog.init();
+  });
+</script>
+
+</body>
+</html>

@@ -298,96 +298,104 @@ const UsuariosCRUD = (() => {
           type: 'select',
           required: true,
           options: [
-            { value: 'admin',        label: 'Admin'        },
-            { value: 'super_editor', label: 'Super Editor' },
-            { value: 'editor',       label: 'Editor'       }
+            { value: 'admin',        label: 'Administrador' },
+            { value: 'super_editor', label: 'Super Editor'  },
+            { value: 'editor',       label: 'Editor'        }
           ]
         }
       ],
       onSave: async (data) => {
-        // ── Obtener sesión activa del admin que ejecuta la acción ──
-        const { data: sessionData } = await client.auth.getSession();
-        const accessToken = sessionData?.session?.access_token;
-
-        if (!accessToken) {
-          throw new Error('Sesión expirada. Por favor, inicia sesión nuevamente.');
-        }
-
-        // ── Construir URL de la Edge Function ─────────────────────
-        const SUPABASE_URL = window.supabaseConfig?.url
-          ?? 'https://kfvjansfmhamkrnbxmgp.supabase.co';
-        const ANON_KEY = window.supabaseConfig?.anonKey ?? '';
-        const FUNCTION_URL = `${SUPABASE_URL}/functions/v1/create-admin-user`;
-
-        // ── Llamar a la Edge Function ──────────────────────────────
-        let response;
         try {
-          response = await fetch(FUNCTION_URL, {
-            method:  'POST',
-            headers: {
-              'Content-Type':  'application/json',
-              'Authorization': `Bearer ${accessToken}`,
-              'apikey':        ANON_KEY,
-            },
-            body: JSON.stringify({
-              email:    data.email,
-              password: data.password,
-              rol:      data.rol,
-            }),
-          });
-        } catch (networkErr) {
-          throw new Error(`Error de red al contactar la Edge Function: ${networkErr.message}`);
-        }
+          // ── Obtener sesión activa del admin que ejecuta la acción ──
+          const { data: sessionData } = await client.auth.getSession();
+          const accessToken = sessionData?.session?.access_token;
 
-        // ── Parsear respuesta ──────────────────────────────────────
-        let result;
-        try {
-          result = await response.json();
-        } catch {
-          throw new Error(`Respuesta inválida del servidor (HTTP ${response.status}).`);
-        }
-
-        if (!response.ok || !result.success) {
-          throw new Error(result.error ?? `Error ${response.status} al crear el usuario.`);
-        }
-
-        window.auditLogger?.crearUsuario(result.email ?? data.email);
-        window.ErrorHandler?.showToast(
-          `✅ Usuario ${result.email} creado y activado correctamente.`,
-          'success'
-        );
-        document.dispatchEvent(new CustomEvent('usuarios:updated'));
-
-        // ── Enviar email de bienvenida (no bloquea si falla) ────────
-        try {
-          const WELCOME_URL = `${SUPABASE_URL}/functions/v1/send-welcome-email`;
-          const welcomeRes  = await fetch(WELCOME_URL, {
-            method:  'POST',
-            headers: {
-              'Content-Type':  'application/json',
-              'Authorization': `Bearer ${accessToken}`,
-              'apikey':        ANON_KEY,
-            },
-            body: JSON.stringify({
-              email:  data.email,
-              nombre: data.email.split('@')[0],
-              rol:    data.rol,
-            }),
-          });
-          const welcomeResult = await welcomeRes.json().catch(() => ({}));
-          if (welcomeRes.ok && welcomeResult.success) {
-            console.log(`[UsuariosCRUD] Welcome email enviado (${welcomeResult.method}) → ${data.email}`);
-            window.ErrorHandler?.showToast(
-              `Email de bienvenida enviado a ${data.email}`,
-              'success',
-              'mail-check'
-            );
-          } else {
-            console.warn('[UsuariosCRUD] Welcome email no enviado:', welcomeResult.error);
+          if (!accessToken) {
+            throw new Error('Sesión expirada. Por favor, inicia sesión nuevamente.');
           }
-        } catch (welcomeErr) {
-          // No crítico — el usuario ya fue creado
-          console.warn('[UsuariosCRUD] Welcome email error (no crítico):', welcomeErr);
+
+          // ── Construir URL de la Edge Function ─────────────────────
+          const SUPABASE_URL = window.supabaseConfig?.url
+            ?? 'https://kfvjansfmhamkrnbxmgp.supabase.co';
+          const ANON_KEY = window.supabaseConfig?.anonKey ?? '';
+          const FUNCTION_URL = `${SUPABASE_URL}/functions/v1/create-admin-user`;
+
+          // ── Llamar a la Edge Function ──────────────────────────────
+          let response;
+          try {
+            response = await fetch(FUNCTION_URL, {
+              method:  'POST',
+              headers: {
+                'Content-Type':  'application/json',
+                'Authorization': `Bearer ${accessToken}`,
+                'apikey':        ANON_KEY,
+              },
+              body: JSON.stringify({
+                email:    data.email,
+                password: data.password,
+                rol:      data.rol,
+              }),
+            });
+          } catch (networkErr) {
+            throw new Error(`Error de red al contactar la Edge Function: ${networkErr.message}`);
+          }
+
+          // ── Parsear respuesta ──────────────────────────────────────
+          let result;
+          try {
+            result = await response.json();
+          } catch {
+            throw new Error(`Respuesta inválida del servidor (HTTP ${response.status}).`);
+          }
+
+          if (!response.ok || !result.success) {
+            throw new Error(result.error ?? `Error ${response.status} al crear el usuario.`);
+          }
+
+          window.auditLogger?.crearUsuario(result.email ?? data.email);
+          window.ErrorHandler?.showToast(
+            `✅ Usuario ${result.email} creado y activado correctamente.`,
+            'success'
+          );
+          document.dispatchEvent(new CustomEvent('usuarios:updated'));
+
+          // ── Enviar email de bienvenida (no bloquea si falla) ────────
+          try {
+            const WELCOME_URL = `${SUPABASE_URL}/functions/v1/send-welcome-email`;
+            const welcomeRes  = await fetch(WELCOME_URL, {
+              method:  'POST',
+              headers: {
+                'Content-Type':  'application/json',
+                'Authorization': `Bearer ${accessToken}`,
+                'apikey':        ANON_KEY,
+              },
+              body: JSON.stringify({
+                email:  data.email,
+                nombre: data.email.split('@')[0],
+                rol:    data.rol,
+              }),
+            });
+            const welcomeResult = await welcomeRes.json().catch(() => ({}));
+            if (welcomeRes.ok && welcomeResult.success) {
+              console.log(`[UsuariosCRUD] Welcome email enviado (${welcomeResult.method}) → ${data.email}`);
+              window.ErrorHandler?.showToast(
+                `Email de bienvenida enviado a ${data.email}`,
+                'success',
+                'mail-check'
+              );
+            } else {
+              console.warn('[UsuariosCRUD] Welcome email no enviado:', welcomeResult.error);
+            }
+          } catch (welcomeErr) {
+            // No crítico — el usuario ya fue creado
+            console.warn('[UsuariosCRUD] Welcome email error (no crítico):', welcomeErr);
+          }
+
+        } catch (err) {
+          document.getElementById('errorTitle').textContent = 'Error al crear usuario';
+          document.getElementById('errorDetail').textContent = err.message;
+          document.getElementById('errorMessage').style.display = 'flex';
+          return false; // señal a ModalManager: mantener modal abierto
         }
       }
     });
