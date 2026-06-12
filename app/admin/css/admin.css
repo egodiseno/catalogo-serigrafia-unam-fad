@@ -4272,17 +4272,22 @@ input[type="file"]:hover {
     border-bottom: none;
   }
 
-  /* Email (1ª celda): destacado como título de la card */
+  /* Checkbox (1ª celda): ocultar en vista cards */
   table.usuarios-table td:nth-child(1) {
+    display: none;
+  }
+
+  /* Email (2ª celda): destacado como título de la card */
+  table.usuarios-table td:nth-child(2) {
     font-weight: 600;
     font-size:   var(--text-base, 1rem);
     color:       var(--color-text, #1F2937);
     padding-top: var(--spacing-md, 0.75rem);
   }
 
-  /* Rol / Estado (2ª y 3ª): texto secundario */
-  table.usuarios-table td:nth-child(2),
-  table.usuarios-table td:nth-child(3) {
+  /* Rol / Estado (4ª y 5ª): texto secundario */
+  table.usuarios-table td:nth-child(4),
+  table.usuarios-table td:nth-child(5) {
     color:     var(--color-text-muted, #6B7280);
     font-size: var(--text-xs, 0.8125rem);
   }
@@ -4315,6 +4320,33 @@ input[type="file"]:hover {
     padding:    var(--spacing-xl, 2rem) var(--spacing-md, 0.75rem);
   }
 }
+
+
+
+/* ── Tabla usuarios: checkbox + columna nombre ──────────────────────── */
+.th-checkbox,
+.td-checkbox {
+  width: 40px;
+  text-align: center;
+  padding-left: var(--spacing-sm);
+  padding-right: var(--spacing-sm);
+}
+
+.usuarios-table th:nth-child(3) {
+  width: 150px;
+}
+
+.select-user,
+#selectAllUsers {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: var(--color-primary, #013B75);
+  vertical-align: middle;
+}
+
+/* "Select all" — pointer en la th del header */
+.th-checkbox { cursor: default; }
 
 
 

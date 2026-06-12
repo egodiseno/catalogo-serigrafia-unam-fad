@@ -514,7 +514,11 @@
           <table class="usuarios-table">
             <thead>
               <tr>
+                <th class="th-checkbox">
+                  <input type="checkbox" id="selectAllUsers" title="Seleccionar todos">
+                </th>
                 <th>Email</th>
+                <th>Nombre</th>
                 <th>Rol</th>
                 <th>Estado</th>
                 <th>Acciones</th>
@@ -522,7 +526,7 @@
             </thead>
             <tbody id="usuariosList">
               <tr>
-                <td colspan="4" class="empty-state">Cargando usuarios...</td>
+                <td colspan="6" class="empty-state">Cargando usuarios...</td>
               </tr>
             </tbody>
           </table>

@@ -31,20 +31,20 @@ const UsuariosCRUD = (() => {
   async function loadUsuarios() {
     const tbody = document.getElementById('usuariosList');
     if (!tbody) return;
-    tbody.innerHTML = '<tr><td colspan="4" class="empty-state">Cargando…</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Cargando…</td></tr>';
 
     try {
       const _sort = window.sortManager?.getSort('usuarios-table') ?? { field: 'email', direction: 'asc' };
       const { data, error } = await client
         .from('usuarios_admin')
-        .select('id, email, rol, estado')
+        .select('id, email, nombre, rol, estado')
         .order(_sort.field, { ascending: _sort.direction === 'asc' });
       if (error) throw error;
 
       usuariosData = data ?? [];
 
       if (usuariosData.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="4" class="empty-state">
+        tbody.innerHTML = `<tr><td colspan="6" class="empty-state">
           Sin usuarios. <a href="#" class="cta-link"
             onclick="window.UsuariosCRUD?.openCreateModal(); return false">Invitar primero →</a>
         </td></tr>`;
@@ -53,7 +53,11 @@ const UsuariosCRUD = (() => {
 
       tbody.innerHTML = usuariosData.map(u => `
         <tr>
+          <td class="td-checkbox">
+            <input type="checkbox" class="select-user" data-email="${escapeHtml(u.email)}" aria-label="Seleccionar ${escapeHtml(u.email)}">
+          </td>
           <td>${escapeHtml(u.email)}</td>
+          <td>${u.nombre ? escapeHtml(u.nombre) : '<span class="text-muted">—</span>'}</td>
           <td><span class="badge badge-${escapeHtml(u.rol)}">${escapeHtml(u.rol)}</span></td>
           <td>
             <span class="badge ${u.estado ? 'badge-publicado' : 'badge-archivado'}">
@@ -437,6 +441,14 @@ const UsuariosCRUD = (() => {
       { label: 'Más recientes', field: 'created_at' },
     ], { field: 'email', direction: 'asc' });    // default = comportamiento actual
     window.sortManager?.mountDropdown('usuarios-table', () => loadUsuarios());
+
+    // ── Select All checkbox ────────────────────────────────
+    document.addEventListener('click', (e) => {
+      if (e.target?.id === 'selectAllUsers') {
+        const checked = e.target.checked;
+        document.querySelectorAll('.select-user').forEach(cb => { cb.checked = checked; });
+      }
+    });
 
     console.log('👥 UsuariosCRUD listo');
   }
