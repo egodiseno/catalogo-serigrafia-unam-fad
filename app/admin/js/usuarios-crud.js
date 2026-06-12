@@ -294,9 +294,9 @@ const UsuariosCRUD = (() => {
     window.ModalManager.open({
       title: 'Nuevo Usuario Admin',
       fields: [
+        { name: 'nombre',   label: 'Nombre',     type: 'text',     required: true },
         { name: 'email',    label: 'Email',      type: 'email',    required: true },
         { name: 'password', label: 'Contraseña', type: 'password', required: true },
-        { name: 'nombre',   label: 'Nombre',     type: 'text',     required: true },
         {
           name: 'rol',
           label: 'Rol',
