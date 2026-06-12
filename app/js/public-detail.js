@@ -37,6 +37,7 @@ export class PublicDetail {
       this.work = data;
       this.render(data);
       this.setupGallery(data);
+      this.loadRelatedWorks();
 
       console.log(`✅ Obra cargada: ${data.titulo}`);
     } catch (err) {
@@ -418,6 +419,126 @@ export class PublicDetail {
         this.showImage(currentIndex - 1);
       }
     }, { passive: true });
+  }
+
+  // ─────────────────────────────────────────────────────────
+  // loadRelatedWorks — carga obras relacionadas por técnica o tag
+  // ─────────────────────────────────────────────────────────
+  async loadRelatedWorks() {
+    const sectionEl = document.getElementById('relatedWorks');
+    const gridEl    = document.getElementById('relatedGrid');
+    if (!sectionEl || !gridEl || !this.work) return;
+
+    try {
+      // Obtener hasta 20 obras publicadas (sin filtros de fecha/técnica para máxima relevancia)
+      const { data, error } = await api.filterWorks({}, 1, 20);
+
+      if (error || !data?.length) {
+        sectionEl.setAttribute('hidden', '');
+        return;
+      }
+
+      // IDs de técnica y tags de la obra actual
+      const currentTecnicaId = this.work.tecnica?.id
+        ?? (Array.isArray(this.work.tecnica) ? this.work.tecnica[0]?.id : null);
+
+      const currentTagIds = new Set(
+        (this.work.tags || []).map(t => t?.tag?.id).filter(Boolean)
+      );
+
+      // Filtrar: misma técnica OR al menos 1 tag en común, excluyendo obra actual
+      const related = data.filter(obra => {
+        if (obra.id === this.work.id) return false;
+
+        const sameTecnica = obra.tecnica?.id === currentTecnicaId;
+
+        const sharedTag = (obra.tags || []).some(
+          t => currentTagIds.has(t?.tag?.id)
+        );
+
+        return sameTecnica || sharedTag;
+      });
+
+      if (related.length === 0) {
+        sectionEl.setAttribute('hidden', '');
+        return;
+      }
+
+      // Máximo 4 obras aleatorias
+      const shuffled = related.sort(() => Math.random() - 0.5).slice(0, 4);
+
+      // Renderizar cards
+      gridEl.innerHTML = shuffled.map(obra => this._renderRelatedCard(obra)).join('');
+
+      sectionEl.removeAttribute('hidden');
+
+      // Activar Lucide icons en las nuevas cards
+      if (window.lucide) window.lucide.createIcons();
+
+      console.log(`✅ Obras relacionadas: ${shuffled.length} de ${related.length} encontradas`);
+
+    } catch (err) {
+      console.warn('⚠️ loadRelatedWorks falló:', err.message);
+      sectionEl.setAttribute('hidden', '');
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────
+  // _renderRelatedCard — HTML de una card de obra relacionada
+  // (misma estructura que public-catalog.js para coherencia visual)
+  // ─────────────────────────────────────────────────────────
+  _renderRelatedCard(obra) {
+    const imgs     = obra.imagenes || [];
+    const mainImg  = imgs.find(i => i.principal === true) || imgs[0] || null;
+    const imageUrl = mainImg?.url_storage || '';
+
+    const tecnicaNombre = obra.tecnica?.nombre
+      ?? (Array.isArray(obra.tecnica) ? obra.tecnica[0]?.nombre : null)
+      ?? '';
+
+    const tagItems = (obra.tags || [])
+      .map(t => t?.tag?.nombre)
+      .filter(Boolean)
+      .slice(0, 2);
+
+    return `
+      <li>
+        <a href="obra.html?id=${this.escapeHtml(obra.id)}"
+           class="artwork-card"
+           aria-label="${this.escapeHtml(obra.titulo)} — ${this.escapeHtml(obra.artista)}">
+
+          <div class="artwork-card__media ${!imageUrl ? 'is-empty' : ''}">
+            ${imageUrl
+              ? `<img src="${this.escapeHtml(imageUrl)}"
+                      alt="${this.escapeHtml(obra.titulo)}"
+                      loading="lazy" />`
+              : ''}
+            ${tecnicaNombre
+              ? `<span class="artwork-card__badge">${this.escapeHtml(tecnicaNombre)}</span>`
+              : ''}
+          </div>
+
+          <div class="artwork-card__body">
+            <h3 class="artwork-card__title">${this.escapeHtml(obra.titulo)}</h3>
+            <dl class="artwork-card__meta">
+              <dt hidden>Artista</dt>
+              <dd>${this.escapeHtml(obra.artista || '—')}</dd>
+              <dt hidden>Año</dt>
+              <dd>${this.escapeHtml(String(obra.año || '—'))}</dd>
+            </dl>
+            ${tagItems.length > 0
+              ? `<div class="artwork-card__tags">
+                  ${tagItems.map(n => `<span class="tag-small">${this.escapeHtml(n)}</span>`).join('')}
+                 </div>`
+              : ''}
+            <button type="button" class="artwork-card__cta">
+              <span>Ver obra</span>
+              <i data-lucide="arrow-right"></i>
+            </button>
+          </div>
+
+        </a>
+      </li>`;
   }
 
   // ─────────────────────────────────────────────────────────
