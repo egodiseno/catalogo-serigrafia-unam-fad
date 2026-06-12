@@ -18,10 +18,11 @@ const TecnicasCRUD = (() => {
     tbody.innerHTML = '<tr><td colspan="3" class="empty-state">Cargando…</td></tr>';
 
     try {
+      const _sort = window.sortManager?.getSort('tecnicas-table') ?? { field: 'nombre', direction: 'asc' };
       const { data, error } = await client
         .from('tecnicas')
         .select('id, nombre, descripcion')
-        .order('nombre');
+        .order(_sort.field, { ascending: _sort.direction === 'asc' });
       if (error) throw error;
 
       tecnicasData = data ?? [];
@@ -193,6 +194,13 @@ const TecnicasCRUD = (() => {
     document.querySelectorAll('[data-section="tecnicas"]').forEach(navBtn => {
       navBtn.addEventListener('click', () => setTimeout(loadTecnicas, 60));
     });
+
+    // ── Sort dropdown ──────────────────────────────────────
+    window.sortManager?.registerTable('tecnicas-table', [
+      { label: 'Nombre A–Z',    field: 'nombre'     },
+      { label: 'Más recientes', field: 'created_at' },
+    ], { field: 'nombre', direction: 'asc' });   // default = comportamiento actual
+    window.sortManager?.mountDropdown('tecnicas-table', () => loadTecnicas());
 
     console.log('🔧 TecnicasCRUD listo');
   }

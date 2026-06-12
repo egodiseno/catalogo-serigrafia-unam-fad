@@ -34,10 +34,11 @@ const UsuariosCRUD = (() => {
     tbody.innerHTML = '<tr><td colspan="4" class="empty-state">Cargando…</td></tr>';
 
     try {
+      const _sort = window.sortManager?.getSort('usuarios-table') ?? { field: 'email', direction: 'asc' };
       const { data, error } = await client
         .from('usuarios_admin')
         .select('id, email, rol, estado')
-        .order('email');
+        .order(_sort.field, { ascending: _sort.direction === 'asc' });
       if (error) throw error;
 
       usuariosData = data ?? [];
@@ -414,6 +415,14 @@ const UsuariosCRUD = (() => {
     document.querySelectorAll('[data-section="usuarios"]').forEach(navBtn => {
       navBtn.addEventListener('click', () => setTimeout(loadUsuarios, 60));
     });
+
+    // ── Sort dropdown ──────────────────────────────────────
+    window.sortManager?.registerTable('usuarios-table', [
+      { label: 'Email A–Z',     field: 'email'      },
+      { label: 'Rol',           field: 'rol'        },
+      { label: 'Más recientes', field: 'created_at' },
+    ], { field: 'email', direction: 'asc' });    // default = comportamiento actual
+    window.sortManager?.mountDropdown('usuarios-table', () => loadUsuarios());
 
     console.log('👥 UsuariosCRUD listo');
   }

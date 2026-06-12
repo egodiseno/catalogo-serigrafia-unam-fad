@@ -70,6 +70,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     try {
+      // Ordenamiento dinámico (sort-manager)
+      const _sort = window.sortManager?.getSort('obras-table') ?? { field: 'created_at', direction: 'desc' };
+
       let query = client
         .from('obras')
         .select(
@@ -79,7 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
           'obra_tags(tags(id, nombre))',
           { count: 'exact' }
         )
-        .order('created_at', { ascending: false })
+        .order(_sort.field, { ascending: _sort.direction === 'asc' })
         .range(state.offset, state.offset + PAGE_SIZE - 1);
 
       if (state.query) {
@@ -400,6 +403,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Refrescar el filtro de técnicas cuando se crea/elimina una
   document.addEventListener('tecnicas:updated', loadTecnicasFilter);
+
+  // ── Registrar tabla en sortManager + dropdown ──────────
+  window.sortManager?.registerTable('obras-table', [
+    { label: 'Más recientes', field: 'created_at' },
+    { label: 'Título A–Z',    field: 'titulo'     },
+    { label: 'Año',           field: 'año'        },
+    { label: 'Artista',       field: 'artista'    },
+    { label: 'Estado',        field: 'estado'     },
+  ]);   // default: created_at desc  (mantiene comportamiento actual)
+  window.sortManager?.mountDropdown('obras-table', () => loadObras(true));
 
   // ── Carga inicial ─────────────────────────────────────
   loadTecnicasFilter();   // ISSUE-08: poblar el select de técnicas

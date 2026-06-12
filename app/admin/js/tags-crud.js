@@ -18,10 +18,11 @@ const TagsCRUD = (() => {
     tbody.innerHTML = '<tr><td colspan="3" class="empty-state">Cargando…</td></tr>';
 
     try {
+      const _sort = window.sortManager?.getSort('tags-table') ?? { field: 'nombre', direction: 'asc' };
       const { data, error } = await client
         .from('tags')
         .select('id, nombre, slug')
-        .order('nombre');
+        .order(_sort.field, { ascending: _sort.direction === 'asc' });
       if (error) throw error;
 
       tagsData = data ?? [];
@@ -188,6 +189,13 @@ const TagsCRUD = (() => {
     document.querySelectorAll('[data-section="tags"]').forEach(navBtn => {
       navBtn.addEventListener('click', () => setTimeout(loadTagsTable, 60));
     });
+
+    // ── Sort dropdown ──────────────────────────────────────
+    window.sortManager?.registerTable('tags-table', [
+      { label: 'Nombre A–Z',    field: 'nombre'     },
+      { label: 'Más recientes', field: 'created_at' },
+    ], { field: 'nombre', direction: 'asc' });   // default = comportamiento actual
+    window.sortManager?.mountDropdown('tags-table', () => loadTagsTable());
 
     console.log('🏷️  TagsCRUD listo');
   }
