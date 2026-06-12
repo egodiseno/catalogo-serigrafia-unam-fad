@@ -235,15 +235,29 @@ export class PublicDetail {
       ?.addEventListener('click', () => this.showImage(this.currentIndex + 1));
 
     // ── Swipe dentro del lightbox ─────────────────────────
-    let touchStartX = 0;
-    const lbImg = el.querySelector('.lightbox__image');
-    lbImg.addEventListener('touchstart', (e) => {
-      touchStartX = e.changedTouches[0].clientX;
+    const lightboxImg = el.querySelector('.lightbox__image');
+    let lbTouchStartX = 0;
+    let lbTouchEndX   = 0;
+
+    lightboxImg.addEventListener('touchstart', (e) => {
+      lbTouchStartX = e.changedTouches[0].clientX;
+      console.log('🟢 LIGHTBOX TOUCH START:', lbTouchStartX);
     }, { passive: true });
-    lbImg.addEventListener('touchend', (e) => {
-      const delta = e.changedTouches[0].clientX - touchStartX;
-      if (Math.abs(delta) < 50) return;
-      this.showImage(delta < 0 ? this.currentIndex + 1 : this.currentIndex - 1);
+
+    lightboxImg.addEventListener('touchend', (e) => {
+      lbTouchEndX = e.changedTouches[0].clientX;
+      const diff = lbTouchStartX - lbTouchEndX;
+      console.log('🔴 LIGHTBOX TOUCH END:', lbTouchEndX, '| Diff:', diff);
+
+      if (diff > 50) {
+        console.log('➡️ Swipe LEFT en lightbox');
+        this.showImage(this.getCurrentImageIndex() + 1);
+        this.updateLightboxImage();
+      } else if (diff < -50) {
+        console.log('⬅️ Swipe RIGHT en lightbox');
+        this.showImage(this.getCurrentImageIndex() - 1);
+        this.updateLightboxImage();
+      }
     }, { passive: true });
 
     // Foco inicial
@@ -259,6 +273,34 @@ export class PublicDetail {
     this._lightboxEl = null;
     document.body.style.overflow = '';
     document.getElementById('mainImage')?.focus();
+  }
+
+  // ─────────────────────────────────────────────────────────
+  // getCurrentImageIndex — índice de la imagen visible en #mainImage
+  // ─────────────────────────────────────────────────────────
+  getCurrentImageIndex() {
+    const mainImgEl = document.getElementById('mainImage');
+    if (!mainImgEl) return this.currentIndex;
+
+    const idx = this.sortedImages.findIndex(
+      img => img.url_storage === mainImgEl.src
+    );
+    return idx >= 0 ? idx : this.currentIndex;
+  }
+
+  // ─────────────────────────────────────────────────────────
+  // updateLightboxImage — sincroniza src del lightbox con #mainImage
+  // ─────────────────────────────────────────────────────────
+  updateLightboxImage() {
+    if (!this._lightboxEl) return;
+
+    const mainImgEl = document.getElementById('mainImage');
+    const lbImg = this._lightboxEl.querySelector('.lightbox__image');
+
+    if (lbImg && mainImgEl) {
+      lbImg.src = mainImgEl.src;
+      console.log('🔄 Lightbox imagen actualizada');
+    }
   }
 
   // ─────────────────────────────────────────────────────────
