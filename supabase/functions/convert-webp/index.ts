@@ -1,12 +1,21 @@
 // supabase/functions/convert-webp/index.ts
 // Edge Function: valida imágenes y convierte a WebP (Deno runtime, sin Node)
 //
+// Librería: imagemagick_deno (WASM bundleado inline — sin fetch externo)
+// Referencia oficial Supabase: https://supabase.com/docs/guides/functions/examples/image-resizing
+//
 // POST multipart/form-data
 //   file      : File  — imagen (jpeg | png | webp)
 //   obra_id   : string (opcional) — para naming semántico
 //
 // Respuesta OK:  { success: true, filename, size, converted }
 // Respuesta ERR: { success: false, error }
+
+import {
+  ImageMagick,
+  initialize,
+  MagickFormat,
+} from 'https://deno.land/x/imagemagick_deno@0.0.27/mod.ts';
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
 const MAX_BYTES     = 50 * 1024 * 1024; // 50 MB
@@ -103,8 +112,9 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
 // ─────────────────────────────────────────────────────────
 // convertToWebP
-// Intenta conversión WASM (@cf-wasm/photon); fallback a original.
-// No usa Node ni binarios del sistema — solo Deno APIs.
+// imagemagick_deno: WASM bundleado inline (sin fetch externo).
+// Mismo patrón usado en los ejemplos oficiales de Supabase.
+// Fallback a original si ImageMagick falla.
 // ─────────────────────────────────────────────────────────
 async function convertToWebP(
   input: Uint8Array,
@@ -115,25 +125,30 @@ async function convertToWebP(
   const webpFilename = buildFilename(originalName, obraId, 'webp');
 
   try {
-    // @cf-wasm/photon: WASM puro, compatible con Deno / Edge runtimes
-    // Docs: https://www.npmjs.com/package/@cf-wasm/photon
-    const { PhotonImage } = await import(
-      'https://esm.sh/@cf-wasm/photon@0.3.1'
-    );
+    console.log('🔄 Iniciando conversión WASM (ImageMagick)…');
 
-    console.log('🔄 Iniciando conversión WASM (photon)…');
-    const photonImg  = PhotonImage.new_from_byteslice(input);
-    const webpBytes  = photonImg.get_bytes_webp();
-    photonImg.free();
+    // Inicializar WASM — idempotente, seguro llamar múltiples veces
+    await initialize();
+
+    let webpBytes: Uint8Array | null = null;
+
+    ImageMagick.read(input, (img) => {
+      img.write((data) => {
+        webpBytes = new Uint8Array(data);
+      }, MagickFormat.WebP);
+    });
+
+    if (!webpBytes || (webpBytes as Uint8Array).byteLength === 0) {
+      throw new Error('ImageMagick devolvió bytes vacíos');
+    }
 
     return { converted: true, data: webpBytes, filename: webpFilename };
 
-  } catch (wasmErr) {
-    // WASM no cargó o la imagen no pudo procesarse
-    const reason = wasmErr instanceof Error ? wasmErr.message : String(wasmErr);
-    console.warn('⚠️ Photon/WASM falló:', reason);
+  } catch (magickErr) {
+    // ImageMagick falló — retornar imagen original con nombre seguro
+    const reason = magickErr instanceof Error ? magickErr.message : String(magickErr);
+    console.warn('⚠️ ImageMagick falló:', reason);
 
-    // Fallback: retornar imagen original con nombre seguro
     const ext             = originalName.split('.').pop()?.toLowerCase() ?? 'jpg';
     const fallbackFilename = buildFilename(originalName, obraId, ext);
     return { converted: false, data: input, filename: fallbackFilename };
