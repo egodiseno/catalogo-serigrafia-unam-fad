@@ -94,7 +94,7 @@ const TagsCRUD = (() => {
         if (error) throw error;
 
         window.auditLogger?.crearTag(null, data.nombre.trim());
-        window.ErrorHandler?.showToast('✅ Tag creado correctamente', 'success');
+        window.ErrorHandler?.showToast('Tag creado correctamente', 'success');
         document.dispatchEvent(new CustomEvent('tags:updated'));
       }
     });
@@ -129,7 +129,7 @@ const TagsCRUD = (() => {
         if (error) throw error;
 
         window.auditLogger?.editarTag(id, data.nombre.trim());
-        window.ErrorHandler?.showToast('✅ Tag actualizado', 'success');
+        window.ErrorHandler?.showToast('Tag actualizado', 'success');
         document.dispatchEvent(new CustomEvent('tags:updated'));
       }
     });

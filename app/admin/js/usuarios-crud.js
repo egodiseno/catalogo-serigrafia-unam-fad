@@ -149,7 +149,7 @@ const UsuariosCRUD = (() => {
         if (error) throw error;
 
         window.auditLogger?.editarUsuario(usuario.email);
-        window.ErrorHandler?.showToast('✅ Usuario actualizado', 'success');
+        window.ErrorHandler?.showToast('Usuario actualizado', 'success');
         document.dispatchEvent(new CustomEvent('usuarios:updated'));
       }
     });
@@ -360,7 +360,7 @@ const UsuariosCRUD = (() => {
 
           window.auditLogger?.crearUsuario(result.email ?? data.email);
           window.ErrorHandler?.showToast(
-            `✅ Usuario ${result.email} creado y activado correctamente.`,
+            `Usuario ${result.email} creado y activado correctamente.`,
             'success'
           );
           document.dispatchEvent(new CustomEvent('usuarios:updated'));
