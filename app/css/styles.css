@@ -1308,6 +1308,9 @@ body.is-scrolled .filters {
   display: block;
   transition: transform 400ms var(--ease);
   border-radius: var(--radius-card);
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .work-hero__img:hover {
@@ -1332,8 +1335,10 @@ body.is-scrolled .filters {
   padding: 0;
   transition: border-color 150ms var(--ease),
               box-shadow 150ms var(--ease),
-              opacity 150ms var(--ease);
+              opacity 150ms var(--ease),
+              transform 200ms var(--ease);
   flex-shrink: 0;
+  user-select: none;
 }
 
 .gallery-thumb img {
@@ -1347,6 +1352,7 @@ body.is-scrolled .filters {
 .gallery-thumb:hover {
   border-color: rgba(1, 59, 117, 0.4);
   opacity: 0.9;
+  transform: scale(1.08);
 }
 
 .gallery-thumb.is-active {
@@ -1516,6 +1522,9 @@ body.is-scrolled .filters {
   justify-content: center;
   z-index: 1000;
   animation: fadeIn 200ms ease both;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  transition: opacity 200ms ease;
 }
 
 /* Área de contenido (imagen + botones) */
@@ -1645,4 +1654,46 @@ body.is-scrolled .filters {
     width: 18px;
     height: 18px;
   }
+}
+
+/* ============================================================
+   Ficha detalle — breakpoints adicionales
+   ============================================================ */
+
+/* Tablet estrecha: reducir gap y thumbs más pequeñas */
+@media (max-width: 768px) {
+  .work-detail,
+  .work-main {
+    gap: var(--space-2);
+  }
+
+  .work-gallery,
+  .gallery-thumbs {
+    grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+  }
+}
+
+/* Mobile pequeño: tipografía y gaps más compactos */
+@media (max-width: 480px) {
+  .work-meta__title,
+  .work-title {
+    font-size: 1.25rem;
+  }
+
+  .work-meta,
+  .work-info {
+    gap: var(--space-1);
+  }
+
+  .work-meta__dl {
+    font-size: 0.875rem;
+  }
+}
+
+/* ── Utilidad: sin selección de texto (swipe / drag) ────── */
+.no-select {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
 }

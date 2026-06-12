@@ -138,9 +138,8 @@ export class PublicDetail {
         this.openLightbox(mainImgEl.src, work.titulo));
     }
 
-    // ── Teclado + swipe (siempre, incluso con 1 imagen) ──
+    // ── Teclado (siempre, incluso con 1 imagen para Escape/lightbox) ──
     this.setupKeyboardNavigation();
-    this.setupTouchSwipe();
 
     if (this.sortedImages.length <= 1) return; // sin thumbs si hay 1 sola imagen
 
@@ -176,6 +175,9 @@ export class PublicDetail {
       const idx = parseInt(btn.dataset.index, 10);
       if (!isNaN(idx)) this.showImage(idx);
     });
+
+    // ── Swipe en imagen principal (solo con múltiples imgs) ──
+    this.setupTouchSwipe();
   }
 
   // ─────────────────────────────────────────────────────────
@@ -331,16 +333,31 @@ export class PublicDetail {
 
     const THRESHOLD = 50; // px mínimo para considerar swipe
     let touchStartX = 0;
+    let touchEndX   = 0;
 
     mainImgEl.addEventListener('touchstart', (e) => {
       touchStartX = e.changedTouches[0].clientX;
     }, { passive: true });
 
     mainImgEl.addEventListener('touchend', (e) => {
-      const delta = e.changedTouches[0].clientX - touchStartX;
-      if (Math.abs(delta) < THRESHOLD) return;
-      // Swipe left → siguiente; swipe right → anterior
-      this.showImage(delta < 0 ? this.currentIndex + 1 : this.currentIndex - 1);
+      touchEndX = e.changedTouches[0].clientX;
+      const diff = touchStartX - touchEndX;
+
+      if (Math.abs(diff) < THRESHOLD) return; // ignorar micro-gestos / clicks
+
+      // Índice actual por src — más robusto que this.currentIndex en edge cases
+      const foundIdx = this.sortedImages.findIndex(
+        img => img.url_storage === mainImgEl.src
+      );
+      const currentIndex = foundIdx >= 0 ? foundIdx : this.currentIndex;
+
+      if (diff > 0) {
+        // Swipe left → siguiente imagen
+        this.showImage(currentIndex + 1);
+      } else {
+        // Swipe right → imagen anterior
+        this.showImage(currentIndex - 1);
+      }
     }, { passive: true });
   }
 
