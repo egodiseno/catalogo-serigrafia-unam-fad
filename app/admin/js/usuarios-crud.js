@@ -306,6 +306,12 @@ const UsuariosCRUD = (() => {
       ],
       onSave: async (data) => {
         try {
+          // ── Validar rol permitido (whitelist) ──────────────────────
+          const VALID_ROLES = ['admin', 'super_editor', 'editor'];
+          if (!VALID_ROLES.includes(data.rol)) {
+            throw new Error(`Rol no permitido: "${data.rol}". Valores válidos: admin, super_editor, editor.`);
+          }
+
           // ── Obtener sesión activa del admin que ejecuta la acción ──
           const { data: sessionData } = await client.auth.getSession();
           const accessToken = sessionData?.session?.access_token;
