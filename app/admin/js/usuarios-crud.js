@@ -296,6 +296,7 @@ const UsuariosCRUD = (() => {
       fields: [
         { name: 'email',    label: 'Email',      type: 'email',    required: true },
         { name: 'password', label: 'Contraseña', type: 'password', required: true },
+        { name: 'nombre',   label: 'Nombre',     type: 'text',     required: true },
         {
           name: 'rol',
           label: 'Rol',
@@ -310,7 +311,10 @@ const UsuariosCRUD = (() => {
       ],
       onSave: async (data) => {
         try {
-          // ── Validar rol permitido (whitelist) ──────────────────────
+          // ── Validar campos requeridos ──────────────────────────────
+          if (!data.nombre?.trim()) {
+            throw new Error('El nombre es obligatorio.');
+          }
           const VALID_ROLES = ['admin', 'super_editor', 'editor'];
           if (!VALID_ROLES.includes(data.rol)) {
             throw new Error(`Rol no permitido: "${data.rol}". Valores válidos: admin, super_editor, editor.`);

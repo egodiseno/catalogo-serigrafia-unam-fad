@@ -75,11 +75,11 @@ Deno.serve(async (req: Request): Promise<Response> => {
     const buffer = await file.arrayBuffer();
     const bytes  = new Uint8Array(buffer);
 
-    // Si ya es WebP, retornar sin conversión
+    // Si ya es WebP, retornar bytes directamente sin conversión
     if (mimeType === 'image/webp') {
       console.log('✅ Ya es WebP — sin conversión necesaria');
       const filename = buildFilename(file.name, obraId, 'webp');
-      return jsonOk({ filename, size: bytes.byteLength, converted: false });
+      return binaryResponse(bytes, 'image/webp', filename, false);
     }
 
     // ── Intentar conversión a WebP ────────────────────
@@ -94,14 +94,9 @@ Deno.serve(async (req: Request): Promise<Response> => {
       console.warn(`⚠️ Conversión no disponible — retornando original: ${result.filename}`);
     }
 
-    return jsonOk({
-      filename:  result.filename,
-      size:      result.data.byteLength,
-      converted: result.converted,
-      ...(result.converted ? {} : {
-        warning: 'Conversión WebP no disponible. Se almacenará imagen original.',
-      }),
-    });
+    // Retornar bytes (WebP convertido o imagen original como fallback)
+    const contentType = result.converted ? 'image/webp' : mimeType;
+    return binaryResponse(result.data, contentType, result.filename, result.converted);
 
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
@@ -182,6 +177,34 @@ function buildFilename(
 // ─────────────────────────────────────────────────────────
 // Helpers de respuesta
 // ─────────────────────────────────────────────────────────
+
+/**
+ * Respuesta binaria: retorna los bytes de la imagen con metadata en headers.
+ * El cliente lee:
+ *   X-Filename  → nombre seguro sugerido para Storage
+ *   X-Converted → "true" | "false"
+ *   X-Size      → tamaño en bytes
+ */
+function binaryResponse(
+  data: Uint8Array,
+  contentType: string,
+  filename: string,
+  converted: boolean,
+): Response {
+  return new Response(data, {
+    status: 200,
+    headers: {
+      'Content-Type':   contentType,
+      'X-Filename':     filename,
+      'X-Converted':    String(converted),
+      'X-Size':         String(data.byteLength),
+      ...corsHeaders(),
+      // Exponer headers custom al cliente (necesario para CORS cross-origin)
+      'Access-Control-Expose-Headers': 'X-Filename, X-Converted, X-Size',
+    },
+  });
+}
+
 function jsonOk(body: Record<string, unknown>): Response {
   return new Response(
     JSON.stringify({ success: true, ...body }),
