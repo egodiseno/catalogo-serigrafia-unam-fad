@@ -347,6 +347,7 @@ const UsuariosCRUD = (() => {
               body: JSON.stringify({
                 email:    data.email,
                 password: data.password,
+                nombre:   data.nombre.trim(),
                 rol:      data.rol,
               }),
             });
