@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin - Catálogo de Obra Serigráfica</title>
-  <link rel="stylesheet" href="css/admin.css?v=18">
+  <link rel="stylesheet" href="css/admin.css?v=19">
   <!-- Lucide Icons CDN -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <!-- Icon Registry (Lucide + Custom SVG) -->
@@ -633,13 +633,12 @@
             </div>
           </div>
 
-          <!-- GRID 2×2 (desktop) / 1 col (mobile) ─────────────────────────
-               DOM order = mobile order: card → acciones → pwd → historial
-               CSS grid-column/row posiciona en desktop
+          <!-- GRID 3 COLUMNAS (desktop) / 1 col (mobile) ──────────────
+               DOM order = mobile order: datos → pwd → acciones
                ──────────────────────────────────────────────────────────── -->
           <div class="profile-grid">
 
-            <!-- [desktop: fila 1 col 1] INFO CARD ─────────────────── -->
+            <!-- [col 1] DATOS DE CUENTA ─────────────────────────────── -->
             <div id="profileCard" class="profile-card profile-grid__card">
               <div class="profile-avatar">
                 <div id="profileInitial" class="avatar-circle" aria-hidden="true">A</div>
@@ -668,15 +667,7 @@
               </div>
             </div><!-- /.profile-card -->
 
-            <!-- [desktop: fila 1 col 2] ACCIONES RÁPIDAS ──────────── -->
-            <div class="profile-section-card profile-grid__actions">
-              <h3>Acciones rápidas</h3>
-              <div id="quickActions" class="quick-actions-grid">
-                <!-- Renderizado por profile.js según rol -->
-              </div>
-            </div><!-- /.acciones-rápidas -->
-
-            <!-- [desktop: fila 2 col 1] CAMBIAR CONTRASEÑA ─────────── -->
+            <!-- [col 2] CAMBIAR CONTRASEÑA ─────────────────────────── -->
             <div class="profile-section-form profile-grid__pwd">
               <h3>Cambiar contraseña</h3>
 
@@ -757,30 +748,13 @@
               </form>
             </div><!-- /.profile-section-form -->
 
-            <!-- [desktop: fila 2 col 2] HISTORIAL ─────────────────── -->
-            <div class="profile-section-card profile-grid__historial">
-              <h3>Historial de cambios de contraseña</h3>
-
-              <!-- Desktop: tabla -->
-              <div class="table-wrapper historial-table-wrapper">
-                <table id="historialTable" class="historial-table">
-                  <thead>
-                    <tr>
-                      <th>Fecha y hora</th>
-                      <th>Rol</th>
-                    </tr>
-                  </thead>
-                  <tbody id="historialTableBody">
-                    <tr><td colspan="2" class="loading-hint">Cargando…</td></tr>
-                  </tbody>
-                </table>
+            <!-- [col 3] ACCIONES RÁPIDAS ───────────────────────────── -->
+            <div class="profile-section-card profile-grid__actions">
+              <h3>Acciones rápidas</h3>
+              <div id="quickActions" class="quick-actions-grid">
+                <!-- Renderizado por profile.js según rol -->
               </div>
-
-              <!-- Mobile: cards -->
-              <div id="historialCards" class="historial-cards">
-                <!-- Renderizado por profile.js en mobile -->
-              </div>
-            </div><!-- /.historial -->
+            </div><!-- /.acciones-rápidas -->
 
           </div><!-- /.profile-grid -->
         </section>

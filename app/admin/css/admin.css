@@ -5377,19 +5377,17 @@ input[type="file"]:hover {
 
 
 /* ═══════════════════════════════════════════════════════════════════
-   MI PERFIL — Grid 2×2 (desktop) / 1 col (mobile)
+   MI PERFIL — Grid 3 columnas (desktop) / 1 col (mobile)
    ═══════════════════════════════════════════════════════════════════
    DOM order = mobile order:
-     1. .profile-grid__card      (card datos)
-     2. .profile-grid__actions   (acciones rápidas)
-     3. .profile-grid__pwd       (cambiar contraseña)
-     4. .profile-grid__historial (historial)
+     1. .profile-grid__card     (datos de cuenta)
+     2. .profile-grid__pwd      (cambiar contraseña)
+     3. .profile-grid__actions  (acciones rápidas)
    ═══════════════════════════════════════════════════════════════════ */
 
 .profile-grid {
   display:               grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows:    auto auto;
+  grid-template-columns: 1fr 1fr 1fr;
   gap:                   var(--spacing-lg, 20px);
   align-items:           start;
 }
@@ -5399,11 +5397,10 @@ input[type="file"]:hover {
   margin-bottom: 0;
 }
 
-/* ── Posición explícita desktop ──────────────────────────────────── */
-.profile-grid__card     { grid-column: 1; grid-row: 1; }
-.profile-grid__actions  { grid-column: 2; grid-row: 1; }
-.profile-grid__pwd      { grid-column: 1; grid-row: 2; }
-.profile-grid__historial{ grid-column: 2; grid-row: 2; }
+/* ── Posición explícita desktop (todos en fila 1) ────────────────── */
+.profile-grid__card    { grid-column: 1; grid-row: 1; }
+.profile-grid__pwd     { grid-column: 2; grid-row: 1; }
+.profile-grid__actions { grid-column: 3; grid-row: 1; }
 
 /* ── Acciones rápidas: grid 2×2, botones llenan ancho ────────────── */
 .quick-actions-grid {
@@ -5445,39 +5442,6 @@ input[type="file"]:hover {
   outline-offset: 2px;
 }
 
-/* ── Historial: tabla en desktop, cards en mobile ────────────────── */
-.historial-table-wrapper { display: block; }
-.historial-cards          { display: none; }
-
-/* ── Historial cards (mobile) ────────────────────────────────────── */
-.historial-card {
-  display:         flex;
-  align-items:     center;
-  justify-content: space-between;
-  padding:         var(--spacing-sm, 8px) var(--spacing-md, 12px);
-  border-bottom:   1px solid var(--color-border-light, #f1f5f9);
-  gap:             var(--spacing-sm, 8px);
-}
-
-.historial-card:last-child { border-bottom: none; }
-
-.historial-card-date {
-  display:        flex;
-  flex-direction: column;
-  gap:            2px;
-}
-
-.historial-card-day {
-  font-size:   var(--font-size-sm, 0.875rem);
-  color:       var(--color-text, #1e293b);
-  font-weight: 500;
-}
-
-.historial-card-time {
-  font-size: 0.75rem;
-  color:     var(--color-text-muted, #64748b);
-}
-
 /* ── Responsive: mobile (<1024px) ───────────────────────────────── */
 @media (max-width: 1023px) {
   /* Colapsa a 1 columna — los ítems fluyen en orden DOM */
@@ -5485,16 +5449,11 @@ input[type="file"]:hover {
     grid-template-columns: 1fr;
   }
 
-  /* Limpiar posiciones explícitas para que fluyan en orden */
+  /* Limpiar posiciones explícitas para flujo natural */
   .profile-grid__card,
-  .profile-grid__actions,
   .profile-grid__pwd,
-  .profile-grid__historial {
+  .profile-grid__actions {
     grid-column: 1;
     grid-row:    auto;
   }
-
-  /* Tabla historial → ocultar; mostrar cards */
-  .historial-table-wrapper { display: none; }
-  .historial-cards          { display: block; }
 }
