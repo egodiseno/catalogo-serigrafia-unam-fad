@@ -5130,3 +5130,247 @@ input[type="file"]:hover {
 @media (prefers-reduced-motion: reduce) {
   .sort-toggle { transition: none; }
 }
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   MI PERFIL — Secciones adicionales: Acciones Rápidas + Historial
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── Tarjeta genérica de sección en Mi Perfil ──────────────────────── */
+.profile-section-card {
+  background:    var(--color-white, #fff);
+  border:        1px solid var(--color-border, #e2e8f0);
+  border-radius: var(--radius-md, 8px);
+  padding:       var(--spacing-xl, 24px);
+  margin-bottom: var(--spacing-lg, 20px);
+}
+
+.profile-section-card h3 {
+  margin:        0 0 var(--spacing-md, 16px);
+  font-size:     var(--font-size-md, 1rem);
+  font-weight:   600;
+  color:         var(--color-text, #1e293b);
+  border-bottom: 1px solid var(--color-border, #e2e8f0);
+  padding-bottom: var(--spacing-sm, 8px);
+}
+
+/* ── Hints de carga / vacío ─────────────────────────────────────────── */
+.loading-hint,
+.empty-hint {
+  font-size:  var(--font-size-sm, 0.875rem);
+  color:      var(--color-text-muted, #64748b);
+  margin:     0;
+  padding:    var(--spacing-sm, 8px) 0;
+}
+
+/* ── Acciones rápidas ────────────────────────────────────────────────── */
+.quick-actions-grid {
+  display:   flex;
+  flex-wrap: wrap;
+  gap:       var(--spacing-md, 16px);
+}
+
+.quick-action-btn {
+  display:        flex;
+  flex-direction: column;
+  align-items:    center;
+  gap:            var(--spacing-xs, 6px);
+  padding:        var(--spacing-md, 16px) var(--spacing-lg, 20px);
+  min-width:      120px;
+  background:     var(--color-primary-light, #eef4fb);
+  border:         1px solid transparent;
+  border-radius:  var(--radius-md, 8px);
+  color:          var(--color-primary, #013B75);
+  font-size:      var(--font-size-sm, 0.875rem);
+  font-weight:    500;
+  cursor:         pointer;
+  transition:     background 150ms ease, border-color 150ms ease, transform 100ms ease;
+}
+
+.quick-action-btn:hover {
+  background:    var(--color-primary, #013B75);
+  color:         #fff;
+  border-color:  var(--color-primary, #013B75);
+}
+
+.quick-action-btn:active {
+  transform: scale(0.97);
+}
+
+.quick-action-btn:focus-visible {
+  outline:        2px solid var(--color-primary, #013B75);
+  outline-offset: 2px;
+}
+
+.quick-action-btn span {
+  text-align: center;
+  line-height: 1.2;
+}
+
+/* ── Historial de contraseña ─────────────────────────────────────────── */
+.historial-table {
+  width:           100%;
+  border-collapse: collapse;
+  font-size:       var(--font-size-sm, 0.875rem);
+}
+
+.historial-table th {
+  text-align:    left;
+  padding:       var(--spacing-xs, 6px) var(--spacing-sm, 8px);
+  font-weight:   600;
+  color:         var(--color-text-muted, #64748b);
+  border-bottom: 2px solid var(--color-border, #e2e8f0);
+  font-size:     0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.historial-table td {
+  padding:       var(--spacing-sm, 8px);
+  border-bottom: 1px solid var(--color-border-light, #f1f5f9);
+  color:         var(--color-text, #1e293b);
+}
+
+.historial-table tr:last-child td {
+  border-bottom: none;
+}
+
+.historial-table tr:hover td {
+  background: var(--color-primary-light, #eef4fb);
+}
+
+/* ── profile-section-form ya existía; solo ajustamos wrap ────────────── */
+.profile-section-form {
+  background:    var(--color-white, #fff);
+  border:        1px solid var(--color-border, #e2e8f0);
+  border-radius: var(--radius-md, 8px);
+  padding:       var(--spacing-xl, 24px);
+  margin-bottom: var(--spacing-lg, 20px);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   MI PORTAFOLIO — Sección completa
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── Estadísticas (4 tarjetas) ──────────────────────────────────────── */
+.portafolio-stats {
+  display:               grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap:                   var(--spacing-md, 16px);
+  margin-bottom:         var(--spacing-lg, 20px);
+}
+
+.portafolio-stat-card {
+  display:         flex;
+  flex-direction:  column;
+  align-items:     center;
+  gap:             4px;
+  padding:         var(--spacing-lg, 20px) var(--spacing-md, 16px);
+  background:      var(--color-white, #fff);
+  border:          1px solid var(--color-border, #e2e8f0);
+  border-radius:   var(--radius-md, 8px);
+  border-top:      3px solid var(--color-primary, #013B75);
+  text-align:      center;
+  transition:      box-shadow 150ms ease;
+}
+
+.portafolio-stat-card:hover {
+  box-shadow: var(--shadow-md, 0 4px 12px rgba(0,0,0,.08));
+}
+
+.portafolio-stat-card--publicado { border-top-color: var(--color-success, #16a34a); }
+.portafolio-stat-card--borrador  { border-top-color: var(--color-warning, #d97706); }
+.portafolio-stat-card--revision  { border-top-color: var(--color-info,    #0284c7); }
+
+.portafolio-stat-number {
+  font-size:   2rem;
+  font-weight: 700;
+  color:       var(--color-primary, #013B75);
+  line-height: 1;
+}
+
+.portafolio-stat-label {
+  font-size:  0.75rem;
+  font-weight: 500;
+  color:      var(--color-text-muted, #64748b);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ── Toolbar (búsqueda) ─────────────────────────────────────────────── */
+.portafolio-toolbar {
+  display:         flex;
+  align-items:     center;
+  gap:             var(--spacing-sm, 8px);
+  margin-bottom:   var(--spacing-md, 16px);
+}
+
+.portafolio-search {
+  max-width: 320px;
+  width:     100%;
+}
+
+/* ── Tabla portafolio ───────────────────────────────────────────────── */
+.portafolio-table {
+  width:           100%;
+  border-collapse: collapse;
+  font-size:       var(--font-size-sm, 0.875rem);
+}
+
+.portafolio-table th {
+  padding:        var(--spacing-sm, 8px) var(--spacing-md, 12px);
+  text-align:     left;
+  font-weight:    600;
+  font-size:      0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color:          var(--color-text-muted, #64748b);
+  border-bottom:  2px solid var(--color-border, #e2e8f0);
+  background:     var(--color-surface, #f8fafc);
+}
+
+.portafolio-table td {
+  padding:       var(--spacing-sm, 8px) var(--spacing-md, 12px);
+  border-bottom: 1px solid var(--color-border-light, #f1f5f9);
+  color:         var(--color-text, #1e293b);
+  vertical-align: middle;
+}
+
+.portafolio-table tr:last-child td {
+  border-bottom: none;
+}
+
+.portafolio-table tr:hover td {
+  background: var(--color-primary-light, #eef4fb);
+}
+
+/* ── Responsive: portafolio stats ───────────────────────────────────── */
+@media (max-width: 768px) {
+  .portafolio-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .portafolio-stat-number {
+    font-size: 1.5rem;
+  }
+
+  .quick-actions-grid {
+    gap: var(--spacing-sm, 8px);
+  }
+
+  .quick-action-btn {
+    min-width: 90px;
+    padding:   var(--spacing-sm, 8px) var(--spacing-md, 12px);
+  }
+
+  .historial-table th,
+  .historial-table td {
+    padding: var(--spacing-xs, 4px) var(--spacing-sm, 6px);
+  }
+}
+
+@media (max-width: 480px) {
+  .portafolio-stats {
+    grid-template-columns: 1fr 1fr;
+  }
+}

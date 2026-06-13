@@ -75,6 +75,9 @@ const PERMISOS = {
     // Logs
     'logs.ver': true,
 
+    // Portafolio
+    'portafolio.ver': false,
+
     // Especiales
     'cambiar_rol':    false,
     'ver_todos_datos': true,
@@ -109,6 +112,9 @@ const PERMISOS = {
 
     // Logs (sin acceso)
     'logs.ver': false,
+
+    // Portafolio
+    'portafolio.ver': true,
 
     // Especiales
     'cambiar_rol':    false,
@@ -199,6 +205,19 @@ function inicializarPermisos() {
   if (!tienePermiso('logs.ver')) {
     document.querySelectorAll('[data-section="logs"]').forEach(el => {
       el.style.display = 'none';
+    });
+  }
+
+  // ── Sección Mi Portafolio en sidebar ───────────────────
+  if (!tienePermiso('portafolio.ver')) {
+    document.querySelectorAll('[data-section="mi-portafolio"]').forEach(el => {
+      el.style.display = 'none';
+    });
+    const portafolioSection = document.getElementById('miPortafolioSection');
+    if (portafolioSection) portafolioSection.style.display = 'none';
+  } else {
+    document.querySelectorAll('[data-section="mi-portafolio"]').forEach(el => {
+      el.style.display = '';
     });
   }
 }

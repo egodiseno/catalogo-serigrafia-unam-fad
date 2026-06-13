@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin - Catálogo de Obra Serigráfica</title>
-  <link rel="stylesheet" href="css/admin.css?v=15">
+  <link rel="stylesheet" href="css/admin.css?v=16">
   <!-- Lucide Icons CDN -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <!-- Icon Registry (Lucide + Custom SVG) -->
@@ -258,6 +258,10 @@
         <button class="nav-item" data-section="logs">
           <i data-lucide="activity" style="width:18px; height:18px;" aria-hidden="true"></i>
           <span class="nav-label">Logs</span>
+        </button>
+        <button class="nav-item" data-section="mi-portafolio" style="display:none;">
+          <i data-lucide="layout-grid" style="width:18px; height:18px;" aria-hidden="true"></i>
+          <span class="nav-label">Mi Portafolio</span>
         </button>
       </nav>
 
@@ -636,6 +640,10 @@
             </div>
             <div class="profile-info">
               <div class="profile-row">
+                <span class="profile-label">Nombre</span>
+                <span id="profileNombre">—</span>
+              </div>
+              <div class="profile-row">
                 <span class="profile-label">Email</span>
                 <span id="profileEmail">—</span>
               </div>
@@ -653,6 +661,22 @@
               </div>
             </div>
           </div><!-- /.profile-card -->
+
+          <!-- ACCIONES RÁPIDAS -->
+          <div class="profile-section-card">
+            <h3>Acciones rápidas</h3>
+            <div id="quickActions" class="quick-actions-grid">
+              <!-- Renderizado por profile.js según rol -->
+            </div>
+          </div><!-- /.acciones-rápidas -->
+
+          <!-- HISTORIAL CONTRASEÑA -->
+          <div class="profile-section-card">
+            <h3>Historial de cambios de contraseña</h3>
+            <div id="historialContrasena">
+              <p class="loading-hint">Cargando historial…</p>
+            </div>
+          </div><!-- /.historial -->
 
           <!-- CAMBIAR CONTRASEÑA -->
           <div class="profile-section-form">
@@ -735,6 +759,69 @@
             </form>
           </div><!-- /.profile-section-form -->
         </section>
+
+        <!-- ========== MI PORTAFOLIO SECTION ========== -->
+        <section id="miPortafolioSection" class="section" style="display:none;">
+          <div class="section-header">
+            <div>
+              <h2>Mi Portafolio</h2>
+              <p>Tus obras en el catálogo</p>
+            </div>
+            <div class="section-header-actions">
+              <button id="portafolioBtnNuevaObra" class="btn btn-primary" data-permiso="obras.crear">
+                <i data-lucide="plus" style="width:16px;height:16px;" aria-hidden="true"></i>
+                Nueva Obra
+              </button>
+            </div>
+          </div>
+
+          <!-- Estadísticas -->
+          <div class="portafolio-stats">
+            <div class="portafolio-stat-card">
+              <span class="portafolio-stat-number" id="portafolioTotal">—</span>
+              <span class="portafolio-stat-label">Total</span>
+            </div>
+            <div class="portafolio-stat-card portafolio-stat-card--publicado">
+              <span class="portafolio-stat-number" id="portafolioPublicadas">—</span>
+              <span class="portafolio-stat-label">Publicadas</span>
+            </div>
+            <div class="portafolio-stat-card portafolio-stat-card--borrador">
+              <span class="portafolio-stat-number" id="portafolioBorradores">—</span>
+              <span class="portafolio-stat-label">Borradores</span>
+            </div>
+            <div class="portafolio-stat-card portafolio-stat-card--revision">
+              <span class="portafolio-stat-number" id="portafolioRevision">—</span>
+              <span class="portafolio-stat-label">En revisión</span>
+            </div>
+          </div>
+
+          <!-- Tabla de obras -->
+          <div class="profile-section-card">
+            <div class="portafolio-toolbar">
+              <input type="search"
+                     id="portafolioFiltro"
+                     class="form-control portafolio-search"
+                     placeholder="Buscar por título…"
+                     aria-label="Buscar obras por título">
+            </div>
+            <div class="table-wrapper">
+              <table class="obras-table portafolio-table">
+                <thead>
+                  <tr>
+                    <th>Título</th>
+                    <th>Técnica</th>
+                    <th>Estado</th>
+                    <th>Fecha</th>
+                    <th class="th-actions">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="portafolioTbody">
+                  <tr><td colspan="5" class="loading-cell">Cargando…</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div><!-- /.table-card -->
+        </section><!-- /#miPortafolioSection -->
 
       </div>
     </main>
@@ -883,6 +970,7 @@
   <script src="js/tags-crud.js" defer></script>
   <script src="js/csv-import.js" defer></script>
   <script src="js/usuarios-crud.js" defer></script>
+  <script src="js/portafolio.js" defer></script>
   <!-- Modal Container -->
   <div id="modalContainer"></div>
 

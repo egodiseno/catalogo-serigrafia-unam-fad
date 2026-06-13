@@ -18,7 +18,8 @@ document.addEventListener('DOMContentLoaded', () => {
     tags:       { title: 'Catálogo de Obra Serigráfica', subtitle: 'Gestionar tags' },
     usuarios:   { title: 'Catálogo de Obra Serigráfica', subtitle: 'Gestionar usuarios' },
     logs:       { title: 'Catálogo de Obra Serigráfica', subtitle: 'Logs de auditoría' },
-    'mi-perfil': { title: 'Catálogo de Obra Serigráfica', subtitle: 'Mi perfil' },
+    'mi-perfil':      { title: 'Catálogo de Obra Serigráfica', subtitle: 'Mi perfil' },
+    'mi-portafolio':  { title: 'Catálogo de Obra Serigráfica', subtitle: 'Mi portafolio' },
   };
 
   // ============ FUNCIÓN: Mostrar sección ============
@@ -50,10 +51,16 @@ document.addEventListener('DOMContentLoaded', () => {
     if (sectionId === 'mi-perfil') {
       window.profileManager?.inicializar();
     }
+    if (sectionId === 'mi-portafolio') {
+      window.portafolioManager?.inicializar();
+    }
 
     // Guardar en sessionStorage (para mantener sección si recarga)
     sessionStorage.setItem('currentSection', sectionId);
   }
+
+  // Exponer globalmente para que otros módulos puedan navegar
+  window.showSection = showSection;
 
   // ============ EVENT LISTENERS: Nav clicks ============
   navItems.forEach(item => {
