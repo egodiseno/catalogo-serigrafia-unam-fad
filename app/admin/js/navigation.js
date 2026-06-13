@@ -24,6 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ============ FUNCIÓN: Mostrar sección ============
   function showSection(sectionId) {
+    console.log('[Nav] showSection():', sectionId, '— sección encontrada:', !!document.getElementById(`${sectionId}Section`));
     // Ocultar todas las secciones
     sections.forEach(section => section.classList.remove('active'));
 
@@ -49,6 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Callbacks por sección
     if (sectionId === 'mi-perfil') {
+      console.log('[Nav] Mostrando sección: mi-perfil — profileManager:', !!window.profileManager);
       window.profileManager?.inicializar();
     }
     if (sectionId === 'mi-portafolio') {

@@ -39,8 +39,11 @@ class ProfileManager {
 
   async cargarPerfil() {
     const usuario = window.usuarioActual;
+    console.log('[Profile] cargarPerfil() — usuarioActual:', usuario);
+    console.log('[Profile] supabase_client disponible:', !!this.client);
+
     if (!usuario) {
-      console.warn('[ProfileManager] Sin usuario activo.');
+      console.warn('[ProfileManager] Sin usuario activo — cargarPerfil() abortado.');
       return;
     }
 
@@ -50,6 +53,8 @@ class ProfileManager {
         .select('email, nombre, rol, estado, created_at')
         .eq('email', usuario.email)
         .single();
+
+      console.log('[Profile] Datos cargados desde BD:', data, '| error:', error);
 
       if (error) throw error;
 
@@ -72,6 +77,7 @@ class ProfileManager {
   // ══════════════════════════════════════════════════════
 
   _renderPerfil(datos) {
+    console.log('[Profile] _renderPerfil() llamado con:', datos);
     const email  = datos?.email  ?? window.usuarioActual?.email  ?? '—';
     const nombre = datos?.nombre ?? window.usuarioActual?.nombre ?? '';
 
