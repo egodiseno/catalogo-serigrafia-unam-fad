@@ -38,6 +38,9 @@ const PERMISOS = {
     // Logs
     'logs.ver': true,
 
+    // Portafolio
+    'portafolio.ver': false,
+
     // Especiales
     'cambiar_rol':    true,
     'ver_todos_datos': true,
