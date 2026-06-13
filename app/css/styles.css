@@ -1833,6 +1833,7 @@ body.is-scrolled .filters {
 }
 
 @media (max-width: 480px) {
+  /* Copy section: columna para que el input y el botón sean full-width */
   .work-share__copy-section {
     flex-direction: column;
   }
@@ -1842,11 +1843,17 @@ body.is-scrolled .filters {
     justify-content: center;
   }
 
+  /* Grid 2 cols — layout:
+       [WhatsApp] [Correo]
+       [SMS             ]   ← grid-column: 1 / -1 (ancho completo)
+  */
   .work-share__buttons {
     grid-template-columns: repeat(2, 1fr);
   }
 
   .btn-share--sms {
     display: flex;
+    grid-column: 1 / -1;   /* ocupa las 2 columnas */
+    justify-content: center;
   }
 }
