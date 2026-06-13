@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin - Catálogo de Obra Serigráfica</title>
-  <link rel="stylesheet" href="css/admin.css?v=19">
+  <link rel="stylesheet" href="css/admin.css?v=20">
   <!-- Lucide Icons CDN -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <!-- Icon Registry (Lucide + Custom SVG) -->
@@ -667,7 +667,15 @@
               </div>
             </div><!-- /.profile-card -->
 
-            <!-- [col 2] CAMBIAR CONTRASEÑA ─────────────────────────── -->
+            <!-- [col 2] ACCIONES RÁPIDAS ───────────────────────────── -->
+            <div class="profile-section-card profile-grid__actions">
+              <h3>Acciones rápidas</h3>
+              <div id="quickActions" class="quick-actions-grid">
+                <!-- Renderizado por profile.js según rol -->
+              </div>
+            </div><!-- /.acciones-rápidas -->
+
+            <!-- [col 3] CAMBIAR CONTRASEÑA ─────────────────────────── -->
             <div class="profile-section-form profile-grid__pwd">
               <h3>Cambiar contraseña</h3>
 
@@ -747,14 +755,6 @@
                 </div>
               </form>
             </div><!-- /.profile-section-form -->
-
-            <!-- [col 3] ACCIONES RÁPIDAS ───────────────────────────── -->
-            <div class="profile-section-card profile-grid__actions">
-              <h3>Acciones rápidas</h3>
-              <div id="quickActions" class="quick-actions-grid">
-                <!-- Renderizado por profile.js según rol -->
-              </div>
-            </div><!-- /.acciones-rápidas -->
 
           </div><!-- /.profile-grid -->
         </section>

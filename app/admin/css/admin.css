@@ -5381,8 +5381,8 @@ input[type="file"]:hover {
    ═══════════════════════════════════════════════════════════════════
    DOM order = mobile order:
      1. .profile-grid__card     (datos de cuenta)
-     2. .profile-grid__pwd      (cambiar contraseña)
-     3. .profile-grid__actions  (acciones rápidas)
+     2. .profile-grid__actions  (acciones rápidas)
+     3. .profile-grid__pwd      (cambiar contraseña)
    ═══════════════════════════════════════════════════════════════════ */
 
 .profile-grid {
@@ -5399,8 +5399,8 @@ input[type="file"]:hover {
 
 /* ── Posición explícita desktop (todos en fila 1) ────────────────── */
 .profile-grid__card    { grid-column: 1; grid-row: 1; }
-.profile-grid__pwd     { grid-column: 2; grid-row: 1; }
-.profile-grid__actions { grid-column: 3; grid-row: 1; }
+.profile-grid__actions { grid-column: 2; grid-row: 1; }
+.profile-grid__pwd     { grid-column: 3; grid-row: 1; }
 
 /* ── Acciones rápidas: grid 2×2, botones llenan ancho ────────────── */
 .quick-actions-grid {
