@@ -23,13 +23,20 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   // ============ FUNCIÓN: Mostrar sección ============
+  // kebab-case → camelCase: 'mi-perfil' → 'miPerfil'
+  function toElementId(sectionId) {
+    return sectionId.replace(/-([a-z])/g, (_, c) => c.toUpperCase()) + 'Section';
+  }
+
   function showSection(sectionId) {
-    console.log('[Nav] showSection():', sectionId, '— sección encontrada:', !!document.getElementById(`${sectionId}Section`));
+    const elementId = toElementId(sectionId);   // 'mi-perfil' → 'miPerfilSection'
+    console.log('[Nav] showSection():', sectionId, '→ buscando #' + elementId);
     // Ocultar todas las secciones
     sections.forEach(section => section.classList.remove('active'));
 
     // Mostrar sección seleccionada
-    const section = document.getElementById(`${sectionId}Section`);
+    const section = document.getElementById(elementId);
+    console.log('[Nav] Elemento encontrado:', section);
     if (section) {
       section.classList.add('active');
       section.style.display = '';   // Limpia cualquier inline display:none
