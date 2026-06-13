@@ -157,6 +157,39 @@
 
     </article><!-- /#workDetail -->
 
+    <!-- ── Compartir obra ────────────────────────────── -->
+    <section class="work-share">
+      <div class="container">
+        <h2 data-i18n data-es="Comparte la obra" data-en="Share this work">Comparte la obra</h2>
+        <p class="work-share__subtitle" data-i18n data-es="Difunde esta obra con tu comunidad" data-en="Share with your community">Difunde esta obra con tu comunidad</p>
+
+        <!-- Input + botón copiar -->
+        <div class="work-share__copy-section">
+          <input type="text" id="shareUrl" class="work-share__input" readonly />
+          <button id="copyBtn" class="btn-copy" aria-label="Copiar enlace">
+            <i data-lucide="link" aria-hidden="true"></i>
+            <span data-i18n data-es="Copiar enlace" data-en="Copy link">Copiar enlace</span>
+          </button>
+        </div>
+
+        <!-- Botones compartir -->
+        <div class="work-share__buttons">
+          <button id="shareWA" class="btn-share btn-share--wa" aria-label="Compartir en WhatsApp">
+            <i data-lucide="share-2" aria-hidden="true"></i>
+            <span>WhatsApp</span>
+          </button>
+          <button id="shareEmail" class="btn-share btn-share--email" aria-label="Compartir por email">
+            <i data-lucide="mail" aria-hidden="true"></i>
+            <span data-i18n data-es="Correo" data-en="Email">Correo</span>
+          </button>
+          <button id="shareSMS" class="btn-share btn-share--sms" aria-label="Compartir por SMS">
+            <i data-lucide="message-circle" aria-hidden="true"></i>
+            <span>SMS</span>
+          </button>
+        </div>
+      </div>
+    </section><!-- /.work-share -->
+
     <!-- ── Obras relacionadas (ocultas hasta cargar) ─ -->
     <section id="relatedWorks" class="work-related" hidden aria-label="Obras relacionadas">
       <h2 data-i18n data-es="Más obras" data-en="More works">Más obras</h2>
