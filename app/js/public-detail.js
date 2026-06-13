@@ -1,13 +1,13 @@
 // app/js/public-detail.js
-// Ficha detalle de obra — carga por ?id=<uuid>, rellena DOM, galería de miniaturas
+// Ficha detalle de obra — carga por ?slug=<slug>, rellena DOM, galería de miniaturas
 
 import { api } from './api-client.js';
 
 export class PublicDetail {
   constructor() {
-    // Leer ?id= de la URL
+    // Leer ?slug= de la URL
     const params = new URLSearchParams(window.location.search);
-    this.workId       = params.get('id') || null;
+    this.workSlug     = params.get('slug') || null;
     this.work         = null;
     this.sortedImages = [];   // imágenes ordenadas (principal→orden)
     this.currentIndex = 0;    // índice de la imagen activa
@@ -19,14 +19,14 @@ export class PublicDetail {
   // init — punto de entrada principal
   // ─────────────────────────────────────────────────────────
   async init() {
-    if (!this.workId) {
-      console.error('❌ No se encontró ?id= en la URL');
+    if (!this.workSlug || this.workSlug.trim() === '') {
+      console.error('❌ No se encontró ?slug= en la URL');
       this.showError();
       return;
     }
 
     try {
-      const { data, error } = await api.getWorkById(this.workId);
+      const { data, error } = await api.getWorkBySlug(this.workSlug);
 
       if (error || !data) {
         console.error('❌ Error al cargar obra:', error);
