@@ -1430,7 +1430,6 @@ body.is-scrolled .filters {
 .work-meta__description,
 .work-description {
   padding-top: var(--space-2);
-  border-top: 1px solid var(--color-line);
 }
 
 .work-meta__desc-heading {
