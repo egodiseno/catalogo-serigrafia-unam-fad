@@ -267,6 +267,7 @@
 
   document.addEventListener('DOMContentLoaded', async () => {
     i18n.init();
+    window._i18nInstance = i18n; // exponer para getShareMessage()
     const detail = new PublicDetail();
     await detail.init();
   });

@@ -97,6 +97,9 @@ export class PublicDetail {
       descWrap?.setAttribute('hidden', '');
     }
 
+    // ── Compartir ─────────────────────────────────────────
+    this.setupShare();
+
     // ── Imagen principal ──────────────────────────────────
     const imgs = work.imagenes || [];
     const mainImg = imgs.find(i => i.principal === true) || imgs[0] || null;
@@ -395,6 +398,111 @@ export class PublicDetail {
         this.showImage(currentIndex - 1);
       }
     }, { passive: true });
+  }
+
+  // ─────────────────────────────────────────────────────────
+  // setupShare — rellena #shareUrl y conecta botones de compartir
+  // ─────────────────────────────────────────────────────────
+  setupShare() {
+    const shareUrlEl  = document.getElementById('shareUrl');
+    const copyBtn     = document.getElementById('copyBtn');
+    const shareWA     = document.getElementById('shareWA');
+    const shareEmail  = document.getElementById('shareEmail');
+    const shareSMS    = document.getElementById('shareSMS');
+
+    if (!shareUrlEl) return; // sección no presente en el DOM
+
+    // ── Rellenar input con URL actual ─────────────────────
+    const currentUrl = window.location.href;
+    shareUrlEl.value = currentUrl;
+
+    // ── Copiar enlace ─────────────────────────────────────
+    if (copyBtn) {
+      copyBtn.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(currentUrl);
+        } catch {
+          // Fallback si Clipboard API no está disponible
+          shareUrlEl.select();
+          document.execCommand('copy');
+        }
+
+        // Feedback visual
+        const spanEl = copyBtn.querySelector('span');
+        const originalText = spanEl?.textContent || 'Copiar enlace';
+        if (spanEl) spanEl.textContent = '✓ Copiado';
+        copyBtn.classList.add('copied');
+
+        setTimeout(() => {
+          if (spanEl) spanEl.textContent = originalText;
+          copyBtn.classList.remove('copied');
+        }, 2000);
+      });
+    }
+
+    // ── WhatsApp ──────────────────────────────────────────
+    if (shareWA) {
+      shareWA.addEventListener('click', () => {
+        const msg = this.getShareMessage();
+        window.open(
+          `https://wa.me/?text=${encodeURIComponent(msg)}`,
+          '_blank', 'noopener,noreferrer'
+        );
+      });
+    }
+
+    // ── Email ─────────────────────────────────────────────
+    if (shareEmail) {
+      shareEmail.addEventListener('click', () => {
+        const lang    = this._getCurrentLang();
+        const subject = lang === 'en'
+          ? `Check out this work: ${this.work.titulo}`
+          : `Mira esta obra: ${this.work.titulo}`;
+        const body = this.getShareMessage();
+        window.location.href =
+          `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      });
+    }
+
+    // ── SMS (solo mobile — el CSS lo oculta en desktop) ───
+    if (shareSMS) {
+      shareSMS.addEventListener('click', () => {
+        const msg = this.getShareMessage(true); // versión corta
+        window.location.href = `sms:?body=${encodeURIComponent(msg)}`;
+      });
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────
+  // getShareMessage — mensaje de compartir según idioma
+  // @param {boolean} short — versión corta para SMS
+  // ─────────────────────────────────────────────────────────
+  getShareMessage(short = false) {
+    const lang    = this._getCurrentLang();
+    const titulo  = this.work?.titulo  || '';
+    const artista = this.work?.artista || '';
+    const url     = window.location.href;
+
+    if (short) {
+      // SMS: mensaje compacto
+      return lang === 'en'
+        ? `${titulo} by ${artista} — ${url}`
+        : `${titulo} de ${artista} — ${url}`;
+    }
+
+    return lang === 'en'
+      ? `Check out this printmaking work: *${titulo}* by *${artista}*\n${url}`
+      : `Mira esta obra serigráfica: *${titulo}* de *${artista}*\n${url}`;
+  }
+
+  // ─────────────────────────────────────────────────────────
+  // _getCurrentLang — idioma activo desde i18n o DOM
+  // ─────────────────────────────────────────────────────────
+  _getCurrentLang() {
+    // Intentar vía objeto i18n global (importado en obra.html)
+    if (window._i18nInstance?.currentLang) return window._i18nInstance.currentLang;
+    // Fallback: leer del atributo lang del HTML
+    return document.documentElement.lang || 'es';
   }
 
   // ─────────────────────────────────────────────────────────
