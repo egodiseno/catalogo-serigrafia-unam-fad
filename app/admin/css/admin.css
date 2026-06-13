@@ -5377,56 +5377,59 @@ input[type="file"]:hover {
 
 
 /* ═══════════════════════════════════════════════════════════════════
-   MI PERFIL — Layout 2 columnas (desktop) / 1 columna (mobile)
+   MI PERFIL — Grid 2×2 (desktop) / 1 col (mobile)
+   ═══════════════════════════════════════════════════════════════════
+   DOM order = mobile order:
+     1. .profile-grid__card      (card datos)
+     2. .profile-grid__actions   (acciones rápidas)
+     3. .profile-grid__pwd       (cambiar contraseña)
+     4. .profile-grid__historial (historial)
    ═══════════════════════════════════════════════════════════════════ */
 
-/* ── Grid principal: izquierda (form) + derecha (acciones + historial) ── */
-.profile-layout {
+.profile-grid {
   display:               grid;
-  grid-template-columns: 1fr 0.7fr;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows:    auto auto;
   gap:                   var(--spacing-lg, 20px);
   align-items:           start;
-  margin-bottom:         var(--spacing-lg, 20px);
 }
 
-.profile-col-left,
-.profile-col-right {
-  display:        flex;
-  flex-direction: column;
-  gap:            var(--spacing-lg, 20px);
-}
-
-/* Quitar margin-bottom individual cuando están en el layout */
-.profile-layout .profile-section-form,
-.profile-layout .profile-section-card {
+/* Quitar margin-bottom en los hijos del grid */
+.profile-grid > * {
   margin-bottom: 0;
 }
 
-/* ── Acciones rápidas: 2×2 en desktop, rellena ancho ─────────────── */
+/* ── Posición explícita desktop ──────────────────────────────────── */
+.profile-grid__card     { grid-column: 1; grid-row: 1; }
+.profile-grid__actions  { grid-column: 2; grid-row: 1; }
+.profile-grid__pwd      { grid-column: 1; grid-row: 2; }
+.profile-grid__historial{ grid-column: 2; grid-row: 2; }
+
+/* ── Acciones rápidas: grid 2×2, botones llenan ancho ────────────── */
 .quick-actions-grid {
-  display:   grid;
+  display:               grid;
   grid-template-columns: 1fr 1fr;
-  gap:       var(--spacing-sm, 8px);
+  gap:                   var(--spacing-sm, 8px);
 }
 
 .quick-action-btn {
-  display:        flex;
-  flex-direction: column;
-  align-items:    center;
+  display:         flex;
+  flex-direction:  column;
+  align-items:     center;
   justify-content: center;
-  gap:            var(--spacing-xs, 6px);
-  padding:        var(--spacing-md, 14px) var(--spacing-sm, 8px);
-  width:          100%;
-  min-width:      unset;
-  background:     var(--color-primary-light, #eef4fb);
-  border:         1px solid transparent;
-  border-radius:  var(--radius-md, 8px);
-  color:          var(--color-primary, #013B75);
-  font-size:      var(--font-size-sm, 0.875rem);
-  font-weight:    500;
-  cursor:         pointer;
-  text-align:     center;
-  transition:     background 150ms ease, border-color 150ms ease, transform 100ms ease;
+  gap:             var(--spacing-xs, 6px);
+  padding:         var(--spacing-md, 14px) var(--spacing-sm, 8px);
+  width:           100%;
+  min-width:       unset;
+  background:      var(--color-primary-light, #eef4fb);
+  border:          1px solid transparent;
+  border-radius:   var(--radius-md, 8px);
+  color:           var(--color-primary, #013B75);
+  font-size:       var(--font-size-sm, 0.875rem);
+  font-weight:     500;
+  cursor:          pointer;
+  text-align:      center;
+  transition:      background 150ms ease, border-color 150ms ease, transform 100ms ease;
 }
 
 .quick-action-btn:hover {
@@ -5435,19 +5438,18 @@ input[type="file"]:hover {
   border-color: var(--color-primary, #013B75);
 }
 
-.quick-action-btn:active  { transform: scale(0.97); }
+.quick-action-btn:active { transform: scale(0.97); }
 
 .quick-action-btn:focus-visible {
   outline:        2px solid var(--color-primary, #013B75);
   outline-offset: 2px;
 }
 
-/* ── Historial: tabla en desktop, oculta en mobile ─────────────────── */
+/* ── Historial: tabla en desktop, cards en mobile ────────────────── */
 .historial-table-wrapper { display: block; }
+.historial-cards          { display: none; }
 
-.historial-cards { display: none; }   /* oculto en desktop */
-
-/* ── Historial cards (mobile) ──────────────────────────────────────── */
+/* ── Historial cards (mobile) ────────────────────────────────────── */
 .historial-card {
   display:         flex;
   align-items:     center;
@@ -5476,14 +5478,23 @@ input[type="file"]:hover {
   color:     var(--color-text-muted, #64748b);
 }
 
-/* ── Responsive: mobile (<1024px) ──────────────────────────────────── */
+/* ── Responsive: mobile (<1024px) ───────────────────────────────── */
 @media (max-width: 1023px) {
-  /* Una sola columna */
-  .profile-layout {
+  /* Colapsa a 1 columna — los ítems fluyen en orden DOM */
+  .profile-grid {
     grid-template-columns: 1fr;
   }
 
-  /* Tabla historial → ocultar, mostrar cards */
+  /* Limpiar posiciones explícitas para que fluyan en orden */
+  .profile-grid__card,
+  .profile-grid__actions,
+  .profile-grid__pwd,
+  .profile-grid__historial {
+    grid-column: 1;
+    grid-row:    auto;
+  }
+
+  /* Tabla historial → ocultar; mostrar cards */
   .historial-table-wrapper { display: none; }
   .historial-cards          { display: block; }
 }
