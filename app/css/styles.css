@@ -1699,42 +1699,42 @@ body.is-scrolled .filters {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   SECCIÓN COMPARTIR OBRA (.work-share)
+   CARD COMPARTIR OBRA (.work-share) — dentro de .work-meta
    ═══════════════════════════════════════════════════════════ */
 
 .work-share {
-  margin-top: var(--space-4);
-  padding: var(--space-3) 0;
-  border-top: 1px solid var(--color-line);
-  background: transparent;
+  margin-top: var(--space-3);
+  padding: var(--space-2);
+  background: var(--color-blue-soft); /* rgba(1,59,117,0.07) */
+  border-radius: 8px;
 }
 
-.work-share h2 {
-  font-size: 1.25rem;
+.work-share h3 {
+  font-size: 1rem;
   font-weight: 600;
-  margin-bottom: var(--space-1);
+  margin-bottom: calc(var(--space-1) / 2);
   color: var(--color-blue);
 }
 
 .work-share__subtitle {
-  font-size: 0.95rem;
+  font-size: 0.875rem;
   color: var(--color-muted);
-  margin-bottom: var(--space-3);
+  margin-bottom: var(--space-2);
 }
 
 /* ── Input + botón copiar ───────────────────────────────── */
 .work-share__copy-section {
   display: flex;
   gap: var(--space-1);
-  margin-bottom: var(--space-3);
+  margin-bottom: var(--space-2);
 }
 
 .work-share__input {
   flex: 1;
-  padding: var(--space-1) var(--space-2);
+  padding: var(--space-1);
   border: 1px solid var(--color-line);
   border-radius: 6px;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   background: var(--color-surface);
   color: var(--color-muted);
   min-width: 0; /* evita desbordamiento en flex */
@@ -1751,7 +1751,7 @@ body.is-scrolled .filters {
   border-radius: 6px;
   cursor: pointer;
   font-weight: 500;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   white-space: nowrap;
   transition: all 200ms var(--ease);
 }
@@ -1774,23 +1774,25 @@ body.is-scrolled .filters {
 /* ── Botones de red social ──────────────────────────────── */
 .work-share__buttons {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: var(--space-2);
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-1);
 }
 
 .btn-share {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  gap: 0.5rem;
-  padding: var(--space-2);
+  justify-content: center;
+  gap: 0.25rem;
+  padding: var(--space-1);
   background: var(--color-surface);
   color: var(--color-ink);
   border: 1px solid var(--color-line);
   border-radius: 6px;
   cursor: pointer;
   font-weight: 500;
-  font-size: 0.875rem;
+  font-size: 0.9rem;
+  min-width: 100px;
   transition: all 200ms var(--ease);
 }
 
