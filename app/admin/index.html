@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin - Catálogo de Obra Serigráfica</title>
-  <link rel="stylesheet" href="css/admin.css?v=16">
+  <link rel="stylesheet" href="css/admin.css?v=17">
   <!-- Lucide Icons CDN -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <!-- Icon Registry (Lucide + Custom SVG) -->
@@ -662,112 +662,132 @@
             </div>
           </div><!-- /.profile-card -->
 
-          <!-- ACCIONES RÁPIDAS -->
-          <div class="profile-section-card">
-            <h3>Acciones rápidas</h3>
-            <div id="quickActions" class="quick-actions-grid">
-              <!-- Renderizado por profile.js según rol -->
-            </div>
-          </div><!-- /.acciones-rápidas -->
+          <!-- LAYOUT 2 COLUMNAS (desktop) / 1 columna (mobile) -->
+          <div class="profile-layout">
 
-          <!-- HISTORIAL CONTRASEÑA -->
-          <div class="profile-section-card">
-            <h3>Historial de cambios de contraseña</h3>
-            <div class="table-wrapper">
-              <table id="historialTable" class="historial-table">
-                <thead>
-                  <tr>
-                    <th>Fecha y hora</th>
-                    <th>Rol en ese momento</th>
-                  </tr>
-                </thead>
-                <tbody id="historialTableBody">
-                  <tr><td colspan="2" class="loading-hint">Cargando historial…</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div><!-- /.historial -->
+            <!-- ── COLUMNA IZQUIERDA: Cambiar contraseña ── -->
+            <div class="profile-col-left">
+              <div class="profile-section-form">
+                <h3>Cambiar contraseña</h3>
 
-          <!-- CAMBIAR CONTRASEÑA -->
-          <div class="profile-section-form">
-            <h3>Cambiar contraseña</h3>
+                <form id="formCambiarContrasena" novalidate>
+                  <!-- Contraseña actual -->
+                  <div class="form-group">
+                    <label for="contrasenaActual">
+                      Contraseña actual <span class="required">*</span>
+                    </label>
+                    <div class="password-toggle-wrapper">
+                      <input type="password"
+                             id="contrasenaActual"
+                             name="contrasenaActual"
+                             placeholder="••••••••"
+                             autocomplete="current-password"
+                             required>
+                      <button type="button" class="password-toggle-btn"
+                              aria-label="Mostrar contraseña" aria-pressed="false">
+                        <i data-lucide="eye" style="width:16px;height:16px;" aria-hidden="true"></i>
+                      </button>
+                    </div>
+                    <span class="field-error" id="errorContrasenaActual" aria-live="polite"></span>
+                  </div>
 
-            <form id="formCambiarContrasena" novalidate>
-              <!-- Contraseña actual -->
-              <div class="form-group">
-                <label for="contrasenaActual">
-                  Contraseña actual <span class="required">*</span>
-                </label>
-                <div class="password-toggle-wrapper">
-                  <input type="password"
-                         id="contrasenaActual"
-                         name="contrasenaActual"
-                         placeholder="••••••••"
-                         autocomplete="current-password"
-                         required>
-                  <button type="button" class="password-toggle-btn"
-                          aria-label="Mostrar contraseña" aria-pressed="false">
-                    <i data-lucide="eye" style="width:16px;height:16px;" aria-hidden="true"></i>
-                  </button>
+                  <!-- Contraseña nueva -->
+                  <div class="form-group">
+                    <label for="contrasenaNueva">
+                      Contraseña nueva <span class="required">*</span>
+                    </label>
+                    <div class="password-toggle-wrapper">
+                      <input type="password"
+                             id="contrasenaNueva"
+                             name="contrasenaNueva"
+                             placeholder="Mínimo 8 caracteres"
+                             autocomplete="new-password"
+                             required
+                             minlength="8">
+                      <button type="button" class="password-toggle-btn"
+                              aria-label="Mostrar contraseña" aria-pressed="false">
+                        <i data-lucide="eye" style="width:16px;height:16px;" aria-hidden="true"></i>
+                      </button>
+                    </div>
+                    <span class="field-error" id="errorContrasenaNueva" aria-live="polite"></span>
+                  </div>
+
+                  <!-- Confirmar contraseña -->
+                  <div class="form-group">
+                    <label for="contrasenaConfirmar">
+                      Confirmar contraseña <span class="required">*</span>
+                    </label>
+                    <div class="password-toggle-wrapper">
+                      <input type="password"
+                             id="contrasenaConfirmar"
+                             name="contrasenaConfirmar"
+                             placeholder="Repite la contraseña nueva"
+                             autocomplete="new-password"
+                             required
+                             minlength="8">
+                      <button type="button" class="password-toggle-btn"
+                              aria-label="Mostrar contraseña" aria-pressed="false">
+                        <i data-lucide="eye" style="width:16px;height:16px;" aria-hidden="true"></i>
+                      </button>
+                    </div>
+                    <span class="field-error" id="errorContrasenaConfirmar" aria-live="polite"></span>
+                  </div>
+
+                  <div id="perfilFormAlert" class="form-alert" style="display:none;"></div>
+
+                  <div class="profile-form-actions">
+                    <button type="button" id="btnCancelarContrasena" class="btn btn-secondary">
+                      Cancelar
+                    </button>
+                    <button type="submit" id="btnGuardarContrasena" class="btn btn-primary">
+                      <i data-lucide="save" style="width:16px;height:16px;" aria-hidden="true"></i>
+                      Guardar contraseña
+                    </button>
+                  </div>
+                </form>
+              </div><!-- /.profile-section-form -->
+            </div><!-- /.profile-col-left -->
+
+            <!-- ── COLUMNA DERECHA: Acciones rápidas + Historial ── -->
+            <div class="profile-col-right">
+
+              <!-- ACCIONES RÁPIDAS -->
+              <div class="profile-section-card">
+                <h3>Acciones rápidas</h3>
+                <div id="quickActions" class="quick-actions-grid">
+                  <!-- Renderizado por profile.js según rol -->
                 </div>
-                <span class="field-error" id="errorContrasenaActual" aria-live="polite"></span>
-              </div>
+              </div><!-- /.acciones-rápidas -->
 
-              <!-- Contraseña nueva -->
-              <div class="form-group">
-                <label for="contrasenaNueva">
-                  Contraseña nueva <span class="required">*</span>
-                </label>
-                <div class="password-toggle-wrapper">
-                  <input type="password"
-                         id="contrasenaNueva"
-                         name="contrasenaNueva"
-                         placeholder="Mínimo 8 caracteres"
-                         autocomplete="new-password"
-                         required
-                         minlength="8">
-                  <button type="button" class="password-toggle-btn"
-                          aria-label="Mostrar contraseña" aria-pressed="false">
-                    <i data-lucide="eye" style="width:16px;height:16px;" aria-hidden="true"></i>
-                  </button>
+              <!-- HISTORIAL CONTRASEÑA -->
+              <div class="profile-section-card">
+                <h3>Historial de cambios de contraseña</h3>
+
+                <!-- Desktop: tabla -->
+                <div class="table-wrapper historial-table-wrapper">
+                  <table id="historialTable" class="historial-table">
+                    <thead>
+                      <tr>
+                        <th>Fecha y hora</th>
+                        <th>Rol</th>
+                      </tr>
+                    </thead>
+                    <tbody id="historialTableBody">
+                      <tr><td colspan="2" class="loading-hint">Cargando…</td></tr>
+                    </tbody>
+                  </table>
                 </div>
-                <span class="field-error" id="errorContrasenaNueva" aria-live="polite"></span>
-              </div>
 
-              <!-- Confirmar contraseña -->
-              <div class="form-group">
-                <label for="contrasenaConfirmar">
-                  Confirmar contraseña <span class="required">*</span>
-                </label>
-                <div class="password-toggle-wrapper">
-                  <input type="password"
-                         id="contrasenaConfirmar"
-                         name="contrasenaConfirmar"
-                         placeholder="Repite la contraseña nueva"
-                         autocomplete="new-password"
-                         required
-                         minlength="8">
-                  <button type="button" class="password-toggle-btn"
-                          aria-label="Mostrar contraseña" aria-pressed="false">
-                    <i data-lucide="eye" style="width:16px;height:16px;" aria-hidden="true"></i>
-                  </button>
+                <!-- Mobile: cards -->
+                <div id="historialCards" class="historial-cards">
+                  <!-- Renderizado por profile.js en mobile -->
                 </div>
-                <span class="field-error" id="errorContrasenaConfirmar" aria-live="polite"></span>
-              </div>
 
-              <div id="perfilFormAlert" class="form-alert" style="display:none;"></div>
+              </div><!-- /.historial -->
 
-              <div class="profile-form-actions">
-                <button type="button" id="btnCancelarContrasena" class="btn btn-secondary">
-                  Cancelar
-                </button>
-                <button type="submit" id="btnGuardarContrasena" class="btn btn-primary">
-                  <i data-lucide="save" style="width:16px;height:16px;" aria-hidden="true"></i>
-                  Guardar contraseña
-                </button>
-              </div>
-            </form>
-          </div><!-- /.profile-section-form -->
+            </div><!-- /.profile-col-right -->
+
+          </div><!-- /.profile-layout -->
         </section>
 
         <!-- ========== MI PORTAFOLIO SECTION ========== -->

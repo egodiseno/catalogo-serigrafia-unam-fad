@@ -5374,3 +5374,116 @@ input[type="file"]:hover {
     grid-template-columns: 1fr 1fr;
   }
 }
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   MI PERFIL — Layout 2 columnas (desktop) / 1 columna (mobile)
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── Grid principal: izquierda (form) + derecha (acciones + historial) ── */
+.profile-layout {
+  display:               grid;
+  grid-template-columns: 1fr 0.7fr;
+  gap:                   var(--spacing-lg, 20px);
+  align-items:           start;
+  margin-bottom:         var(--spacing-lg, 20px);
+}
+
+.profile-col-left,
+.profile-col-right {
+  display:        flex;
+  flex-direction: column;
+  gap:            var(--spacing-lg, 20px);
+}
+
+/* Quitar margin-bottom individual cuando están en el layout */
+.profile-layout .profile-section-form,
+.profile-layout .profile-section-card {
+  margin-bottom: 0;
+}
+
+/* ── Acciones rápidas: 2×2 en desktop, rellena ancho ─────────────── */
+.quick-actions-grid {
+  display:   grid;
+  grid-template-columns: 1fr 1fr;
+  gap:       var(--spacing-sm, 8px);
+}
+
+.quick-action-btn {
+  display:        flex;
+  flex-direction: column;
+  align-items:    center;
+  justify-content: center;
+  gap:            var(--spacing-xs, 6px);
+  padding:        var(--spacing-md, 14px) var(--spacing-sm, 8px);
+  width:          100%;
+  min-width:      unset;
+  background:     var(--color-primary-light, #eef4fb);
+  border:         1px solid transparent;
+  border-radius:  var(--radius-md, 8px);
+  color:          var(--color-primary, #013B75);
+  font-size:      var(--font-size-sm, 0.875rem);
+  font-weight:    500;
+  cursor:         pointer;
+  text-align:     center;
+  transition:     background 150ms ease, border-color 150ms ease, transform 100ms ease;
+}
+
+.quick-action-btn:hover {
+  background:   var(--color-primary, #013B75);
+  color:        #fff;
+  border-color: var(--color-primary, #013B75);
+}
+
+.quick-action-btn:active  { transform: scale(0.97); }
+
+.quick-action-btn:focus-visible {
+  outline:        2px solid var(--color-primary, #013B75);
+  outline-offset: 2px;
+}
+
+/* ── Historial: tabla en desktop, oculta en mobile ─────────────────── */
+.historial-table-wrapper { display: block; }
+
+.historial-cards { display: none; }   /* oculto en desktop */
+
+/* ── Historial cards (mobile) ──────────────────────────────────────── */
+.historial-card {
+  display:         flex;
+  align-items:     center;
+  justify-content: space-between;
+  padding:         var(--spacing-sm, 8px) var(--spacing-md, 12px);
+  border-bottom:   1px solid var(--color-border-light, #f1f5f9);
+  gap:             var(--spacing-sm, 8px);
+}
+
+.historial-card:last-child { border-bottom: none; }
+
+.historial-card-date {
+  display:        flex;
+  flex-direction: column;
+  gap:            2px;
+}
+
+.historial-card-day {
+  font-size:   var(--font-size-sm, 0.875rem);
+  color:       var(--color-text, #1e293b);
+  font-weight: 500;
+}
+
+.historial-card-time {
+  font-size: 0.75rem;
+  color:     var(--color-text-muted, #64748b);
+}
+
+/* ── Responsive: mobile (<1024px) ──────────────────────────────────── */
+@media (max-width: 1023px) {
+  /* Una sola columna */
+  .profile-layout {
+    grid-template-columns: 1fr;
+  }
+
+  /* Tabla historial → ocultar, mostrar cards */
+  .historial-table-wrapper { display: none; }
+  .historial-cards          { display: block; }
+}

@@ -202,12 +202,16 @@ class ProfileManager {
   async cargarHistorialContrasena() {
     const usuario = window.usuarioActual;
     const tbody   = document.getElementById('historialTableBody');
+    const cards   = document.getElementById('historialCards');
     if (!tbody) return;
-
-    // Si no hay usuario todavía, dejar la fila de "Cargando…" del HTML
     if (!usuario) return;
 
-    tbody.innerHTML = '<tr><td colspan="2" class="loading-hint">Cargando historial…</td></tr>';
+    const loadingRow  = '<tr><td colspan="2" class="loading-hint">Cargando historial…</td></tr>';
+    const emptyRow    = '<tr><td colspan="2" class="empty-hint">Sin cambios de contraseña registrados.</td></tr>';
+    const errorRow    = '<tr><td colspan="2" class="empty-hint">No se pudo cargar el historial.</td></tr>';
+
+    tbody.innerHTML = loadingRow;
+    if (cards) cards.innerHTML = '<p class="loading-hint">Cargando historial…</p>';
 
     try {
       const { data, error } = await this.client
@@ -221,10 +225,12 @@ class ProfileManager {
       if (error) throw error;
 
       if (!data || data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="2" class="empty-hint">Sin cambios de contraseña registrados.</td></tr>';
+        tbody.innerHTML = emptyRow;
+        if (cards) cards.innerHTML = '<p class="empty-hint">Sin cambios de contraseña registrados.</p>';
         return;
       }
 
+      // ── Desktop: filas en tabla ────────────────────────
       tbody.innerHTML = data.map(log => {
         const fecha = new Date(log.created_at).toLocaleString('es-MX', {
           day: '2-digit', month: 'short', year: 'numeric',
@@ -237,9 +243,27 @@ class ProfileManager {
         </tr>`;
       }).join('');
 
+      // ── Mobile: cards apiladas ─────────────────────────
+      if (cards) {
+        cards.innerHTML = data.map(log => {
+          const dt    = new Date(log.created_at);
+          const fecha = dt.toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' });
+          const hora  = dt.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+          const rol   = log.usuario_rol ?? 'editor';
+          return `<div class="historial-card">
+            <div class="historial-card-date">
+              <span class="historial-card-day">${fecha}</span>
+              <span class="historial-card-time">${hora}</span>
+            </div>
+            <span class="badge badge-${rol}">${rol}</span>
+          </div>`;
+        }).join('');
+      }
+
     } catch (err) {
       console.warn('[ProfileManager] cargarHistorialContrasena:', err);
-      tbody.innerHTML = '<tr><td colspan="2" class="empty-hint">No se pudo cargar el historial.</td></tr>';
+      tbody.innerHTML = errorRow;
+      if (cards) cards.innerHTML = '<p class="empty-hint">No se pudo cargar el historial.</p>';
     }
   }
 
