@@ -73,8 +73,9 @@ export const api = {
   },
 
   /**
-   * Obtener obra por id
-   * (no hay slug en la tabla obras)
+   * Obtener obra por id (UUID)
+   * @param {string} id - UUID de la obra
+   * @returns {Promise} { data, error }
    */
   async getWorkById(id) {
     try {
@@ -94,6 +95,37 @@ export const api = {
       return { data, error: null };
     } catch (err) {
       console.error('❌ Exception getWorkById:', err);
+      return { data: null, error: err };
+    }
+  },
+
+  /**
+   * Obtener obra por slug
+   * @param {string} slug - ej: "viento-azul-ana-martnez-e32f"
+   * @returns {Promise} { data, error }
+   */
+  async getWorkBySlug(slug) {
+    if (!slug || typeof slug !== 'string' || !slug.trim()) {
+      return { data: null, error: new Error('slug inválido o vacío') };
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('obras')
+        .select(OBRA_SELECT)
+        .eq('slug', slug.trim())
+        .eq('estado', 'publicado')
+        .single();
+
+      if (error) {
+        console.error('❌ Error fetching work by slug:', error);
+        return { data: null, error };
+      }
+
+      console.log(`✅ Obra cargada: ${data.titulo}`);
+      return { data, error: null };
+    } catch (err) {
+      console.error('❌ Exception getWorkBySlug:', err);
       return { data: null, error: err };
     }
   },
