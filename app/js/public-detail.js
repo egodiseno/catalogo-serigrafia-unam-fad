@@ -471,11 +471,11 @@ export class PublicDetail {
     }
 
     // ── WhatsApp ──────────────────────────────────────────
+    // Solo la URL — WhatsApp genera preview automático via og: tags
     if (shareWA) {
       shareWA.addEventListener('click', () => {
-        const msg = this.getShareMessage();
         window.open(
-          `https://wa.me/?text=${encodeURIComponent(msg)}`,
+          `https://wa.me/?text=${encodeURIComponent(currentUrl)}`,
           '_blank', 'noopener,noreferrer'
         );
       });
