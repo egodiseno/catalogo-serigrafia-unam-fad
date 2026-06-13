@@ -482,54 +482,21 @@ export class PublicDetail {
     }
 
     // ── Email ─────────────────────────────────────────────
-    // Nota: mailto: body es siempre texto plano — HTML no se renderiza.
-    // Usamos texto estructurado con la URL de imagen (algunos clientes la previewan).
     if (shareEmail) {
       shareEmail.addEventListener('click', () => {
         const lang    = this._getCurrentLang();
         const titulo  = this.work?.titulo  || '';
         const artista = this.work?.artista || '';
         const año     = this.work?.año     || '';
-        const desc    = this.work?.descripcion || '';
-        const url     = window.location.href;
-
-        // Imagen principal (URL pública de Storage)
-        const imgs    = this.work?.imagenes || [];
-        const mainImg = imgs.find(i => i.principal === true) || imgs[0] || null;
-        const imgUrl  = mainImg?.url_storage || '';
+        const desc    = (this.work?.descripcion || '').slice(0, 160);
 
         const subject = lang === 'en'
           ? `Printmaking work: ${titulo} — ${artista}`
           : `Obra serigráfica: ${titulo} — ${artista}`;
 
-        // Body en texto plano bien estructurado
         const body = lang === 'en'
-          ? [
-              `${titulo}`,
-              `Artist: ${artista}${año ? '  ·  ' + año : ''}`,
-              '',
-              desc ? desc.slice(0, 300) : '',
-              '',
-              imgUrl ? `Preview image:\n${imgUrl}` : '',
-              '',
-              `View full work:\n${url}`,
-              '',
-              '—',
-              'Digital Catalog of Printmaking Works — UNAM FAD',
-            ].filter(line => line !== null).join('\n').replace(/\n{3,}/g, '\n\n').trim()
-          : [
-              `${titulo}`,
-              `Artista: ${artista}${año ? '  ·  ' + año : ''}`,
-              '',
-              desc ? desc.slice(0, 300) : '',
-              '',
-              imgUrl ? `Imagen de la obra:\n${imgUrl}` : '',
-              '',
-              `Ver obra completa:\n${url}`,
-              '',
-              '—',
-              'Catálogo Digital de Obra Serigráfica — UNAM FAD',
-            ].filter(line => line !== null).join('\n').replace(/\n{3,}/g, '\n\n').trim();
+          ? `${titulo}\n${artista}${año ? ', ' + año : ''}\n${desc ? desc + '\n' : ''}\nView full work:\n${currentUrl}`
+          : `${titulo}\n${artista}${año ? ', ' + año : ''}\n${desc ? desc + '\n' : ''}\nVer obra completa:\n${currentUrl}`;
 
         window.location.href =
           `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
