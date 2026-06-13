@@ -1807,9 +1807,22 @@ body.is-scrolled .filters {
   outline-offset: 2px;
 }
 
-.btn-share svg,
+.btn-share svg {
+  width: 18px;
+  height: 18px;
+  color: inherit;
+}
+
 .btn-share i {
-  color: inherit; /* hereda --color-blue del botón → currentColor en SVG fill */
+  width: 18px;
+  height: 18px;
+  color: inherit;
+  stroke-width: 1.5;
+}
+
+.btn-copy i {
+  width: 18px;
+  height: 18px;
 }
 
 /* SMS solo visible en mobile */
