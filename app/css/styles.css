@@ -1697,3 +1697,136 @@ body.is-scrolled .filters {
   -moz-user-select: none;
   -ms-user-select: none;
 }
+
+/* ═══════════════════════════════════════════════════════════
+   SECCIÓN COMPARTIR OBRA (.work-share)
+   ═══════════════════════════════════════════════════════════ */
+
+.work-share {
+  margin-top: var(--space-4);
+  padding: var(--space-3) 0;
+  border-top: 1px solid var(--color-line);
+  background: transparent;
+}
+
+.work-share h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: var(--space-1);
+  color: var(--color-blue);
+}
+
+.work-share__subtitle {
+  font-size: 0.95rem;
+  color: var(--color-muted);
+  margin-bottom: var(--space-3);
+}
+
+/* ── Input + botón copiar ───────────────────────────────── */
+.work-share__copy-section {
+  display: flex;
+  gap: var(--space-1);
+  margin-bottom: var(--space-3);
+}
+
+.work-share__input {
+  flex: 1;
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--color-line);
+  border-radius: 6px;
+  font-size: 0.9rem;
+  background: var(--color-surface);
+  color: var(--color-muted);
+  min-width: 0; /* evita desbordamiento en flex */
+}
+
+.btn-copy {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: var(--space-1) var(--space-2);
+  background: var(--color-blue);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  transition: all 200ms var(--ease);
+}
+
+.btn-copy:hover {
+  background: var(--color-blue-deep);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-copy:focus-visible {
+  outline: 2px solid var(--color-blue);
+  outline-offset: 2px;
+}
+
+.btn-copy.copied {
+  background: #10b981; /* verde éxito */
+}
+
+/* ── Botones de red social ──────────────────────────────── */
+.work-share__buttons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: var(--space-2);
+}
+
+.btn-share {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: var(--space-2);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  border: 1px solid var(--color-line);
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.875rem;
+  transition: all 200ms var(--ease);
+}
+
+.btn-share:hover {
+  border-color: var(--color-blue);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.btn-share:focus-visible {
+  outline: 2px solid var(--color-blue);
+  outline-offset: 2px;
+}
+
+/* SMS solo visible en mobile */
+@media (min-width: 481px) {
+  .btn-share--sms {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .work-share__copy-section {
+    flex-direction: column;
+  }
+
+  .btn-copy {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .work-share__buttons {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .btn-share--sms {
+    display: flex;
+  }
+}
