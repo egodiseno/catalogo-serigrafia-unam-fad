@@ -97,6 +97,9 @@ export class PublicDetail {
       descWrap?.setAttribute('hidden', '');
     }
 
+    // ── Open Graph / Twitter Card ─────────────────────────
+    this.updateOpenGraph(work);
+
     // ── Compartir ─────────────────────────────────────────
     this.setupShare();
 
@@ -398,6 +401,33 @@ export class PublicDetail {
         this.showImage(currentIndex - 1);
       }
     }, { passive: true });
+  }
+
+  // ─────────────────────────────────────────────────────────
+  // updateOpenGraph — actualiza meta OG/Twitter con datos de la obra
+  // ─────────────────────────────────────────────────────────
+  updateOpenGraph(work) {
+    const imgs     = work.imagenes || [];
+    const mainImg  = imgs.find(i => i.principal === true) || imgs[0] || null;
+    const imageUrl = mainImg?.url_storage || '';
+
+    const ogTitle = `${work.titulo || ''}${work.artista ? ' — ' + work.artista : ''}`;
+    const ogDesc  = (work.descripcion || 'Obra serigráfica del Catálogo Digital UNAM / FAD')
+      .slice(0, 160);
+    const ogUrl   = window.location.href;
+
+    const setMeta = (id, value) => {
+      const el = document.getElementById(id);
+      if (el && value) el.setAttribute('content', value);
+    };
+
+    setMeta('ogTitle',       ogTitle);
+    setMeta('ogDescription', ogDesc);
+    setMeta('ogImage',       imageUrl);
+    setMeta('ogUrl',         ogUrl);
+    setMeta('twTitle',       ogTitle);
+    setMeta('twDescription', ogDesc);
+    setMeta('twImage',       imageUrl);
   }
 
   // ─────────────────────────────────────────────────────────
