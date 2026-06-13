@@ -625,7 +625,7 @@
         </section>
 
         <!-- ========== MI PERFIL SECTION ========== -->
-        <section id="miPerfilSection" class="section">
+        <section id="miPerfilSection" class="section" style="display:none;">
           <div class="section-header">
             <div>
               <h2>Mi Perfil</h2>
@@ -634,7 +634,7 @@
           </div>
 
           <!-- INFO CARD -->
-          <div class="profile-card">
+          <div id="profileCard" class="profile-card">
             <div class="profile-avatar">
               <div id="profileInitial" class="avatar-circle" aria-hidden="true">A</div>
             </div>
@@ -673,8 +673,18 @@
           <!-- HISTORIAL CONTRASEÑA -->
           <div class="profile-section-card">
             <h3>Historial de cambios de contraseña</h3>
-            <div id="historialContrasena">
-              <p class="loading-hint">Cargando historial…</p>
+            <div class="table-wrapper">
+              <table id="historialTable" class="historial-table">
+                <thead>
+                  <tr>
+                    <th>Fecha y hora</th>
+                    <th>Rol en ese momento</th>
+                  </tr>
+                </thead>
+                <tbody id="historialTableBody">
+                  <tr><td colspan="2" class="loading-hint">Cargando historial…</td></tr>
+                </tbody>
+              </table>
             </div>
           </div><!-- /.historial -->
 

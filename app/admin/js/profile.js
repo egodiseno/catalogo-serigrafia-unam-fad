@@ -201,10 +201,13 @@ class ProfileManager {
 
   async cargarHistorialContrasena() {
     const usuario = window.usuarioActual;
-    const container = document.getElementById('historialContrasena');
-    if (!container || !usuario) return;
+    const tbody   = document.getElementById('historialTableBody');
+    if (!tbody) return;
 
-    container.innerHTML = '<p class="loading-hint">Cargando historial…</p>';
+    // Si no hay usuario todavía, dejar la fila de "Cargando…" del HTML
+    if (!usuario) return;
+
+    tbody.innerHTML = '<tr><td colspan="2" class="loading-hint">Cargando historial…</td></tr>';
 
     try {
       const { data, error } = await this.client
@@ -218,35 +221,25 @@ class ProfileManager {
       if (error) throw error;
 
       if (!data || data.length === 0) {
-        container.innerHTML = '<p class="empty-hint">Sin cambios de contraseña registrados.</p>';
+        tbody.innerHTML = '<tr><td colspan="2" class="empty-hint">Sin cambios de contraseña registrados.</td></tr>';
         return;
       }
 
-      const rows = data.map(log => {
+      tbody.innerHTML = data.map(log => {
         const fecha = new Date(log.created_at).toLocaleString('es-MX', {
           day: '2-digit', month: 'short', year: 'numeric',
           hour: '2-digit', minute: '2-digit'
         });
+        const rol = log.usuario_rol ?? 'editor';
         return `<tr>
           <td>${fecha}</td>
-          <td><span class="badge badge-${log.usuario_rol ?? 'editor'}">${log.usuario_rol ?? '—'}</span></td>
+          <td><span class="badge badge-${rol}">${rol}</span></td>
         </tr>`;
       }).join('');
 
-      container.innerHTML = `
-        <table class="historial-table">
-          <thead>
-            <tr>
-              <th>Fecha y hora</th>
-              <th>Rol en ese momento</th>
-            </tr>
-          </thead>
-          <tbody>${rows}</tbody>
-        </table>`;
-
     } catch (err) {
       console.warn('[ProfileManager] cargarHistorialContrasena:', err);
-      container.innerHTML = '<p class="empty-hint">No se pudo cargar el historial.</p>';
+      tbody.innerHTML = '<tr><td colspan="2" class="empty-hint">No se pudo cargar el historial.</td></tr>';
     }
   }
 

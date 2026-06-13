@@ -32,6 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const section = document.getElementById(`${sectionId}Section`);
     if (section) {
       section.classList.add('active');
+      section.style.display = '';   // Limpia cualquier inline display:none
     }
 
     // Actualizar título y subtitle
