@@ -50,7 +50,7 @@ const Seed = (() => {
       if (errTag) throw errTag;
       console.log('   ✅ Tags insertados');
 
-      window.ErrorHandler?.showToast('🌱 Seed data insertado', 'success');
+      window.ErrorHandler?.showToast('Seed data insertado', 'success');
 
       // Notificar a los módulos que refresquen sus cachés
       document.dispatchEvent(new CustomEvent('tecnicas:updated'));

@@ -36,7 +36,7 @@ const AdminInit = (() => {
       if (!moduleRef) {
         if (required) {
           console.error(`❌ CRÍTICO: ${name} no cargado`);
-          ErrorHandler?.showToast(`❌ ${name} no disponible`, 'error');
+          ErrorHandler?.showToast(`${name} no disponible`, 'error');
           failedRequired = true;
         } else {
           console.warn(`⚠️  ${name} no disponible (opcional)`);
