@@ -15,6 +15,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const OBRA_SELECT = `
   id,
   titulo,
+  slug,
   artista,
   año,
   descripcion,
@@ -29,7 +30,7 @@ const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 export const api = {
   /**
    * Filtrar obras (carga inicial + filtros real-time)
-   * Estructura real: sin slug, imagenes.principal es boolean
+   * Estructura real: obras.slug generado por trigger, imagenes.principal es boolean
    */
   async filterWorks(filters = {}, page = 1, pageSize = 12) {
     const { year, technique, search } = filters;
