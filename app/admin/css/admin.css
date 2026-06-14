@@ -1835,6 +1835,7 @@ table tbody tr:last-child td {
 
 .badge-borrador  { background: #fff3cd; color: #856404; }
 .badge-publicado { background: #d1e7dd; color: #0a3622; }
+.badge-revision  { background: #cfe2ff; color: #084298; }
 .badge-archivado { background: #e9ecef; color: #495057; }
 
 /* ============ BTN SMALL + ACTIONS ============ */

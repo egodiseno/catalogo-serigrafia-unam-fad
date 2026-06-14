@@ -70,6 +70,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // Mapa estado (Title Case desde Supabase) → clase CSS badge
+  const BADGE_CLS = {
+    'Publicado':   'badge-publicado',
+    'Borrador':    'badge-borrador',
+    'En Revisión': 'badge-revision',
+    'Archivado':   'badge-archivado',
+  };
+
   // ── Render tabla ──────────────────────────────────────
   function renderRecientes(obras) {
     if (!elRecientes) return;
@@ -86,13 +94,14 @@ document.addEventListener('DOMContentLoaded', () => {
             day: '2-digit', month: 'short', year: 'numeric'
           })
         : '—';
+      const badgeCls = BADGE_CLS[obra.estado] || 'badge-borrador';
 
       return `
         <tr>
           <td>${escHtml(obra.titulo)}</td>
           <td>${escHtml(obra.artista)}</td>
           <td>${obra.año ?? '—'}</td>
-          <td><span class="badge badge-${obra.estado}">${obra.estado}</span></td>
+          <td><span class="badge ${badgeCls}">${escHtml(obra.estado)}</span></td>
           <td>${fecha}</td>
         </tr>`;
     }).join('');
