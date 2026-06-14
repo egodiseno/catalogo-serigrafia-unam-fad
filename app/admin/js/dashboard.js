@@ -39,25 +39,40 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       // ADMIN / SUPER_EDITOR: sin filtro adicional
 
+      // Query pendientes solo para ADMIN/SUPER_EDITOR (evita consulta innecesaria para EDITOR)
+      const pendientesQ = rolActual !== 'editor'
+        ? client.from('obras').select('*', { count: 'exact', head: true }).eq('estado', 'En Revisión')
+        : Promise.resolve({ count: 0 });
+
       const [
         { count: obras     },
         { count: tecnicas  },
         { count: tags      },
         { count: usuarios  },
         { data: recientes  },
+        { count: pendientes },
       ] = await Promise.all([
         obrasCountQ,
         client.from('tecnicas').select('*',        { count: 'exact', head: true }),
         client.from('tags').select('*',            { count: 'exact', head: true }),
         client.from('usuarios_admin').select('*',  { count: 'exact', head: true }),
         obrasListQ,
+        pendientesQ,
       ]);
 
-      // Stat cards
+      // Stat cards base
       elObras.textContent    = obras    ?? 0;
       elTecnicas.textContent = tecnicas ?? 0;
       elTags.textContent     = tags     ?? 0;
       elUsuarios.textContent = usuarios ?? 0;
+
+      // Widget pendientes — solo visible para ADMIN / SUPER_EDITOR
+      if (rolActual !== 'editor' && cardPendientes) {
+        cardPendientes.style.display = '';
+        if (elPendientes) elPendientes.textContent = pendientes ?? 0;
+      } else if (cardPendientes) {
+        cardPendientes.style.display = 'none';
+      }
 
       // Tabla de últimas obras
       renderRecientes(recientes ?? []);
@@ -77,6 +92,31 @@ document.addEventListener('DOMContentLoaded', () => {
     'En Revisión': 'badge-revision',
     'Archivado':   'badge-archivado',
   };
+
+  // ── Widget "Pendientes de Revisión" ──────────────────
+  const cardPendientes  = document.getElementById('cardPendientesRevision');
+  const elPendientes    = document.getElementById('totalPendientes');
+
+  // Click → navegar a Obras y filtrar por "En Revisión"
+  if (cardPendientes) {
+    cardPendientes.addEventListener('click', () => {
+      window.showSection?.('obras');
+      setTimeout(() => {
+        const filterEstado = document.getElementById('filterEstado');
+        if (filterEstado) {
+          filterEstado.value = 'En Revisión';
+          filterEstado.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      }, 300);
+    });
+    // Accesibilidad: activar con teclado
+    cardPendientes.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        cardPendientes.click();
+      }
+    });
+  }
 
   // ── Render tabla ──────────────────────────────────────
   function renderRecientes(obras) {

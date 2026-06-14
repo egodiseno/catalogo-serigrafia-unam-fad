@@ -1608,6 +1608,17 @@ select {
   border-color: var(--color-blue);
 }
 
+/* Widget "Pendientes de Revisión" — acento naranja/ámbar */
+.stat-card--warning {
+  border-color: #F59E0B;
+  cursor: pointer;
+}
+.stat-card--warning .stat-value { color: #B45309; }
+.stat-card--warning:hover {
+  border-color: #D97706;
+  background-color: #FFFBEB;
+}
+
 .stat-value {
   font-size: 32px;
   font-weight: var(--font-weight-bold);

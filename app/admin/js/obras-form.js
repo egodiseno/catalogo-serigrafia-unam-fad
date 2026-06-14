@@ -56,6 +56,18 @@ document.addEventListener('DOMContentLoaded', () => {
       if (existingSection) existingSection.style.display = 'none';
     }
 
+    // ── Control de estado por rol ─────────────────────────
+    // EDITOR: estado forzado a "En Revisión", campo no editable
+    const rolActual = window.usuarioActual?.rol || 'editor';
+    if (rolActual === 'editor') {
+      if (!id) fEstado.value = 'En Revisión';  // nueva obra → forzar estado
+      fEstado.disabled = true;
+      fEstado.title    = 'El estado lo asigna el editor responsable';
+    } else {
+      fEstado.disabled = false;
+      fEstado.title    = '';
+    }
+
     modal.style.display = 'flex';
     fTitulo.focus();
   }
@@ -115,7 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
       fTitulo.value      = data.titulo      ?? '';
       fArtista.value     = data.artista     ?? '';
       fAno.value         = data.año         ?? '';
-      fEstado.value      = data.estado      ?? 'borrador';
+      fEstado.value      = data.estado      ?? 'Borrador';
       fTecnica.value     = data.tecnica_id  ?? '';
       fDescripcion.value = data.descripcion ?? '';
 
@@ -243,11 +255,13 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
+    // EDITOR: siempre "En Revisión" — seguridad server-side además del campo disabled
+    const rolGuardar = window.usuarioActual?.rol || 'editor';
     const payload = {
       titulo,
       artista,
       año,
-      estado:      fEstado.value             || 'borrador',
+      estado:      rolGuardar === 'editor' ? 'En Revisión' : (fEstado.value || 'Borrador'),
       tecnica_id:  fTecnica.value            || null,
       descripcion: fDescripcion.value.trim() || null,
     };
@@ -383,6 +397,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function resetForm() {
     form.reset();
     fId.value = '';
+    if (fEstado) { fEstado.disabled = false; fEstado.title = ''; }
     window.MultiImageUpload?.reset();
     window.TagsInObra?.reset();
     hideAlert();
