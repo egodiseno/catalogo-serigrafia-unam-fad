@@ -3554,12 +3554,6 @@ input[type="file"]:hover {
     flex:          1;
   }
 
-  /* #logoutBtn VISIBLE EN MOBILE/TABLET — usa design system, no custom */
-  #logoutBtn {
-    display:    block !important;
-    width:      100%;
-    margin-top: var(--spacing-md, 0.75rem);
-  }
 }
 
 /* ── MOBILE MUY PEQUEÑO (< 400px) ─────────────────────────────── */
@@ -3792,10 +3786,6 @@ input[type="file"]:hover {
     flex-shrink: 0;
   }
 
-  /* #logoutBtn oculto en desktop — el dropdown tiene su propio botón */
-  #logoutBtn {
-    display: none !important;
-  }
 }
 
 /* ══════════════════════════════════════════════════════════════════════
@@ -3826,9 +3816,15 @@ input[type="file"]:hover {
     flex-shrink: 0;
   }
 
-  /* SIDEBAR-FOOTER: oculto en desktop — usuario solo en header */
+  /* SIDEBAR-FOOTER: visible en desktop — usuario al final del sidebar */
   .sidebar-footer {
-    display: none !important;
+    display:        flex !important;
+    flex-direction: column;
+    gap:            var(--spacing-md, 0.75rem);
+    height:         auto;
+    padding:        var(--spacing-md, 0.75rem);
+    border-top:     1px solid rgba(255, 255, 255, 0.1);
+    margin-top:     auto;
   }
 
   /* CONTENEDOR USUARIO */
