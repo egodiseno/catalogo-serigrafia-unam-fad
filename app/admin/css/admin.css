@@ -4784,99 +4784,169 @@ input[type="file"]:hover {
   flex-shrink:  0;
 }
 
-/* ── Layout 2 columnas (Mi Perfil) ───────────────────────────────────── */
-.perfil-layout {
+/* ═══════════════════════════════════════════════════════════════════════
+   MI PERFIL — Grid 3 columnas (desktop) / 1 columna (tablet + mobile)
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ── Contenedor principal ────────────────────────────────────────────── */
+.profile-grid {
   display:               grid;
-  grid-template-columns: 1fr 420px;
+  grid-template-columns: 1fr 1fr 1fr;
   gap:                   2rem;
   align-items:           start;
+  max-width:             1400px;
+  margin:                0 auto;
 }
 
-.perfil-col-left {
+/* ── Columna base ────────────────────────────────────────────────────── */
+.profile-column {
   display:        flex;
   flex-direction: column;
-  gap:            1.5rem;
+  gap:            1rem;
   min-width:      0;
 }
 
-.perfil-col-right {
-  position:   sticky;
-  top:        1.5rem;
-  min-width:  0;
+/* ── Col 1: Datos del usuario ────────────────────────────────────────── */
+.column-datos {
+  align-items: center;
+  text-align:  center;
+  padding:     1.5rem;
+  background:  #ffffff;
+  border:      1px solid var(--color-border);
+  border-radius: 8px;
+  box-shadow:  var(--shadow-sm);
 }
 
-/* ── Módulo 2: Acciones Rápidas ──────────────────────────────────────── */
-.quick-actions-module {
-  background-color: #eef4fb;
-  border:           1px solid var(--color-border);
-  border-radius:    8px;
-  padding:          2rem;
+.column-datos .avatar-circle {
+  width:           80px;
+  height:          80px;
+  font-size:       2rem;
+  margin-bottom:   0.5rem;
 }
 
-.quick-actions-title {
+.column-datos .profile-info {
+  width: 100%;
+  gap:   0.5rem;
+}
+
+.column-datos .profile-row {
+  flex-direction: column;
+  align-items:    flex-start;
+  text-align:     left;
+  gap:            2px;
+  border-bottom:  1px solid var(--color-border);
+  padding:        0.5rem 0;
+}
+
+.column-datos .profile-row:last-child {
+  border-bottom: none;
+}
+
+.column-datos .profile-label {
+  font-size:   0.75rem;
+  color:       var(--color-text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  min-width:   unset;
+}
+
+/* ── Col 2: Acciones rápidas ─────────────────────────────────────────── */
+.column-acciones {
+  padding:       1.5rem;
+  background:    #ffffff;
+  border:        1px solid var(--color-border);
+  border-radius: 8px;
+  box-shadow:    var(--shadow-sm);
+}
+
+.column-title {
   margin:      0 0 1.25rem;
-  font-size:   var(--text-lg, 1.125rem);
+  font-size:   1rem;
   font-weight: 600;
   color:       var(--color-primary);
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--color-border);
 }
 
-.quick-actions-grid {
+/* Grid 2×2 de botones */
+.quick-actions-container {
   display:               grid;
   grid-template-columns: repeat(2, 1fr);
-  gap:                   1rem;
+  gap:                   0.75rem;
 }
 
-/* ── Botones de acción ───────────────────────────────────────────────── */
-.btn-action {
-  display:        flex;
-  flex-direction: column;
-  align-items:    center;
-  gap:            0.5rem;
-  padding:        1rem;
-  background:     #ffffff;
-  border:         1px solid var(--color-border);
-  border-radius:  6px;
-  color:          var(--color-text);
-  font-size:      0.875rem;
-  font-weight:    500;
-  font-family:    inherit;
-  cursor:         pointer;
-  text-align:     center;
-  transition:     background 200ms ease, border-color 200ms ease, box-shadow 200ms ease;
+/* ── Botones de acción (.action-btn) ─────────────────────────────────── */
+.action-btn {
+  display:         flex;
+  flex-direction:  column;
+  align-items:     center;
+  justify-content: center;
+  gap:             0.75rem;
+  padding:         1.5rem 1rem;
+  background-color: #ffffff;
+  border:          1px solid #d0d7e0;
+  border-radius:   6px;
+  color:           #1a1a1a;
+  font-size:       0.875rem;
+  font-weight:     500;
+  font-family:     inherit;
+  cursor:          pointer;
+  text-align:      center;
+  transition:      background-color 200ms ease, border-color 200ms ease, box-shadow 200ms ease;
+  line-height:     1.3;
 }
 
-.btn-action:hover {
-  background:    #f0f4f8;
-  border-color:  var(--color-primary);
-  box-shadow:    0 2px 6px rgba(1, 59, 117, 0.1);
+.action-btn:hover {
+  background-color: #f5f5f5;
+  border-color:     #013b75;
+  box-shadow:       0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
-.btn-action:focus-visible {
-  outline:        2px solid var(--color-primary);
+.action-btn:active {
+  background-color: #efefef;
+  border-color:     #002a55;
+}
+
+.action-btn:focus-visible {
+  outline:        2px solid #013b75;
   outline-offset: 2px;
 }
 
-.btn-action i,
-.btn-action [data-lucide] {
-  color: var(--color-primary);
+.action-btn i,
+.action-btn [data-lucide] {
+  color:        #013b75;
+  stroke-width: 2;
+  flex-shrink:  0;
 }
 
-/* Variante primaria (Editor: Nueva obra) */
-.btn-action--primary {
-  background:   var(--color-primary);
-  color:        #ffffff;
-  border-color: var(--color-primary);
+/* Variante highlight (Editor: Nueva obra) */
+.action-btn--highlight {
+  border-color:    #013b75;
+  color:           #013b75;
 }
 
-.btn-action--primary:hover {
-  background:    var(--color-primary-dark, #002A55);
-  border-color:  var(--color-primary-dark, #002A55);
-  box-shadow:    0 2px 8px rgba(1, 59, 117, 0.25);
+.action-btn--highlight:hover {
+  background-color: #013b75;
+  color:            #ffffff;
 }
 
-.btn-action--primary i,
-.btn-action--primary [data-lucide] {
+.action-btn--highlight:hover i,
+.action-btn--highlight:hover [data-lucide] {
   color: #ffffff;
+}
+
+/* ── Col 3: Cambiar contraseña ───────────────────────────────────────── */
+.column-contrasena {
+  padding:       1.5rem;
+  background:    #ffffff;
+  border:        1px solid var(--color-border);
+  border-radius: 8px;
+  box-shadow:    var(--shadow-sm);
+}
+
+.column-contrasena .column-title {
+  /* heredado de .column-title */
 }
 
 /* ── Formulario cambio de contraseña ──────────────────────────────────── */
@@ -5431,55 +5501,93 @@ input[type="file"]:hover {
 
 
 /* ═══════════════════════════════════════════════════════════════════
-   MI PERFIL — Responsive layout
+   MI PERFIL — Responsive
    ═══════════════════════════════════════════════════════════════════ */
 
-/* ── Tablet (768–1199px) — 1 columna, botones en 2 cols ──────────── */
+/* ── Tablet (768–1199px): 1 columna, botones en 2 cols ─────────────── */
 @media (max-width: 1199px) {
-  .perfil-layout {
+  .profile-grid {
     grid-template-columns: 1fr;
     gap:                   1.5rem;
   }
 
-  .perfil-col-right {
-    position: static;
+  .column-datos {
+    flex-direction: row;
+    align-items:    flex-start;
+    text-align:     left;
   }
 
-  .profile-card {
-    max-width: 100%;
+  .column-datos .avatar-circle {
+    width:         64px;
+    height:        64px;
+    font-size:     1.5rem;
+    margin-bottom: 0;
+    flex-shrink:   0;
   }
 
-  .profile-section-form {
-    max-width: 100%;
+  .column-datos .profile-info {
+    flex: 1;
+  }
+
+  .column-datos .profile-row {
+    flex-direction: row;
+    align-items:    center;
+    gap:            0.75rem;
+  }
+
+  /* Botones: mantener 2 columnas en tablet */
+  .quick-actions-container {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
-/* ── Mobile (< 768px) — 1 columna, botones apilados ──────────────── */
+/* ── Mobile (<768px): 1 columna, botones apilados ───────────────────── */
 @media (max-width: 767px) {
-  .perfil-layout {
+  .profile-grid {
     gap: 1rem;
   }
 
-  .quick-actions-module {
-    padding: 1rem;
-  }
-
-  .quick-actions-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .btn-action {
+  /* Datos: horizontal compacto */
+  .column-datos {
+    padding:        1rem;
     flex-direction: row;
-    justify-content: flex-start;
-    gap: 0.75rem;
-    padding: 0.875rem 1rem;
-    text-align: left;
+    align-items:    center;
+    text-align:     left;
+    gap:            1rem;
   }
 
-  .profile-section-form {
+  .column-datos .avatar-circle {
+    width:         56px;
+    height:        56px;
+    font-size:     1.25rem;
+    margin-bottom: 0;
+    flex-shrink:   0;
+  }
+
+  /* Acciones: 1 columna, botones en fila (icon + texto horizontal) */
+  .column-acciones {
     padding: 1rem;
   }
 
+  .quick-actions-container {
+    grid-template-columns: 1fr;
+    gap:                   0.5rem;
+  }
+
+  .action-btn {
+    flex-direction:  row;
+    justify-content: flex-start;
+    padding:         0.875rem 1rem;
+    text-align:      left;
+    gap:             0.75rem;
+  }
+
+  /* Contraseña: padding reducido */
+  .column-contrasena {
+    padding: 1rem;
+  }
+
+  /* Botones form full-width */
   .profile-form-actions {
     flex-direction: column-reverse;
   }
