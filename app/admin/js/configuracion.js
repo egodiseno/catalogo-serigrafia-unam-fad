@@ -152,7 +152,7 @@ class ConfiguracionManager {
 
       if (error) throw error;
 
-      window.ErrorHandler?.showToast('✅ Acerca guardado', 'success');
+      window.ErrorHandler?.showToast('Acerca guardado', 'success');
 
       if (ts) {
         const fecha = new Date().toLocaleString('es-MX', {

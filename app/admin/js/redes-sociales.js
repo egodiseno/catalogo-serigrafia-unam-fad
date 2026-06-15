@@ -589,14 +589,14 @@ class RedesSocialesManager {
           .update({ nombre, url, icono, color, visible, updated_at: new Date().toISOString(), actualizado_por: email })
           .eq('id', this._editingId);
         if (error) throw error;
-        window.ErrorHandler?.showToast(`✅ ${nombre} actualizado`, 'success');
+        window.ErrorHandler?.showToast(`${nombre} actualizado`, 'success');
       } else {
         // INSERT
         const maxOrden = this._redes.reduce((m, r) => Math.max(m, r.orden), 0);
         const { error } = await this.client.from('redes_sociales')
           .insert({ nombre, url, icono, color, visible, orden: maxOrden + 1, actualizado_por: email });
         if (error) throw error;
-        window.ErrorHandler?.showToast(`✅ ${nombre} agregado`, 'success');
+        window.ErrorHandler?.showToast(`${nombre} agregado`, 'success');
       }
 
       this._closeModal();

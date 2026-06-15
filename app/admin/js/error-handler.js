@@ -17,24 +17,24 @@ const ErrorHandler = (() => {
 
     // Categorizar por tipo de error
     if (error.message?.includes('JWT')) {
-      message = '⏱️ Sesión expirada. Redirigiendo a login...';
+      message = 'Sesión expirada. Redirigiendo a login...';
       setTimeout(() => {
         window.location.href = '/app/admin/index.html';
       }, 2000);
     } else if (error.status === 409 || error.message?.includes('duplicate')) {
-      message = '⚠️ Este registro ya existe';
+      message = 'Este registro ya existe';
     } else if (error.status === 400 || error.message?.includes('validation')) {
-      message = '⚠️ Datos inválidos. Verifica los campos';
+      message = 'Datos inválidos. Verifica los campos';
     } else if (error.status === 401) {
-      message = '🔐 No autorizado';
+      message = 'No autorizado';
     } else if (error.status === 403) {
-      message = '🚫 Permiso denegado';
+      message = 'Permiso denegado';
     } else if (error.status === 404) {
-      message = '🔍 Registro no encontrado';
+      message = 'Registro no encontrado';
     } else if (error.status === 500) {
-      message = '⚠️ Error del servidor. Intenta más tarde';
+      message = 'Error del servidor. Intenta más tarde';
     } else if (error.status === 503) {
-      message = '🌐 Servicio no disponible';
+      message = 'Servicio no disponible';
     }
 
     showToast(message, type);

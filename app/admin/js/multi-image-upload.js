@@ -283,7 +283,7 @@ const MultiImageUpload = (() => {
 
     if (added > 0) {
       window.ErrorHandler?.showToast(
-        `✅ ${added} imagen${added > 1 ? 'es agregadas' : ' agregada'}`,
+        `${added} imagen${added > 1 ? 'es agregadas' : ' agregada'}`,
         'success'
       );
     }
