@@ -1264,6 +1264,25 @@ body.is-scrolled .filters {
   line-height: 1.5;
 }
 
+/* Título + descripción bajo los logos */
+.footer-logo-title {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--color-white);
+  margin: var(--space-1) 0 0.4rem;
+  line-height: 1.3;
+}
+
+.footer-logo-desc {
+  font-family: var(--font-sans);
+  font-size: 0.86rem;
+  color: var(--color-muted);
+  line-height: 1.5;
+  margin: 0;
+  opacity: 0.85;
+}
+
 .footer-col h3 {
   font-size: 0.9rem;
   font-weight: 600;
@@ -1320,8 +1339,9 @@ body.is-scrolled .filters {
 .footer-bottom {
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   padding-top: var(--space-3);
-  text-align: center;
-  font-size: 0.85rem;
+  text-align: left;
+  font-size: 0.8rem;
+  color: var(--color-muted);
   opacity: 0.9;
 }
 
@@ -1351,7 +1371,7 @@ body.is-scrolled .filters {
   margin-top: 0.25rem;
 }
 
-/* Círculo individual */
+/* Círculo individual — estilo outline blanco, hover dorado */
 .rrss-icon-footer {
   display: inline-flex;
   align-items: center;
@@ -1359,13 +1379,15 @@ body.is-scrolled .filters {
   width: 44px;
   height: 44px;
   border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.75);
+  background: transparent !important; /* anula el inline style del JS */
   color: #fff;
   text-decoration: none;
   flex-shrink: 0;
   transition: transform 200ms var(--ease),
               box-shadow 200ms var(--ease),
-              filter 200ms var(--ease);
-  /* background-color se aplica inline desde JS */
+              background 200ms var(--ease),
+              border-color 200ms var(--ease);
 }
 
 .rrss-icon-footer i {
@@ -1376,12 +1398,15 @@ body.is-scrolled .filters {
 }
 
 .rrss-icon-footer:hover {
+  background: var(--color-gold) !important;
+  border-color: var(--color-gold);
   transform: scale(1.15) translateY(-4px);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.22);
-  filter: brightness(1.1);
 }
 
 .rrss-icon-footer:active {
+  background: var(--color-gold-deep) !important;
+  border-color: var(--color-gold-deep);
   transform: scale(1);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
 }
