@@ -72,10 +72,10 @@ const PERMISOS = {
     'tags.editar': true,
     'tags.borrar': false,
 
-    // Usuarios — solo ADMIN gestiona usuarios
-    'usuarios.ver':    false,
-    'usuarios.crear':  false,
-    'usuarios.editar': false,
+    // Usuarios — SUPER_EDITOR puede ver, crear y editar; no puede borrar
+    'usuarios.ver':    true,
+    'usuarios.crear':  true,
+    'usuarios.editar': true,
     'usuarios.borrar': false,
 
     // Logs — solo ADMIN (SUPER_EDITOR no accede a logs)
