@@ -84,65 +84,82 @@
 
 <section class="filters" aria-label="Filtros del catálogo" data-filters-section>
   <div class="container">
-    <form data-filters>
-      <div class="filter-grid">
 
-        <!-- COLUMNA 1: AÑO -->
-        <div class="filter-field">
-          <label for="filterYear" data-i18n data-es="AÑO" data-en="YEAR">AÑO</label>
-          <select id="filterYear" data-filter="year" aria-label="Filtrar por año">
-            <option value="">Todos</option>
-          </select>
-        </div>
+    <!-- Toggle acordeón — visible solo en mobile (< 768px) -->
+    <button class="filter-toggle" data-filter-toggle type="button"
+            aria-expanded="false" aria-controls="filterPanel">
+      <span class="filter-toggle__label">Mostrar filtros</span>
+      <svg class="filter-toggle__chevron" xmlns="http://www.w3.org/2000/svg"
+           width="16" height="16" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2.5"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <polyline points="6 9 12 15 18 9"/>
+      </svg>
+    </button>
 
-        <!-- COLUMNA 2: TÉCNICA -->
-        <div class="filter-field">
-          <label for="filterTechnique" data-i18n data-es="TÉCNICA" data-en="TECHNIQUE">TÉCNICA</label>
-          <select id="filterTechnique" data-filter="technique" aria-label="Filtrar por técnica">
-            <option value="">Todas</option>
-          </select>
-        </div>
+    <!-- Panel colapsable: acordeón en mobile/tablet, siempre visible en desktop (≥ 1200px) -->
+    <div id="filterPanel" class="filter-panel">
+      <form data-filters>
+        <div class="filter-grid">
 
-        <!-- COLUMNA 3: TAGS -->
-        <div class="filter-field">
-          <label data-i18n data-es="TAGS" data-en="TAGS">TAGS</label>
-          <div class="tags-popover-container">
-            <button
-              id="tagsPopoverBtn"
-              class="btn-popover"
-              aria-expanded="false"
-              aria-haspopup="true"
-              aria-label="Abrir filtro de tags"
-              data-i18n
-              data-es="Filtrar Tags ▼"
-              data-en="Filter Tags ▼">
-              Filtrar Tags ▼
-            </button>
-            <div id="tagsChipsContainer" class="tags-chips-container" aria-live="polite"></div>
-            <div id="tagsPopover" class="tags-popover" hidden>
-              <div id="tagsGrid" class="tags-grid">
-                <!-- Poblado dinámicamente por JS -->
-              </div>
-              <div class="tags-popover-footer" id="tagsPopoverFooter" hidden>
-                <button type="button" id="tagsRemoveBtn" class="btn-clear-tags"
-                  data-i18n data-es="Limpiar selección" data-en="Clear selection">
-                  Limpiar selección
-                </button>
+          <!-- COLUMNA 1: AÑO -->
+          <div class="filter-field">
+            <label for="filterYear" data-i18n data-es="AÑO" data-en="YEAR">AÑO</label>
+            <select id="filterYear" data-filter="year" aria-label="Filtrar por año">
+              <option value="">Todos</option>
+            </select>
+          </div>
+
+          <!-- COLUMNA 2: TÉCNICA -->
+          <div class="filter-field">
+            <label for="filterTechnique" data-i18n data-es="TÉCNICA" data-en="TECHNIQUE">TÉCNICA</label>
+            <select id="filterTechnique" data-filter="technique" aria-label="Filtrar por técnica">
+              <option value="">Todas</option>
+            </select>
+          </div>
+
+          <!-- COLUMNA 3: TAGS -->
+          <div class="filter-field">
+            <label data-i18n data-es="TAGS" data-en="TAGS">TAGS</label>
+            <div class="tags-popover-container">
+              <button
+                id="tagsPopoverBtn"
+                class="btn-popover"
+                aria-expanded="false"
+                aria-haspopup="true"
+                aria-label="Abrir filtro de tags"
+                data-i18n
+                data-es="Filtrar Tags ▼"
+                data-en="Filter Tags ▼">
+                Filtrar Tags ▼
+              </button>
+              <div id="tagsChipsContainer" class="tags-chips-container" aria-live="polite"></div>
+              <div id="tagsPopover" class="tags-popover" hidden>
+                <div id="tagsGrid" class="tags-grid">
+                  <!-- Poblado dinámicamente por JS -->
+                </div>
+                <div class="tags-popover-footer" id="tagsPopoverFooter" hidden>
+                  <button type="button" id="tagsRemoveBtn" class="btn-clear-tags"
+                    data-i18n data-es="Limpiar selección" data-en="Clear selection">
+                    Limpiar selección
+                  </button>
+                </div>
               </div>
             </div>
           </div>
+
+        </div><!-- /.filter-grid -->
+
+        <div class="filter-actions">
+          <button type="button" data-clear data-i18n data-es="Limpiar filtros" data-en="Clear filters">
+            Limpiar filtros
+          </button>
         </div>
+      </form>
 
-      </div><!-- /.filter-grid -->
+      <div class="active-filters" data-active-filters hidden></div>
+    </div><!-- /#filterPanel -->
 
-      <div class="filter-actions">
-        <button type="button" data-clear data-i18n data-es="Limpiar filtros" data-en="Clear filters">
-          Limpiar filtros
-        </button>
-      </div>
-    </form>
-
-    <div class="active-filters" data-active-filters hidden></div>
   </div>
 </section>
 

@@ -37,6 +37,9 @@ export class PublicCatalog {
       // Attach event listeners
       this.attachEventListeners();
 
+      // Toggle acordeón de filtros (mobile)
+      this.initFilterToggle();
+
       // Setup infinite scroll
       this.setupInfiniteScroll();
 
@@ -44,6 +47,26 @@ export class PublicCatalog {
     } catch (error) {
       console.error('❌ Error inicializando catálogo:', error);
     }
+  }
+
+  /**
+   * Toggle acordeón de filtros para mobile (< 768px).
+   * En tablet/desktop el panel es siempre visible vía CSS.
+   */
+  initFilterToggle() {
+    const toggle = document.querySelector('[data-filter-toggle]');
+    const panel  = document.getElementById('filterPanel');
+    if (!toggle || !panel) return;
+
+    toggle.addEventListener('click', () => {
+      const isOpen = panel.classList.toggle('is-open');
+      toggle.setAttribute('aria-expanded', String(isOpen));
+
+      const label = toggle.querySelector('.filter-toggle__label');
+      if (label) {
+        label.textContent = isOpen ? 'Ocultar filtros' : 'Mostrar filtros';
+      }
+    });
   }
 
   /**
