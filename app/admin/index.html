@@ -854,7 +854,7 @@
           <div class="section-header">
             <div>
               <h2>Configuración</h2>
-              <p>Acerca del catálogo y créditos institucionales</p>
+              <p>Acerca, créditos y redes sociales</p>
             </div>
           </div>
 
@@ -871,6 +871,12 @@
                     role="tab" aria-selected="false" aria-controls="panelCreditos">
               <i data-lucide="award" style="width:15px;height:15px;" aria-hidden="true"></i>
               Créditos
+            </button>
+            <button class="config-tab-btn"
+                    data-tab="redes-sociales"
+                    role="tab" aria-selected="false" aria-controls="panelRedesSociales">
+              <i data-lucide="share-2" style="width:15px;height:15px;" aria-hidden="true"></i>
+              Redes Sociales
             </button>
           </div>
 
@@ -915,6 +921,44 @@
               <div id="creditosContainer">
                 <p class="loading-cell">Cargando créditos…</p>
               </div>
+            </div>
+          </div>
+
+          <!-- TAB PANEL: REDES SOCIALES -->
+          <div class="config-tab-panel"
+               id="panelRedesSociales" data-panel="redes-sociales"
+               role="tabpanel">
+            <div class="rrss-layout">
+
+              <!-- COLUMNA 1: Gestión -->
+              <div class="rrss-gestion-col">
+                <div class="rrss-col-header">
+                  <h3 class="config-subtitle">Redes Sociales</h3>
+                  <p id="rrssContador" class="rrss-contador">Tienes 0 de 5 redes sociales</p>
+                </div>
+
+                <div id="redesSocialesContainer" class="rrss-cards-list">
+                  <p class="loading-cell">Cargando…</p>
+                </div>
+
+                <button type="button" id="btnAgregarRed"
+                        class="btn btn-primary btn-rrss-agregar">
+                  <i data-lucide="plus" style="width:16px;height:16px;" aria-hidden="true"></i>
+                  Agregar red social
+                </button>
+              </div>
+
+              <!-- COLUMNA 2: Preview footer -->
+              <div class="rrss-preview-col">
+                <h3 class="config-subtitle">Vista previa en footer</h3>
+                <p class="field-hint" style="margin-bottom:0.75rem;">
+                  Solo se muestran las redes marcadas como <strong>Visibles</strong>.
+                </p>
+                <div id="rrssPreviewFooter" class="rrss-preview-footer">
+                  <span class="rrss-preview-empty">Sin redes visibles</span>
+                </div>
+              </div>
+
             </div>
           </div>
 
@@ -1087,6 +1131,7 @@
   <script src="js/usuarios-crud.js" defer></script>
   <script src="js/portafolio.js" defer></script>
   <script src="js/configuracion.js" defer></script>
+  <script src="js/redes-sociales.js" defer></script>
   <!-- Modal Container -->
   <div id="modalContainer"></div>
 
@@ -1109,5 +1154,84 @@
   <script src="js/init.js" defer></script>
   <!-- Seed data (solo localhost) -->
   <script src="js/seed.js" defer></script>
+
+  <!-- ========================
+       MODAL: REDES SOCIALES (Agregar / Editar)
+       ======================== -->
+  <div id="redesModal" class="modal-overlay" style="display:none;"
+       role="dialog" aria-modal="true" aria-labelledby="redesModalTitle">
+    <div class="modal-dialog modal-dialog--rrss">
+
+      <div class="modal-header">
+        <h3 id="redesModalTitle">Agregar red social</h3>
+        <button class="modal-close btn btn-ghost" id="redesModalCloseBtn" aria-label="Cerrar">
+          <i data-lucide="x" style="width:16px;height:16px;" aria-hidden="true"></i>
+        </button>
+      </div>
+
+      <div class="modal-body rrss-modal-body">
+
+        <!-- Columna izquierda: formulario -->
+        <div class="rrss-modal-form-col">
+
+          <div class="form-group">
+            <label for="rrssNombreSelect">Red social <span class="required">*</span></label>
+            <select id="rrssNombreSelect" class="select-input">
+              <option value="">— Selecciona —</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="rrssUrlInput">URL <span class="required">*</span></label>
+            <div class="rrss-url-row">
+              <input type="url" id="rrssUrlInput"
+                     class="search-input"
+                     placeholder="https://facebook.com/tuPágina"
+                     autocomplete="off">
+              <button type="button" id="rrssProbarEnlaceBtn"
+                      class="btn btn-ghost btn-sm"
+                      title="Probar enlace en nueva pestaña">
+                <i data-lucide="external-link" style="width:14px;height:14px;" aria-hidden="true"></i>
+              </button>
+            </div>
+            <span id="rrssUrlFeedback" class="rrss-url-feedback"></span>
+          </div>
+
+          <div class="form-group">
+            <label for="rrssColorInput">Color de fondo</label>
+            <div class="rrss-color-row">
+              <input type="color" id="rrssColorInput" value="#013B75" class="rrss-color-picker">
+              <span id="rrssColorLabel" class="rrss-color-label">#013B75</span>
+            </div>
+          </div>
+
+          <label class="rrss-visible-label">
+            <input type="checkbox" id="rrssVisibleCb" checked>
+            <span>Visible en footer público</span>
+          </label>
+
+        </div>
+
+        <!-- Columna derecha: selector de ícono -->
+        <div class="rrss-modal-icon-col">
+          <h4 class="rrss-icon-col-title">
+            <i data-lucide="grid-3x3" style="width:14px;height:14px;" aria-hidden="true"></i>
+            Ícono
+          </h4>
+          <div id="rrssIconGrid" class="rrss-icon-selector-grid">
+            <!-- generado por redes-sociales.js -->
+          </div>
+        </div>
+
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="rrssModalCancelBtn">Cancelar</button>
+        <button type="button" class="btn btn-primary"   id="rrssModalSaveBtn">Agregar</button>
+      </div>
+
+    </div>
+  </div>
+
 </body>
 </html>

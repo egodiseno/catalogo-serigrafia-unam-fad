@@ -5974,3 +5974,409 @@ input[type="file"]:hover {
     justify-content: center;
   }
 }
+
+
+/* ═══════════════════════════════════════════════════════════
+   REDES SOCIALES — Layout, Cards, Modal, Preview
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Layout principal: 2 columnas ──────────────────────── */
+.rrss-layout {
+  display:   grid;
+  grid-template-columns: 1fr 340px;
+  gap:       2rem;
+  align-items: start;
+}
+
+/* ── Cabecera de columna ────────────────────────────────── */
+.rrss-col-header {
+  margin-bottom: 1rem;
+}
+
+/* ── Contador "Tienes X de 5" ───────────────────────────── */
+.rrss-contador {
+  font-size:  0.8rem;
+  color:      var(--color-text-muted);
+  margin-top: 0.2rem;
+}
+
+.rrss-contador--full {
+  color:       var(--color-warning, #b45309);
+  font-weight: 700;
+}
+
+/* ── Lista de cards ─────────────────────────────────────── */
+.rrss-cards-list {
+  display:        flex;
+  flex-direction: column;
+  gap:            0.5rem;
+  margin-bottom:  1rem;
+}
+
+.rrss-empty {
+  padding:    1.5rem;
+  text-align: center;
+  color:      var(--color-text-muted);
+  border:     1px dashed var(--color-border);
+  border-radius: var(--radius);
+}
+
+/* ── Card individual ────────────────────────────────────── */
+.rrss-card {
+  display:       flex;
+  align-items:   center;
+  gap:           0.75rem;
+  padding:       0.65rem 0.75rem;
+  background:    #fff;
+  border:        1px solid var(--color-border);
+  border-radius: var(--radius);
+  transition:    border-color 150ms, box-shadow 150ms;
+  cursor:        default;
+}
+
+.rrss-card:hover {
+  border-color: var(--color-blue, #013B75);
+  box-shadow:   var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.08));
+}
+
+.rrss-card--hidden {
+  opacity: 0.6;
+}
+
+/* Arrastre */
+.rrss-card--dragging {
+  opacity:  0.45;
+  cursor:   grabbing;
+  border-style: dashed;
+}
+
+.rrss-card--over {
+  border-color:    var(--color-blue, #013B75);
+  border-style:    dashed;
+  background:      var(--color-primary-light, #EEF4FB);
+}
+
+/* ── Handle de arrastre ─────────────────────────────────── */
+.rrss-drag-handle {
+  cursor:  grab;
+  color:   var(--color-border);
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  padding: 0 0.1rem;
+}
+
+.rrss-drag-handle:hover {
+  color: var(--color-text-muted);
+}
+
+.rrss-drag-handle:active {
+  cursor: grabbing;
+}
+
+/* ── Burbuja de ícono ───────────────────────────────────── */
+.rrss-icon-bubble {
+  width:            40px;
+  height:           40px;
+  border-radius:    50%;
+  display:          flex;
+  align-items:      center;
+  justify-content:  center;
+  flex-shrink:      0;
+}
+
+/* ── Info de la red ─────────────────────────────────────── */
+.rrss-info {
+  flex:           1;
+  display:        flex;
+  flex-direction: column;
+  gap:            0.15rem;
+  min-width:      0;
+}
+
+.rrss-nombre {
+  font-size:   0.875rem;
+  font-weight: 600;
+  color:       var(--color-text);
+}
+
+.rrss-url {
+  font-size:     0.72rem;
+  color:         var(--color-text-muted);
+  overflow:      hidden;
+  text-overflow: ellipsis;
+  white-space:   nowrap;
+}
+
+/* ── Toggle visible ─────────────────────────────────────── */
+.rrss-visible-toggle {
+  display:    flex;
+  align-items: center;
+  cursor:     pointer;
+  flex-shrink: 0;
+}
+
+.rrss-visible-toggle input[type="checkbox"] {
+  width:       16px;
+  height:      16px;
+  cursor:      pointer;
+  accent-color: var(--color-blue, #013B75);
+}
+
+/* ── Botones de card ────────────────────────────────────── */
+.rrss-card-btns {
+  display:     flex;
+  align-items: center;
+  gap:         0.25rem;
+  flex-shrink: 0;
+}
+
+.rrss-edit-btn,
+.rrss-del-btn {
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+}
+
+/* ── Botón "Agregar red social" ─────────────────────────── */
+.btn-rrss-agregar {
+  width:       100%;
+  justify-content: center;
+  gap:         0.4rem;
+}
+
+.btn-rrss-agregar:disabled {
+  opacity: 0.5;
+  cursor:  not-allowed;
+}
+
+/* ── Vista previa en footer ─────────────────────────────── */
+.rrss-preview-footer {
+  background:      #1a1a1a;
+  border-radius:   var(--radius);
+  padding:         1.75rem;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  gap:             1rem;
+  flex-wrap:       wrap;
+  min-height:      100px;
+}
+
+.rrss-preview-icon {
+  width:            44px;
+  height:           44px;
+  border-radius:    50%;
+  display:          flex;
+  align-items:      center;
+  justify-content:  center;
+  text-decoration:  none;
+  transition:       transform 180ms ease, box-shadow 180ms ease;
+}
+
+.rrss-preview-icon:hover {
+  transform:  scale(1.15);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+}
+
+.rrss-preview-empty {
+  color:      #666;
+  font-size:  0.8rem;
+  font-style: italic;
+}
+
+/* ── Modal de Redes Sociales ────────────────────────────── */
+.modal-dialog--rrss {
+  max-width: 740px;
+  width:     96%;
+}
+
+.rrss-modal-body {
+  display:   grid;
+  grid-template-columns: 1fr 240px;
+  gap:       1.5rem;
+  min-height: 300px;
+}
+
+.rrss-modal-form-col {
+  display:        flex;
+  flex-direction: column;
+  gap:            0.875rem;
+}
+
+/* ── URL input + botón "Probar" ─────────────────────────── */
+.rrss-url-row {
+  display:     flex;
+  gap:         0.4rem;
+  align-items: center;
+}
+
+.rrss-url-row .search-input {
+  flex: 1;
+}
+
+.rrss-url-feedback {
+  display:    block;
+  font-size:  0.75rem;
+  margin-top: 0.2rem;
+  min-height: 1em;
+}
+
+.rrss-url-feedback--ok  { color: var(--color-success, #059669); }
+.rrss-url-feedback--err { color: var(--color-danger,  #dc2626); }
+
+/* Input states */
+.input--valid  { border-color: var(--color-success, #059669) !important; }
+.input--invalid{ border-color: var(--color-danger,  #dc2626) !important; }
+
+/* ── Color picker ───────────────────────────────────────── */
+.rrss-color-row {
+  display:     flex;
+  align-items: center;
+  gap:         0.6rem;
+}
+
+.rrss-color-picker {
+  width:         42px;
+  height:        36px;
+  padding:       2px;
+  border:        1px solid var(--color-border);
+  border-radius: var(--radius);
+  cursor:        pointer;
+  background:    none;
+}
+
+.rrss-color-label {
+  font-size:     0.8rem;
+  font-family:   monospace;
+  padding:       0.2rem 0.6rem;
+  border-radius: 999px;
+  border:        1px solid var(--color-border);
+}
+
+/* ── Visible checkbox en modal ──────────────────────────── */
+.rrss-visible-label {
+  display:     flex;
+  align-items: center;
+  gap:         0.4rem;
+  font-size:   0.875rem;
+  cursor:      pointer;
+  margin-top:  0.25rem;
+}
+
+.rrss-visible-label input[type="checkbox"] {
+  width:        16px;
+  height:       16px;
+  accent-color: var(--color-blue, #013B75);
+}
+
+/* ── Columna de ícono en modal ──────────────────────────── */
+.rrss-modal-icon-col {
+  display:       flex;
+  flex-direction: column;
+  gap:           0.5rem;
+  border-left:   1px solid var(--color-border);
+  padding-left:  1rem;
+}
+
+.rrss-icon-col-title {
+  font-size:   0.8rem;
+  font-weight: 600;
+  color:       var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display:     flex;
+  align-items: center;
+  gap:         0.3rem;
+  margin-bottom: 0.25rem;
+}
+
+/* ── Grid de íconos en modal ────────────────────────────── */
+.rrss-icon-selector-grid {
+  display:         grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap:             0.4rem;
+  max-height:      320px;
+  overflow-y:      auto;
+  padding-right:   4px;
+}
+
+.rrss-icon-option {
+  display:        flex;
+  flex-direction: column;
+  align-items:    center;
+  gap:            0.25rem;
+  padding:        0.45rem 0.2rem;
+  border:         2px solid var(--color-border);
+  border-radius:  var(--radius);
+  cursor:         pointer;
+  background:     transparent;
+  transition:     border-color 120ms, background 120ms;
+}
+
+.rrss-icon-option:hover {
+  border-color: var(--color-blue, #013B75);
+  background:   var(--color-primary-light, #EEF4FB);
+}
+
+.rrss-icon-option--selected {
+  border-color: var(--color-blue, #013B75);
+  background:   var(--color-primary-light, #EEF4FB);
+  box-shadow:   0 0 0 2px var(--color-blue, #013B75);
+}
+
+.rrss-icon-option-bubble {
+  width:           34px;
+  height:          34px;
+  border-radius:   50%;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+}
+
+.rrss-icon-option-name {
+  font-size:   0.6rem;
+  color:       var(--color-text-muted);
+  text-align:  center;
+  line-height: 1.1;
+  word-break:  break-word;
+}
+
+/* ── Responsive ─────────────────────────────────────────── */
+@media (max-width: 1023px) {
+  .rrss-layout {
+    grid-template-columns: 1fr;
+  }
+  .rrss-preview-col {
+    order: -1;   /* preview arriba en tablet */
+  }
+}
+
+@media (max-width: 767px) {
+  .rrss-preview-col {
+    display: none;   /* ocultar en mobile */
+  }
+  .rrss-modal-body {
+    grid-template-columns: 1fr;
+  }
+  .rrss-modal-icon-col {
+    border-left:    none;
+    border-top:     1px solid var(--color-border);
+    padding-left:   0;
+    padding-top:    1rem;
+    margin-top:     0.5rem;
+  }
+  .rrss-icon-selector-grid {
+    grid-template-columns: repeat(4, 1fr);
+    max-height: 200px;
+  }
+  .modal-dialog--rrss {
+    max-width: 100%;
+    margin:    0;
+    border-radius: var(--radius) var(--radius) 0 0;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+  }
+}

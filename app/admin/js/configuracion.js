@@ -64,8 +64,9 @@ class ConfiguracionManager {
   }
 
   async _cargarTab(tab) {
-    if (tab === 'acerca')   await this.loadAcerca();
-    if (tab === 'creditos') await this.loadCreditos();
+    if (tab === 'acerca')          await this.loadAcerca();
+    if (tab === 'creditos')        await this.loadCreditos();
+    if (tab === 'redes-sociales')  await window.redesSocialesManager?.inicializar();
   }
 
   // ══════════════════════════════════════════════════════
