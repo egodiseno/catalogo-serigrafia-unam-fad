@@ -10,22 +10,23 @@
  */
 
 // ── Catálogo de redes soportadas ─────────────────────────────────
+// icono = nombre de clase Bootstrap Icons (sin el prefijo "bi-")
 const REDES_CATALOG = [
-  { nombre: 'Facebook',  icono: 'facebook',  color: '#1877F2' },
-  { nombre: 'Instagram', icono: 'instagram', color: '#E1306C' },
-  { nombre: 'Twitter',   icono: 'twitter',   color: '#1DA1F2' },
-  { nombre: 'LinkedIn',  icono: 'linkedin',  color: '#0A66C2' },
-  { nombre: 'YouTube',   icono: 'youtube',   color: '#FF0000' },
-  { nombre: 'GitHub',    icono: 'github',    color: '#333333' },
-  { nombre: 'Dribbble',  icono: 'dribbble',  color: '#EA4C89' },
-  { nombre: 'Behance',   icono: 'globe',     color: '#1769FF' },
-  { nombre: 'TikTok',    icono: 'music-2',   color: '#000000' },
-  { nombre: 'Snapchat',  icono: 'camera',    color: '#FFFC00' },
-  { nombre: 'Pinterest', icono: 'pin',       color: '#E60023' },
-  { nombre: 'Reddit',    icono: 'message-circle', color: '#FF4500' },
-  { nombre: 'Twitch',    icono: 'twitch',    color: '#9146FF' },
-  { nombre: 'Discord',   icono: 'message-square', color: '#5865F2' },
-  { nombre: 'Mastodon',  icono: 'share-2',   color: '#6364FF' },
+  { nombre: 'Facebook',  icono: 'facebook',   color: '#1877F2' },
+  { nombre: 'Instagram', icono: 'instagram',  color: '#E1306C' },
+  { nombre: 'Twitter',   icono: 'twitter-x',  color: '#000000' },
+  { nombre: 'LinkedIn',  icono: 'linkedin',   color: '#0A66C2' },
+  { nombre: 'YouTube',   icono: 'youtube',    color: '#FF0000' },
+  { nombre: 'GitHub',    icono: 'github',     color: '#333333' },
+  { nombre: 'Dribbble',  icono: 'dribbble',   color: '#EA4C89' },
+  { nombre: 'Behance',   icono: 'behance',    color: '#1769FF' },
+  { nombre: 'TikTok',    icono: 'tiktok',     color: '#000000' },
+  { nombre: 'Snapchat',  icono: 'snapchat',   color: '#FFFD00' },
+  { nombre: 'Pinterest', icono: 'pinterest',  color: '#E60023' },
+  { nombre: 'Reddit',    icono: 'reddit',     color: '#FF4500' },
+  { nombre: 'Twitch',    icono: 'twitch',     color: '#9146FF' },
+  { nombre: 'Discord',   icono: 'discord',    color: '#5865F2' },
+  { nombre: 'Mastodon',  icono: 'mastodon',   color: '#6364FF' },
 ];
 
 const MAX_REDES = 5;
@@ -145,7 +146,7 @@ class RedesSocialesManager {
         </div>
 
         <div class="rrss-icon-bubble" style="background:${_esc(color)};">
-          <i data-lucide="${_esc(icono)}" style="width:22px;height:22px;color:#fff;" aria-hidden="true"></i>
+          <i class="bi bi-${_esc(icono)}" style="font-size:22px;color:#fff;" aria-hidden="true"></i>
         </div>
 
         <div class="rrss-info">
@@ -203,11 +204,9 @@ class RedesSocialesManager {
            class="rrss-preview-icon"
            style="background:${_esc(color)};"
            title="${_esc(r.nombre)}">
-          <i data-lucide="${_esc(icono)}" style="width:20px;height:20px;color:#fff;" aria-hidden="true"></i>
+          <i class="bi bi-${_esc(icono)}" style="font-size:20px;color:#fff;" aria-hidden="true"></i>
         </a>`;
     }).join('');
-
-    window.IconRegistry?.init();
   }
 
   // ── Contador ─────────────────────────────────────────
@@ -346,12 +345,11 @@ class RedesSocialesManager {
                 data-color="${_esc(c.color)}"
                 title="${_esc(c.nombre)}">
           <div class="rrss-icon-option-bubble" style="background:${_esc(c.color)};">
-            <i data-lucide="${_esc(c.icono)}" style="width:20px;height:20px;color:#fff;" aria-hidden="true"></i>
+            <i class="bi bi-${_esc(c.icono)}" style="font-size:20px;color:#fff;" aria-hidden="true"></i>
           </div>
           <span class="rrss-icon-option-name">${_esc(c.nombre)}</span>
         </button>
       `).join('');
-      window.IconRegistry?.init();
     }
   }
 
@@ -457,7 +455,6 @@ class RedesSocialesManager {
     const modal = document.getElementById('redesModal');
     if (modal) {
       modal.style.display = 'flex';
-      window.IconRegistry?.init();
       document.getElementById('rrssNombreSelect')?.focus();
     }
   }
