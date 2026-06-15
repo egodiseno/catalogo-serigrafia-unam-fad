@@ -2146,3 +2146,174 @@ body.is-scrolled .filters {
     justify-content: center;
   }
 }
+
+/* ============================================================
+   CRÉDITOS — Acerca + Créditos dinámicos
+   ============================================================ */
+
+/* Breadcrumb ─────────────────────────────────────────────── */
+.breadcrumb {
+  padding-block: var(--space-2) var(--space-3);
+  font-size: 0.8125rem;
+  color: var(--color-muted);
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.breadcrumb a {
+  color: var(--color-blue);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.breadcrumb a:hover {
+  text-decoration: underline;
+}
+
+.breadcrumb__sep {
+  margin-inline: 0.5rem;
+  color: var(--color-muted);
+  opacity: 0.6;
+  user-select: none;
+}
+
+/* Sección Acerca ─────────────────────────────────────────── */
+.creditos-acerca {
+  max-width: 760px;
+  margin-inline: auto;
+  padding-block: var(--space-5) var(--space-6);
+  border-bottom: 1px solid var(--color-line);
+  margin-bottom: var(--space-6);
+}
+
+.creditos-acerca h2 {
+  font-family: var(--font-serif);
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--color-blue-deep);
+  margin: 0 0 var(--space-3);
+  line-height: 1.25;
+}
+
+#acercaContenido {
+  font-size: 1rem;
+  line-height: 1.8;
+  color: var(--color-ink);
+}
+
+#acercaContenido p {
+  margin: 0 0 1.2em;
+}
+
+#acercaContenido p:last-child {
+  margin-bottom: 0;
+}
+
+/* Sección Créditos ──────────────────────────────────────── */
+.creditos-section {
+  max-width: 760px;
+  margin-inline: auto;
+  padding-block: 0 var(--space-6);
+}
+
+.creditos-section > h2 {
+  font-family: var(--font-serif);
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--color-blue-deep);
+  margin: 0 0 var(--space-5);
+  padding-bottom: var(--space-2);
+  border-bottom: 2px solid var(--color-gold);
+  line-height: 1.25;
+}
+
+/* Subsecciones (UNAM / FAD / TALLER / WEB) */
+.creditos-subsection {
+  margin-bottom: var(--space-5);
+}
+
+.creditos-subsection h3 {
+  font-family: var(--font-sans);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-blue);
+  margin: 0 0 var(--space-3);
+  padding-bottom: var(--space-1);
+  border-bottom: 1px solid var(--color-line);
+}
+
+/* Personas */
+.creditos-personas {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.creditos-person {
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid rgba(228, 221, 207, 0.4);
+}
+
+.creditos-person:last-child {
+  border-bottom: none;
+}
+
+.creditos-person__name {
+  font-size: 1.0625rem;
+  font-weight: 600;
+  color: var(--color-ink);
+  margin: 0 0 2px;
+  line-height: 1.3;
+}
+
+.creditos-person__role {
+  font-size: 0.875rem;
+  color: var(--color-muted);
+  font-style: italic;
+  margin: 0;
+}
+
+/* Spinner inline para acerca/creditos */
+.creditos-loading {
+  justify-content: flex-start;
+  padding: var(--space-3) 0;
+}
+
+/* ── Responsive ──────────────────────────────────────────── */
+@media (max-width: 767px) {
+  .creditos-acerca h2,
+  .creditos-section > h2 {
+    font-size: 1.375rem;
+  }
+
+  .creditos-acerca {
+    padding-block: var(--space-4) var(--space-5);
+    margin-bottom: var(--space-4);
+  }
+
+  .creditos-subsection {
+    margin-bottom: var(--space-4);
+  }
+
+  .creditos-subsection h3 {
+    font-size: 0.625rem;
+    letter-spacing: 0.1em;
+  }
+
+  .creditos-person__name {
+    font-size: 1rem;
+  }
+
+  .creditos-person__role {
+    font-size: 0.8125rem;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .creditos-acerca h2,
+  .creditos-section > h2 {
+    font-size: 1.5rem;
+  }
+}

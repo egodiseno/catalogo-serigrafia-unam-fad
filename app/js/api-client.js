@@ -210,6 +210,57 @@ export const api = {
   },
 
   /**
+   * Obtener texto "Acerca" desde configuracion_acerca
+   * @returns {Promise<string>} contenido o cadena vacía si falla
+   */
+  async getAcerca() {
+    try {
+      const { data, error } = await supabase
+        .from('configuracion_acerca')
+        .select('contenido')
+        .limit(1)
+        .single();
+
+      if (error) {
+        console.error('❌ Error fetching acerca:', error);
+        return '';
+      }
+
+      console.log('✅ Acerca cargada');
+      return data?.contenido ?? '';
+    } catch (err) {
+      console.error('❌ Exception getAcerca:', err);
+      return '';
+    }
+  },
+
+  /**
+   * Obtener créditos visibles ordenados por sección y orden
+   * @returns {Promise<Array>} array de registros { nombre, cargo, seccion, orden } o []
+   */
+  async getCreditos() {
+    try {
+      const { data, error } = await supabase
+        .from('creditos')
+        .select('id, nombre, cargo, seccion, orden')
+        .eq('visible', true)
+        .order('seccion', { ascending: true })
+        .order('orden', { ascending: true });
+
+      if (error) {
+        console.error('❌ Error fetching creditos:', error);
+        return [];
+      }
+
+      console.log(`✅ Créditos cargados: ${data.length}`);
+      return data;
+    } catch (err) {
+      console.error('❌ Exception getCreditos:', err);
+      return [];
+    }
+  },
+
+  /**
    * Obtener todos los tags
    */
   async getTags() {

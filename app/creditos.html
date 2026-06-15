@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Técnicas Serigráficas — Catálogo Digital de Obra Serigráfica — UNAM / FAD">
-  <title>Técnicas — Catálogo de Obra Serigráfica</title>
+  <meta name="description" content="Créditos — Catálogo Digital de Obra Serigráfica — UNAM / FAD">
+  <title>Créditos — Catálogo de Obra Serigráfica</title>
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -35,10 +35,10 @@
     </a>
 
     <nav class="main-nav" aria-label="Navegación principal">
-      <a href="index.html"    class="nav-link" data-page="catalogo"  data-i18n data-es="Catálogo"  data-en="Catalog">Catálogo</a>
+      <a href="index.html"   class="nav-link" data-page="catalogo"  data-i18n data-es="Catálogo"  data-en="Catalog">Catálogo</a>
       <a href="tecnicas.html" class="nav-link" data-page="tecnicas"  data-i18n data-es="Técnicas"  data-en="Techniques">Técnicas</a>
-      <a href="acerca.html"   class="nav-link" data-page="acerca"    data-i18n data-es="Acerca"    data-en="About">Acerca</a>
-      <a href="creditos.html" class="nav-link" data-page="creditos"  data-i18n data-es="Créditos"  data-en="Credits">Créditos</a>
+      <a href="acerca.html"  class="nav-link" data-page="acerca"    data-i18n data-es="Acerca"    data-en="About">Acerca</a>
+      <a href="creditos.html" class="nav-link" data-page="creditos" data-i18n data-es="Créditos"  data-en="Credits">Créditos</a>
     </nav>
 
     <div class="header-actions">
@@ -67,58 +67,51 @@
   <div class="container">
     <p class="hero__eyebrow" data-i18n data-es="UNAM · FAD · Taller de Serigrafía" data-en="UNAM · FAD · Printmaking Workshop">UNAM · FAD · Taller de Serigrafía</p>
     <h1 class="hero__title">
-      <span data-i18n data-es="Técnicas" data-en="Techniques">Técnicas</span>
-      <span class="accent" data-i18n data-es="Serigráficas" data-en="of Printmaking">Serigráficas</span>
+      <span data-i18n data-es="Acerca &amp;" data-en="About &amp;">Acerca &amp;</span>
+      <span class="accent" data-i18n data-es="Créditos" data-en="Credits">Créditos</span>
     </h1>
     <p class="hero__lead" data-i18n
-       data-es="Explora las obras del Taller de Serigrafía organizadas por técnica."
-       data-en="Browse the Printmaking Workshop's works organized by technique.">
-      Explora las obras del Taller de Serigrafía organizadas por técnica.
+       data-es="Información sobre el Taller de Serigrafía y las personas que hacen posible este catálogo."
+       data-en="Information about the Printmaking Workshop and the people who make this catalog possible.">
+      Información sobre el Taller de Serigrafía y las personas que hacen posible este catálogo.
     </p>
   </div>
 </section>
 
-<!-- Contenido principal -->
-<main id="contenido" class="catalog">
+<main id="contenido">
   <div class="container">
 
-    <!-- Grid de técnicas -->
-    <section aria-label="Técnicas disponibles">
-      <div class="techniques-grid" data-techniques-grid aria-live="polite">
-        <!-- Poblado dinámicamente -->
-      </div>
-    </section>
+    <!-- Breadcrumb -->
+    <nav class="breadcrumb" aria-label="Ubicación en el sitio">
+      <a href="index.html" data-i18n data-es="Inicio" data-en="Home">Inicio</a>
+      <span class="breadcrumb__sep" aria-hidden="true">›</span>
+      <span aria-current="page" data-i18n data-es="Créditos" data-en="Credits">Créditos</span>
+    </nav>
 
-    <!-- Obras de la técnica seleccionada (oculto hasta seleccionar) -->
-    <section class="techniques-works" data-works-section hidden aria-label="Obras de la técnica seleccionada">
+    <!-- ── SECCIÓN ACERCA ─────────────────────────────────── -->
+    <section class="creditos-acerca" aria-labelledby="heading-acerca">
+      <h2 id="heading-acerca" data-i18n data-es="Acerca del Taller" data-en="About the Workshop">
+        Acerca del Taller
+      </h2>
 
-      <div class="techniques-works__header">
-        <h2 data-works-heading></h2>
-        <button type="button" class="btn--outline" data-back-techniques>
-          <i data-lucide="arrow-left" aria-hidden="true"></i>
-          <span data-i18n data-es="Ver todas las técnicas" data-en="View all techniques">Ver todas las técnicas</span>
-        </button>
-      </div>
-
-      <ul class="artworks" data-works-grid
-          aria-label="Obras de la técnica" aria-live="polite"></ul>
-
-      <p class="empty-state" data-empty hidden
-         data-i18n data-es="No encontramos obras con esta técnica." data-en="No works found for this technique.">
-        No encontramos obras con esta técnica.
-      </p>
-
-      <div class="load-more-wrap" data-loadmore-wrap hidden>
-        <button type="button" class="btn btn--load" data-loadmore
-                data-i18n data-es="Cargar más" data-en="Load more">
-          Cargar más
-        </button>
-      </div>
-
-      <div class="loading-spinner" data-loading hidden>
+      <div class="loading-spinner creditos-loading" data-loading-acerca>
         <div class="spinner"></div>
       </div>
 
+      <div id="acercaContenido" aria-live="polite"></div>
+    </section>
+
+    <!-- ── SECCIÓN CRÉDITOS ───────────────────────────────── -->
+    <section class="creditos-section" aria-labelledby="heading-creditos">
+      <h2 id="heading-creditos" data-i18n data-es="Créditos" data-en="Credits">
+        Créditos
+      </h2>
+
+      <div class="loading-spinner creditos-loading" data-loading-creditos>
+        <div class="spinner"></div>
+      </div>
+
+      <div id="seccionCreditos" aria-live="polite"></div>
     </section>
 
   </div>
@@ -141,8 +134,8 @@
       <div class="footer-col">
         <h3 data-i18n data-es="Catálogo" data-en="Catalog">Catálogo</h3>
         <ul>
-          <li><a href="index.html" data-i18n data-es="Todas las obras" data-en="All works">Todas las obras</a></li>
-          <li><a href="tecnicas.html" data-i18n data-es="Por técnica" data-en="By technique">Por técnica</a></li>
+          <li><a href="index.html"    data-i18n data-es="Todas las obras" data-en="All works">Todas las obras</a></li>
+          <li><a href="tecnicas.html" data-i18n data-es="Por técnica"     data-en="By technique">Por técnica</a></li>
         </ul>
       </div>
 
@@ -165,13 +158,8 @@
 <script>
   // Active nav
   (function () {
-    const path = window.location.pathname;
-    const page = path.includes('tecnicas')  ? 'tecnicas'
-               : path.includes('acerca')    ? 'acerca'
-               : path.includes('creditos')  ? 'creditos'
-               : 'catalogo';
     document.querySelectorAll('[data-page]').forEach(el => {
-      if (el.dataset.page === page) {
+      if (el.dataset.page === 'creditos') {
         el.classList.add('active');
         el.setAttribute('aria-current', 'page');
       }
@@ -194,13 +182,13 @@
   })();
 </script>
 <script type="module">
-  import { PublicTechniques } from './js/public-techniques.js';
+  import { PublicCreditos } from './js/public-creditos.js';
   import { i18n } from './js/i18n.js';
 
   document.addEventListener('DOMContentLoaded', async () => {
     i18n.init();
-    const techniques = new PublicTechniques();
-    await techniques.init();
+    const creditos = new PublicCreditos();
+    await creditos.init();
   });
 </script>
 
