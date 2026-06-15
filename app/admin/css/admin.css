@@ -2198,73 +2198,105 @@ input[type="file"]:hover {
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ============ TAG SEARCH UI (ISSUE-05) ============ */
-.tag-search-wrapper {
-  position: relative;
-}
-
-.tag-search-row {
-  display: flex;
-  gap: var(--spacing-sm);
-  align-items: center;
-}
-
-.tag-search-row .search-input {
-  flex: 1;
-  margin: 0;
-}
-
+/* ============ TAG SEARCH UI (legacy — mantenido para compatibilidad) ============ */
+.tag-search-wrapper { position: relative; }
+.tag-search-row { display: flex; gap: var(--spacing-sm); align-items: center; }
+.tag-search-row .search-input { flex: 1; margin: 0; }
 .tag-suggestions-dropdown {
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 0;
-  right: 0;
-  background: #fff;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-md);
-  z-index: 200;
-  max-height: 220px;
-  overflow-y: auto;
+  position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+  background: #fff; border: 1px solid var(--color-border);
+  border-radius: var(--radius); box-shadow: var(--shadow-md);
+  z-index: 200; max-height: 220px; overflow-y: auto;
+}
+.tag-suggestion-item, .tag-suggestion-create {
+  padding: 8px 14px; font-size: var(--font-size-sm);
+  cursor: pointer; transition: background 120ms;
+}
+.tag-suggestion-item:hover, .tag-suggestion-item.focused { background: var(--color-blue-light, #eef4fb); }
+.tag-suggestion-create { color: var(--color-blue); font-weight: 500; border-top: 1px solid var(--color-border); }
+.tag-suggestion-create:hover { background: var(--color-blue-light); }
+.tag-selector { display: flex; gap: var(--spacing-sm); align-items: center; }
+.tag-selector select { flex: 1; }
+
+/* ============ TAG PILLS SELECTOR (UX v2) ============ */
+/* Contenedor: zona donde aparecen todos los pills */
+.tag-pills-container {
+  display:        flex;
+  flex-wrap:      wrap;
+  gap:            0.4rem;
+  padding:        0.625rem;
+  background:     var(--color-surface-alt);
+  border:         1px solid var(--color-border);
+  border-radius:  var(--radius);
+  min-height:     48px;
+  align-items:    flex-start;
+  align-content:  flex-start;
 }
 
-.tag-suggestion-item,
-.tag-suggestion-create {
-  padding: 8px 14px;
-  font-size: var(--font-size-sm);
-  cursor: pointer;
-  transition: background 120ms;
+.tag-pills-container .field-hint {
+  margin: 0;
+  padding: 0.125rem 0;
 }
 
-.tag-suggestion-item:hover,
-.tag-suggestion-item.focused {
-  background: var(--color-blue-light, #eef4fb);
+/* Wrapper de cada pill (es el <label>) */
+.tag-pill-label {
+  display:      inline-flex;
+  align-items:  center;
+  cursor:       pointer;
+  user-select:  none;
 }
 
-.tag-suggestion-item.focused {
-  outline: 2px solid var(--color-blue, #013b75);
-  outline-offset: -2px;
+/* Texto visible del pill */
+.tag-pill-text {
+  display:         inline-block;
+  padding:         0.2rem 0.7rem;
+  border-radius:   999px;
+  font-size:       0.775rem;
+  font-weight:     500;
+  border:          1.5px solid var(--color-border);
+  background:      #ffffff;
+  color:           var(--color-text);
+  line-height:     1.5;
+  transition:      background 140ms ease, border-color 140ms ease, color 140ms ease;
 }
 
-.tag-suggestion-create {
-  color: var(--color-blue);
-  font-weight: 500;
-  border-top: 1px solid var(--color-border);
+.tag-pill-label:hover .tag-pill-text {
+  border-color: var(--color-blue);
+  color:        var(--color-blue);
+  background:   var(--color-blue-light);
 }
 
-.tag-suggestion-create:hover {
-  background: var(--color-blue-light);
+.tag-pill-label.tag-pill--selected .tag-pill-text {
+  background:   var(--color-blue);
+  border-color: var(--color-blue);
+  color:        #ffffff;
 }
 
-/* ============ TAG SELECTOR (legacy, kept for compat) ============ */
-.tag-selector {
-  display: flex;
-  gap: var(--spacing-sm);
-  align-items: center;
+/* Focus visible para accesibilidad (navegación por teclado) */
+.tag-pill-checkbox:focus-visible + .tag-pill-text {
+  outline:        2px solid var(--color-blue);
+  outline-offset: 2px;
 }
 
-.tag-selector select {
-  flex: 1;
+/* ── sr-only: oculto visualmente pero accesible ────── */
+.sr-only {
+  position:   absolute;
+  width:      1px;
+  height:     1px;
+  padding:    0;
+  margin:     -1px;
+  overflow:   hidden;
+  clip:       rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border:     0;
+}
+
+/* ── Campo readonly (artista EDITOR) ───────────────── */
+.field--readonly {
+  background-color: var(--color-surface-alt) !important;
+  cursor:           not-allowed;
+  opacity:          0.8;
+  pointer-events:   none;
 }
 
 /* ============ EMPTY STATE CTA (ISSUE-13) ============ */

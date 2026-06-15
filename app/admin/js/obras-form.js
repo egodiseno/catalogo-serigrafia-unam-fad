@@ -78,17 +78,28 @@ document.addEventListener('DOMContentLoaded', () => {
       fEstado.value = rolActual === 'editor' ? 'En Revisión' : 'Borrador';
     }
 
+    // ── Artista: readonly para EDITOR ────────────────────
+    if (rolActual === 'editor') {
+      if (!id) {
+        // Nueva obra: autocargar nombre/email del usuario activo
+        fArtista.value = window.usuarioActual?.nombre?.trim()
+                       || window.usuarioActual?.email?.trim()
+                       || '';
+      }
+      fArtista.readOnly = true;
+      fArtista.classList.add('field--readonly');
+      fArtista.title    = 'El artista se asigna automáticamente';
+    } else {
+      fArtista.readOnly = false;
+      fArtista.classList.remove('field--readonly');
+      fArtista.title    = '';
+    }
+
     // ── Botones crear: según rol ───────────────────────────
     // "+ Nueva técnica": solo ADMIN y SUPER_EDITOR
     if (btnNuevaTecnicaInline) {
       btnNuevaTecnicaInline.style.display = rolActual === 'editor' ? 'none' : '';
     }
-    // "+ Nuevo Tag": siempre oculto (Ajuste 6 — crear tags solo desde sección Tags)
-    const btnNuevoTagInline = document.getElementById('btnNuevoTagInline');
-    if (btnNuevoTagInline) btnNuevoTagInline.style.display = 'none';
-
-    // Creación de tags en dropdown: desactivada para EDITOR
-    window.TagsInObra?.setAllowCreate(rolActual !== 'editor');
 
     modal.style.display = 'flex';
     fTitulo.focus();
@@ -450,7 +461,12 @@ document.addEventListener('DOMContentLoaded', () => {
   function resetForm() {
     form.reset();
     fId.value = '';
-    if (fEstado) { fEstado.disabled = false; fEstado.title = ''; }
+    if (fEstado)  { fEstado.disabled  = false; fEstado.title  = ''; }
+    if (fArtista) {
+      fArtista.readOnly = false;
+      fArtista.title    = '';
+      fArtista.classList.remove('field--readonly');
+    }
     window.MultiImageUpload?.reset();
     window.TagsInObra?.reset();
     hideAlert();

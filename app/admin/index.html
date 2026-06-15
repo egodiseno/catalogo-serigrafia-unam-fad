@@ -678,7 +678,7 @@
                 <!-- EDITOR -->
                 <button class="action-btn action-btn--highlight"
                         data-action-for-roles="editor"
-                        onclick="window.showSection('obras'); setTimeout(() => window.obrasForm?.open?.(), 250);">
+                        onclick="window.showSection('mi-portafolio'); setTimeout(() => window.obrasForm?.open?.(), 300);">
                   <i data-lucide="plus-circle" style="width:24px;height:24px;" aria-hidden="true"></i>
                   Nueva obra
                 </button>
@@ -940,20 +940,13 @@
             <hr class="form-divider">
           </div>
 
-          <!-- Tags -->
+          <!-- Tags: selector visual de pills -->
           <div class="form-group">
-            <label>Tags</label>
-            <div class="tag-search-wrapper">
-              <div class="tag-search-row">
-                <input type="text" id="tagSearchInput" placeholder="Buscar o crear tag…" autocomplete="off" class="search-input"
-                       role="combobox" aria-label="Buscar tags" aria-autocomplete="list"
-                       aria-expanded="false" aria-controls="tagSuggestionsDropdown" aria-haspopup="listbox">
-                <button type="button" id="btnNuevoTagInline" class="btn btn-secondary btn-sm"><i data-lucide="plus" style="width:14px; height:14px;" aria-hidden="true"></i> Nuevo</button>
-              </div>
-              <div id="tagSuggestionsDropdown" class="tag-suggestions-dropdown" style="display:none;"
-                   role="listbox" aria-label="Sugerencias de tags"></div>
+            <label>Tags <span class="field-hint">(selecciona los que apliquen)</span></label>
+            <div id="tagPillsContainer" class="tag-pills-container"
+                 role="group" aria-label="Seleccionar tags">
+              <span class="field-hint">Cargando tags…</span>
             </div>
-            <div id="selectedTagsList"></div>
           </div>
 
           <div id="formAlert" class="form-alert" style="display:none;"></div>
