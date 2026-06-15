@@ -100,8 +100,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnNuevaTecnicaInline) {
       btnNuevaTecnicaInline.style.display = rolActual === 'editor' ? 'none' : '';
     }
+    // "+ Nuevo tag": solo ADMIN y SUPER_EDITOR
+    window.TagsInObra?.setAllowCreate(rolActual !== 'editor');
 
     modal.style.display = 'flex';
+    window.IconRegistry?.init();
     fTitulo.focus();
   }
 
@@ -288,6 +291,13 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
+    // ── Validar máximo de tags ────────────────────────────
+    const tagsSelec = window.TagsInObra?.getTags() ?? [];
+    if (tagsSelec.length > 3) {
+      showAlert(`Máximo 3 tags por obra. Tienes ${tagsSelec.length} seleccionados.`, 'error');
+      return;
+    }
+
     // ── Validar máximo de imágenes (nuevas + ya guardadas) ──
     const nuevasImgs    = window.MultiImageUpload?.getImages()?.length ?? 0;
     const existingImgs  = document.querySelectorAll('#existingImagesList .existing-image-item').length;
@@ -471,6 +481,11 @@ document.addEventListener('DOMContentLoaded', () => {
     window.TagsInObra?.reset();
     hideAlert();
     hideInlineTecnica();
+    // Cerrar formulario inline de tags si estaba abierto
+    const inlineTagForm = document.getElementById('inlineTagForm');
+    if (inlineTagForm) inlineTagForm.style.display = 'none';
+    const inlineTagInput = document.getElementById('inlineTagInput');
+    if (inlineTagInput) inlineTagInput.value = '';
     const existingSection = document.getElementById('existingImagesSection');
     if (existingSection) existingSection.style.display = 'none';
     const existingList = document.getElementById('existingImagesList');

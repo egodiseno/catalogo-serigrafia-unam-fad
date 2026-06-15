@@ -259,6 +259,10 @@
           <i data-lucide="activity" style="width:18px; height:18px;" aria-hidden="true"></i>
           <span class="nav-label">Logs</span>
         </button>
+        <button class="nav-item" data-section="configuracion" data-show-for-roles="admin">
+          <i data-lucide="settings-2" style="width:18px; height:18px;" aria-hidden="true"></i>
+          <span class="nav-label">Configuración</span>
+        </button>
         <button class="nav-item" data-section="mi-portafolio" data-show-for-roles="editor">
           <i data-lucide="layout-grid" style="width:18px; height:18px;" aria-hidden="true"></i>
           <span class="nav-label">Mi Portafolio</span>
@@ -845,6 +849,77 @@
           </div>
         </section><!-- /#miPortafolioSection -->
 
+        <!-- ========== CONFIGURACIÓN SECTION ========== -->
+        <section id="configuracionSection" class="section">
+          <div class="section-header">
+            <div>
+              <h2>Configuración</h2>
+              <p>Acerca del catálogo y créditos institucionales</p>
+            </div>
+          </div>
+
+          <!-- Tabs -->
+          <div class="config-tabs" role="tablist" aria-label="Secciones de configuración">
+            <button class="config-tab-btn config-tab-btn--active"
+                    data-tab="acerca"
+                    role="tab" aria-selected="true" aria-controls="panelAcerca">
+              <i data-lucide="file-text" style="width:15px;height:15px;" aria-hidden="true"></i>
+              Acerca
+            </button>
+            <button class="config-tab-btn"
+                    data-tab="creditos"
+                    role="tab" aria-selected="false" aria-controls="panelCreditos">
+              <i data-lucide="award" style="width:15px;height:15px;" aria-hidden="true"></i>
+              Créditos
+            </button>
+          </div>
+
+          <!-- TAB PANEL: ACERCA -->
+          <div class="config-tab-panel config-tab-panel--active"
+               id="panelAcerca" data-panel="acerca"
+               role="tabpanel" aria-labelledby="">
+            <div class="config-panel-inner">
+              <h3 class="config-subtitle">Acerca del Catálogo</h3>
+              <p class="field-hint" style="margin-bottom: var(--spacing-md);">
+                Este texto aparece en la página pública <strong>Acerca</strong>.
+              </p>
+
+              <div class="form-group">
+                <label for="configuracionAcercaTexto">Descripción</label>
+                <textarea id="configuracionAcercaTexto"
+                          class="form-textarea"
+                          rows="9"
+                          placeholder="Escribe la descripción del catálogo…"
+                          maxlength="5000"></textarea>
+              </div>
+
+              <div class="config-acerca-footer">
+                <span id="acercaTimestamp" class="config-timestamp"></span>
+                <button type="button" id="btnGuardarAcerca" class="btn btn-primary">
+                  <i data-lucide="save" style="width:15px;height:15px;" aria-hidden="true"></i>
+                  Guardar cambios
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB PANEL: CRÉDITOS -->
+          <div class="config-tab-panel"
+               id="panelCreditos" data-panel="creditos"
+               role="tabpanel" aria-labelledby="">
+            <div class="config-panel-inner">
+              <h3 class="config-subtitle">Créditos institucionales</h3>
+              <p class="field-hint" style="margin-bottom: var(--spacing-md);">
+                Gestiona las personas que aparecen en los créditos públicos. Marca <strong>Visible</strong> para mostrar cada entrada.
+              </p>
+              <div id="creditosContainer">
+                <p class="loading-cell">Cargando créditos…</p>
+              </div>
+            </div>
+          </div>
+
+        </section><!-- /#configuracionSection -->
+
       </div>
     </main>
   </div>
@@ -942,10 +1017,31 @@
 
           <!-- Tags: selector visual de pills -->
           <div class="form-group">
-            <label>Tags <span class="field-hint">(selecciona los que apliquen)</span></label>
+            <label>Tags <span class="field-hint">(máx. 3 por obra)</span></label>
             <div id="tagPillsContainer" class="tag-pills-container"
                  role="group" aria-label="Seleccionar tags">
               <span class="field-hint">Cargando tags…</span>
+            </div>
+
+            <!-- Footer: contador + botón crear tag -->
+            <div class="tag-pills-footer">
+              <span id="tagCounter" class="tag-counter">0 de 3</span>
+              <button type="button" id="btnCrearTagInline" class="btn btn-ghost btn-xs" style="display:none;" aria-label="Crear nuevo tag">
+                <i data-lucide="plus" style="width:13px;height:13px;" aria-hidden="true"></i>
+                Nuevo tag
+              </button>
+            </div>
+
+            <!-- Formulario inline para crear tag (solo ADMIN / SUPER_EDITOR) -->
+            <div id="inlineTagForm" class="inline-tag-form" style="display:none;" role="group" aria-label="Crear nuevo tag">
+              <input type="text"
+                     id="inlineTagInput"
+                     class="search-input"
+                     placeholder="Nombre del nuevo tag…"
+                     maxlength="80"
+                     autocomplete="off">
+              <button type="button" id="btnConfirmTagInline" class="btn btn-primary btn-sm">Crear</button>
+              <button type="button" id="btnCancelTagInline"  class="btn btn-ghost   btn-sm">Cancelar</button>
             </div>
           </div>
 
@@ -990,6 +1086,7 @@
   <script src="js/csv-import.js" defer></script>
   <script src="js/usuarios-crud.js" defer></script>
   <script src="js/portafolio.js" defer></script>
+  <script src="js/configuracion.js" defer></script>
   <!-- Modal Container -->
   <div id="modalContainer"></div>
 

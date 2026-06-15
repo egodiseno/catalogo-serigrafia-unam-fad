@@ -41,6 +41,10 @@ const PERMISOS = {
     // Logs
     'logs.ver': true,
 
+    // Configuración — solo ADMIN
+    'configuracion.ver':    true,
+    'configuracion.editar': true,
+
     // Portafolio — ADMIN no usa portafolio
     'portafolio.ver': false,
 
@@ -82,6 +86,10 @@ const PERMISOS = {
     // Logs — solo ADMIN
     'logs.ver': false,
 
+    // Configuración — solo ADMIN
+    'configuracion.ver':    false,
+    'configuracion.editar': false,
+
     // Portafolio — SUPER_EDITOR no usa portafolio
     'portafolio.ver': false,
 
@@ -122,6 +130,10 @@ const PERMISOS = {
 
     // Logs — sin acceso
     'logs.ver': false,
+
+    // Configuración — sin acceso
+    'configuracion.ver':    false,
+    'configuracion.editar': false,
 
     // Portafolio — EDITOR solo usa Mi Portafolio
     'portafolio.ver': true,

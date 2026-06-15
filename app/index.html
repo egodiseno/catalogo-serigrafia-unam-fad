@@ -35,8 +35,9 @@
     </a>
 
     <nav class="main-nav" aria-label="Navegación principal">
-      <a href="#" class="nav-link" data-i18n data-es="Catálogo" data-en="Catalog">Catálogo</a>
-      <a href="#" class="nav-link" data-i18n data-es="Acerca" data-en="About">Acerca</a>
+      <a href="index.html" class="nav-link" data-page="catalogo" data-i18n data-es="Catálogo" data-en="Catalog">Catálogo</a>
+      <a href="tecnicas.html" class="nav-link" data-page="tecnicas" data-i18n data-es="Técnicas" data-en="Techniques">Técnicas</a>
+      <a href="acerca.html" class="nav-link" data-page="acerca" data-i18n data-es="Acerca" data-en="About">Acerca</a>
     </nav>
 
     <div class="header-actions">
@@ -65,8 +66,9 @@
         <i data-lucide="menu" aria-hidden="true"></i>
       </summary>
       <div class="nav-mobile__panel">
-        <a href="#" class="nav-link nav-mobile__link" data-i18n data-es="Catálogo" data-en="Catalog">Catálogo</a>
-        <a href="#" class="nav-link nav-mobile__link" data-i18n data-es="Acerca" data-en="About">Acerca</a>
+        <a href="index.html" class="nav-link nav-mobile__link" data-page="catalogo" data-i18n data-es="Catálogo" data-en="Catalog">Catálogo</a>
+        <a href="tecnicas.html" class="nav-link nav-mobile__link" data-page="tecnicas" data-i18n data-es="Técnicas" data-en="Techniques">Técnicas</a>
+        <a href="acerca.html" class="nav-link nav-mobile__link" data-page="acerca" data-i18n data-es="Acerca" data-en="About">Acerca</a>
       </div>
     </details>
   </div>
@@ -238,6 +240,21 @@
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  // Active nav: marcar el link de la página actual
+  (function () {
+    const path = window.location.pathname;
+    const page = path.includes('tecnicas') ? 'tecnicas'
+               : path.includes('acerca')   ? 'acerca'
+               : 'catalogo';
+    document.querySelectorAll('[data-page]').forEach(el => {
+      if (el.dataset.page === page) {
+        el.classList.add('active');
+        el.setAttribute('aria-current', 'page');
+      }
+    });
+  })();
+</script>
 <script>
   // Sticky filter scroll-shadow
   (function () {

@@ -340,9 +340,9 @@ export class PublicCatalog {
             <h3 class="artwork-card__title">${work.titulo}</h3>
             <dl class="artwork-card__meta">
               <dt hidden>Artista</dt>
-              <dd>${work.artista}</dd>
-              <dt hidden>Año</dt>
-              <dd>${work.año}</dd>
+              <dd class="artwork-card__meta-artist">${work.artista.toUpperCase()}</dd>
+              <dt hidden>Año y técnica</dt>
+              <dd class="artwork-card__meta-detail">${work.año}${hasTechnique ? ` • ${hasTechnique}` : ''}</dd>
             </dl>
             ${tagItems.length > 0 ? `
               <div class="artwork-card__tags">

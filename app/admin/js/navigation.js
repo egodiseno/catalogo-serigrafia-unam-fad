@@ -19,7 +19,8 @@ document.addEventListener('DOMContentLoaded', () => {
     usuarios:       { title: 'Catálogo de Obra Serigráfica', subtitle: 'Gestionar usuarios' },
     logs:           { title: 'Catálogo de Obra Serigráfica', subtitle: 'Logs de auditoría' },
     'mi-perfil':    { title: 'Catálogo de Obra Serigráfica', subtitle: 'Mi perfil' },
-    'mi-portafolio':{ title: 'Catálogo de Obra Serigráfica', subtitle: 'Mi portafolio' },
+    'mi-portafolio':  { title: 'Catálogo de Obra Serigráfica', subtitle: 'Mi portafolio' },
+    'configuracion':  { title: 'Catálogo de Obra Serigráfica', subtitle: 'Configuración' },
   };
 
   // ============ FUNCIÓN: Mostrar sección ============
@@ -79,6 +80,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (sectionId === 'mi-portafolio') {
       window.portafolioManager?.inicializar();
+    }
+    if (sectionId === 'configuracion') {
+      window.configuracionManager?.inicializar();
     }
 
     // Guardar en sessionStorage (para mantener sección si recarga)

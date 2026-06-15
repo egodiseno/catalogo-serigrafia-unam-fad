@@ -180,6 +180,36 @@ export const api = {
   },
 
   /**
+   * Contar obras publicadas por técnica.
+   * Devuelve un objeto { [tecnica_id]: count }
+   */
+  async getWorkCountsByTechnique() {
+    try {
+      const { data, error } = await supabase
+        .from('obras')
+        .select('tecnica_id')
+        .eq('estado', 'publicado');
+
+      if (error) {
+        console.error('❌ Error counting by technique:', error);
+        return {};
+      }
+
+      const counts = {};
+      data.forEach(obra => {
+        if (obra.tecnica_id) {
+          counts[obra.tecnica_id] = (counts[obra.tecnica_id] || 0) + 1;
+        }
+      });
+      console.log('✅ Conteos por técnica:', counts);
+      return counts;
+    } catch (err) {
+      console.error('❌ Exception getWorkCountsByTechnique:', err);
+      return {};
+    }
+  },
+
+  /**
    * Obtener todos los tags
    */
   async getTags() {

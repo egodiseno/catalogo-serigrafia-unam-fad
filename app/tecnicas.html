@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Técnicas Serigráficas — Catálogo Digital de Obra Serigráfica — UNAM / FAD">
+  <title>Técnicas — Catálogo de Obra Serigráfica</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:wght@500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/styles.css">
+
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+<a href="#contenido" class="skip-link">Saltar al contenido principal</a>
+
+<header class="site-header" data-header>
+  <div class="container">
+    <a href="index.html" class="brand" aria-label="Inicio del catálogo">
+      <span class="brand__logos" aria-hidden="true">
+        <img src="admin/assets/logos/UNAM.svg" alt="" class="logo-header" />
+        <img src="admin/assets/logos/FAD.svg" alt="" class="logo-header" />
+      </span>
+      <span class="brand__text">
+        <span class="brand__title">Catálogo Digital</span>
+        <span class="brand__subtitle">Obra Serigráfica</span>
+      </span>
+    </a>
+
+    <nav class="main-nav" aria-label="Navegación principal">
+      <a href="index.html" class="nav-link" data-page="catalogo" data-i18n data-es="Catálogo" data-en="Catalog">Catálogo</a>
+      <a href="tecnicas.html" class="nav-link" data-page="tecnicas" data-i18n data-es="Técnicas" data-en="Techniques">Técnicas</a>
+      <a href="acerca.html" class="nav-link" data-page="acerca" data-i18n data-es="Acerca" data-en="About">Acerca</a>
+    </nav>
+
+    <div class="header-actions">
+      <div class="lang-toggle" role="group" aria-label="Cambiar idioma">
+        <button type="button" class="lang-btn" data-lang="es" aria-pressed="true">ES</button>
+        <button type="button" class="lang-btn" data-lang="en" aria-pressed="false">EN</button>
+      </div>
+    </div>
+
+    <details class="nav-mobile">
+      <summary class="nav-mobile__toggle">
+        <i data-lucide="menu" aria-hidden="true"></i>
+      </summary>
+      <div class="nav-mobile__panel">
+        <a href="index.html" class="nav-link nav-mobile__link" data-page="catalogo" data-i18n data-es="Catálogo" data-en="Catalog">Catálogo</a>
+        <a href="tecnicas.html" class="nav-link nav-mobile__link" data-page="tecnicas" data-i18n data-es="Técnicas" data-en="Techniques">Técnicas</a>
+        <a href="acerca.html" class="nav-link nav-mobile__link" data-page="acerca" data-i18n data-es="Acerca" data-en="About">Acerca</a>
+      </div>
+    </details>
+  </div>
+</header>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="container">
+    <p class="hero__eyebrow" data-i18n data-es="UNAM · FAD · Taller de Serigrafía" data-en="UNAM · FAD · Printmaking Workshop">UNAM · FAD · Taller de Serigrafía</p>
+    <h1 class="hero__title">
+      <span data-i18n data-es="Técnicas" data-en="Techniques">Técnicas</span>
+      <span class="accent" data-i18n data-es="Serigráficas" data-en="of Printmaking">Serigráficas</span>
+    </h1>
+    <p class="hero__lead" data-i18n
+       data-es="Explora las obras del Taller de Serigrafía organizadas por técnica."
+       data-en="Browse the Printmaking Workshop's works organized by technique.">
+      Explora las obras del Taller de Serigrafía organizadas por técnica.
+    </p>
+  </div>
+</section>
+
+<!-- Contenido principal -->
+<main id="contenido" class="catalog">
+  <div class="container">
+
+    <!-- Grid de técnicas -->
+    <section aria-label="Técnicas disponibles">
+      <div class="techniques-grid" data-techniques-grid aria-live="polite">
+        <!-- Poblado dinámicamente -->
+      </div>
+    </section>
+
+    <!-- Obras de la técnica seleccionada (oculto hasta seleccionar) -->
+    <section class="techniques-works" data-works-section hidden aria-label="Obras de la técnica seleccionada">
+
+      <div class="techniques-works__header">
+        <h2 data-works-heading></h2>
+        <button type="button" class="btn--outline" data-back-techniques>
+          <i data-lucide="arrow-left" aria-hidden="true"></i>
+          <span data-i18n data-es="Ver todas las técnicas" data-en="View all techniques">Ver todas las técnicas</span>
+        </button>
+      </div>
+
+      <ul class="artworks" data-works-grid
+          aria-label="Obras de la técnica" aria-live="polite"></ul>
+
+      <p class="empty-state" data-empty hidden
+         data-i18n data-es="No encontramos obras con esta técnica." data-en="No works found for this technique.">
+        No encontramos obras con esta técnica.
+      </p>
+
+      <div class="load-more-wrap" data-loadmore-wrap hidden>
+        <button type="button" class="btn btn--load" data-loadmore
+                data-i18n data-es="Cargar más" data-en="Load more">
+          Cargar más
+        </button>
+      </div>
+
+      <div class="loading-spinner" data-loading hidden>
+        <div class="spinner"></div>
+      </div>
+
+    </section>
+
+  </div>
+</main>
+
+<!-- Footer -->
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <span class="footer-logos">
+          <img src="admin/assets/logos/UNAM.svg" alt="UNAM" class="logo-footer" />
+          <img src="admin/assets/logos/FAD.svg" alt="FAD" class="logo-footer" />
+        </span>
+        <p class="footer-text" data-i18n data-es="Catálogo Digital de Obra Serigráfica — UNAM FAD" data-en="Digital Catalog of Printmaking Works — UNAM FAD">
+          Catálogo Digital de Obra Serigráfica — UNAM FAD
+        </p>
+      </div>
+
+      <div class="footer-col">
+        <h3 data-i18n data-es="Catálogo" data-en="Catalog">Catálogo</h3>
+        <ul>
+          <li><a href="index.html" data-i18n data-es="Todas las obras" data-en="All works">Todas las obras</a></li>
+          <li><a href="tecnicas.html" data-i18n data-es="Por técnica" data-en="By technique">Por técnica</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h3 data-i18n data-es="Acerca" data-en="About">Acerca</h3>
+        <ul>
+          <li><a href="acerca.html" data-i18n data-es="El taller" data-en="The workshop">El taller</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p>&copy; <span data-year>2026</span> UNAM Facultad de Artes y Diseño</p>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  // Active nav
+  (function () {
+    const path = window.location.pathname;
+    const page = path.includes('tecnicas') ? 'tecnicas'
+               : path.includes('acerca')   ? 'acerca'
+               : 'catalogo';
+    document.querySelectorAll('[data-page]').forEach(el => {
+      if (el.dataset.page === page) {
+        el.classList.add('active');
+        el.setAttribute('aria-current', 'page');
+      }
+    });
+  })();
+</script>
+<script>
+  // Scroll shadow para header sticky
+  (function () {
+    let ticking = false;
+    window.addEventListener('scroll', () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          document.body.classList.toggle('is-scrolled', window.scrollY > 10);
+          ticking = false;
+        });
+        ticking = true;
+      }
+    }, { passive: true });
+  })();
+</script>
+<script type="module">
+  import { PublicTechniques } from './js/public-techniques.js';
+  import { i18n } from './js/i18n.js';
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    i18n.init();
+    const techniques = new PublicTechniques();
+    await techniques.init();
+  });
+</script>
+
+</body>
+</html>
