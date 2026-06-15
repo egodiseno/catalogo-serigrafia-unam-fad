@@ -63,7 +63,9 @@ class ProfileManager {
       }
 
       this._renderPerfil(data);
-      this._renderQuickActions();
+      // Acciones rápidas: controladas por renderActionsByRole() en permisos.js
+      // (botones estáticos en HTML con data-action-for-roles)
+      window.renderActionsByRole?.();
 
     } catch (err) {
       console.error('[ProfileManager] cargarPerfil:', err);
@@ -77,47 +79,58 @@ class ProfileManager {
 
   _renderPerfil(datos) {
     console.log('[Profile] _renderPerfil() llamado con:', datos);
+
     const email  = datos?.email  ?? window.usuarioActual?.email  ?? '—';
     const nombre = datos?.nombre ?? window.usuarioActual?.nombre ?? '';
 
-    // Avatar: inicial del nombre (si existe) o del email
-    const el = id => document.getElementById(id);
+    // Helper: busca el elemento y reporta si no existe
+    const el = id => {
+      const node = document.getElementById(id);
+      if (!node) console.error(`[ProfileManager] Elemento #${id} no encontrado en el DOM`);
+      return node;
+    };
+
+    // ── Avatar: inicial del nombre (si existe) o del email ──────────────
     const initial = (nombre || email).charAt(0).toUpperCase();
-    if (el('profileInitial')) el('profileInitial').textContent = initial;
+    el('profileInitial') && (el('profileInitial').textContent = initial);
 
-    // Nombre
-    if (el('profileNombre')) el('profileNombre').textContent = nombre || '—';
+    // ── Email ─────────────────────────────────────────────────────────────
+    el('profileEmail') && (el('profileEmail').textContent = email);
 
-    // Email
-    if (el('profileEmail')) el('profileEmail').textContent = email;
+    // ── Nombre (opcional — el elemento puede no estar en la plantilla) ────
+    const elNombre = document.getElementById('profileNombre');
+    if (elNombre) elNombre.textContent = nombre || '—';
 
-    // Rol
+    // ── Rol ───────────────────────────────────────────────────────────────
     const rolLabel = { admin: 'Administrador', super_editor: 'Super Editor', editor: 'Editor' };
     const rol      = datos?.rol ?? window.usuarioActual?.rol ?? 'editor';
-    if (el('profileRol')) {
-      el('profileRol').textContent = rolLabel[rol] ?? rol;
-      el('profileRol').className   = `badge badge-${rol}`;
+    const elRol    = el('profileRol');
+    if (elRol) {
+      elRol.textContent = rolLabel[rol] ?? rol;
+      elRol.className   = `badge badge-${rol}`;
     }
 
-    // Fecha de creación
-    if (el('profileFecha')) {
-      if (datos?.created_at) {
-        el('profileFecha').textContent = new Date(datos.created_at)
-          .toLocaleString('es-MX', {
+    // ── Fecha de creación ─────────────────────────────────────────────────
+    const elFecha = el('profileFecha');
+    if (elFecha) {
+      elFecha.textContent = datos?.created_at
+        ? new Date(datos.created_at).toLocaleString('es-MX', {
             day: '2-digit', month: 'long', year: 'numeric',
             hour: '2-digit', minute: '2-digit'
-          });
-      } else {
-        el('profileFecha').textContent = '—';
-      }
+          })
+        : '—';
     }
 
-    // Estado (campo booleano en BD)
-    if (el('profileEstado')) {
+    // ── Estado (booleano en BD) ────────────────────────────────────────────
+    const elEstado = el('profileEstado');
+    if (elEstado) {
       const activo = datos?.estado ?? true;
-      el('profileEstado').textContent = activo ? 'Activo' : 'Inactivo';
-      el('profileEstado').className   = `badge ${activo ? 'badge-publicado' : 'badge-borrador'}`;
+      elEstado.textContent = activo ? 'Activo' : 'Inactivo';
+      elEstado.className   = `badge ${activo ? 'badge-publicado' : 'badge-borrador'}`;
     }
+
+    // Reinicializar iconos por si el DOM cambió
+    window.IconRegistry?.init();
   }
 
   // ══════════════════════════════════════════════════════

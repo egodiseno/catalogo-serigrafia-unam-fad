@@ -5504,14 +5504,16 @@ input[type="file"]:hover {
    MI PERFIL — Responsive
    ═══════════════════════════════════════════════════════════════════ */
 
-/* ── Tablet (768–1199px): 1 columna, botones en 2 cols ─────────────── */
+/* ── Tablet (768–1199px): 1 columna apilada ────────────────────────── */
 @media (max-width: 1199px) {
   .profile-grid {
     grid-template-columns: 1fr;
     gap:                   1.5rem;
   }
 
+  /* Datos: horizontal en tablet */
   .column-datos {
+    padding:        1.5rem;
     flex-direction: row;
     align-items:    flex-start;
     text-align:     left;
@@ -5535,13 +5537,27 @@ input[type="file"]:hover {
     gap:            0.75rem;
   }
 
-  /* Botones: mantener 2 columnas en tablet */
+  /* Acciones: padding normal, 2 columnas */
+  .column-acciones {
+    padding: 1.5rem;
+  }
+
   .quick-actions-container {
     grid-template-columns: repeat(2, 1fr);
+    gap:                   1rem;
+  }
+
+  .action-btn {
+    padding: 1.5rem 1rem;
+  }
+
+  /* Contraseña: padding normal */
+  .column-contrasena {
+    padding: 1.5rem;
   }
 }
 
-/* ── Mobile (<768px): 1 columna, botones apilados ───────────────────── */
+/* ── Mobile (<768px): 1 columna, botones apilados en fila ───────────── */
 @media (max-width: 767px) {
   .profile-grid {
     gap: 1rem;
@@ -5564,20 +5580,20 @@ input[type="file"]:hover {
     flex-shrink:   0;
   }
 
-  /* Acciones: 1 columna, botones en fila (icon + texto horizontal) */
+  /* Acciones: 1 columna, botones icon+texto en fila */
   .column-acciones {
     padding: 1rem;
   }
 
   .quick-actions-container {
     grid-template-columns: 1fr;
-    gap:                   0.5rem;
+    gap:                   0.75rem;
   }
 
   .action-btn {
     flex-direction:  row;
     justify-content: flex-start;
-    padding:         0.875rem 1rem;
+    padding:         1.25rem 0.75rem;
     text-align:      left;
     gap:             0.75rem;
   }
