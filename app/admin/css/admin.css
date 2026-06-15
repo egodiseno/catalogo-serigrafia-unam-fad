@@ -2158,6 +2158,24 @@ input[type="file"]:hover {
   flex: 1;
 }
 
+/* ── Multi-image: controles de upload ── */
+.image-upload-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+  margin-top: var(--spacing-sm);
+}
+
+.image-counter {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+.image-counter.at-limit {
+  color: var(--color-warning);
+  font-weight: 600;
+}
+
 .inline-tecnica-form {
   display: flex;
   gap: var(--spacing-sm);

@@ -8,8 +8,9 @@
 
 const TagsInObra = (() => {
   const client = window.supabase_client;
-  let selectedTags = [];
-  let allTags      = [];          // caché local de todos los tags
+  let selectedTags  = [];
+  let allTags       = [];          // caché local de todos los tags
+  let _allowCreate  = true;        // false = oculta opción "Crear" del dropdown
 
   // ── Cargar todos los tags de la BD ─────────────────────
   async function loadAllTags() {
@@ -127,7 +128,8 @@ const TagsInObra = (() => {
       </div>
     `).join('');
 
-    if (!exactMatch) {
+    // Opción "Crear" solo si está permitido (desactivado para EDITOR)
+    if (!exactMatch && _allowCreate) {
       html += `
         <div class="tag-suggestion-create">
           + Crear «${escapeHtml(query)}»
@@ -267,9 +269,15 @@ const TagsInObra = (() => {
 
   function getTags() { return selectedTags; }
 
+  // ── Activar / desactivar creación de tags desde el dropdown ─
+  function setAllowCreate(allow) {
+    _allowCreate = !!allow;
+  }
+
   // ── Reset completo (al abrir/cerrar modal) ─────────────
   function reset() {
     selectedTags = [];
+    _allowCreate = true;   // restaurar al cerrar modal
     renderChips();
     const input = document.getElementById('tagSearchInput');
     if (input) { input.value = ''; input.setAttribute('aria-expanded', 'false'); }
@@ -302,7 +310,7 @@ const TagsInObra = (() => {
 
   document.addEventListener('DOMContentLoaded', init);
 
-  return { addTag, removeTag, saveTags, getTags, reset, loadAllTags, setInitialTags  };
+  return { addTag, removeTag, saveTags, getTags, reset, loadAllTags, setInitialTags, setAllowCreate };
 })();
 
 window.TagsInObra = TagsInObra;

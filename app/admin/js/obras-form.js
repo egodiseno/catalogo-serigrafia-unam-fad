@@ -42,31 +42,53 @@ document.addEventListener('DOMContentLoaded', () => {
     await loadTecnicas();
 
     const existingSection = document.getElementById('existingImagesSection');
+    const rolActual       = window.usuarioActual?.rol || 'editor';
+
+    // ── Estado: opciones según rol (ANTES de loadObraToEdit) ──
+    if (rolActual === 'editor') {
+      // EDITOR: solo Borrador y En Revisión
+      fEstado.innerHTML = `
+        <option value="Borrador">Borrador</option>
+        <option value="En Revisión">En Revisión</option>
+      `;
+    } else {
+      // ADMIN / SUPER_EDITOR: todas las opciones
+      fEstado.innerHTML = `
+        <option value="Borrador">Borrador</option>
+        <option value="Publicado">Publicado</option>
+        <option value="En Revisión">En Revisión</option>
+        <option value="Archivado">Archivado</option>
+      `;
+    }
+    fEstado.disabled = false;
+    fEstado.title    = '';
 
     if (id) {
       modalTitle.textContent = 'Editar Obra';
       saveBtn.textContent    = 'Guardar cambios';
       if (existingSection) existingSection.style.display = 'block';
-      const loaded = await loadObraToEdit(id);
-      if (!loaded) return;       // EDITOR sin permiso — toast ya mostrado, no abrir el modal
-      loadObraImages(id);        // sin await: el modal abre ya, imágenes cargan en paralelo
+      const loaded = await loadObraToEdit(id);   // establece fEstado.value = data.estado
+      if (!loaded) return;                        // EDITOR sin permiso — toast ya mostrado
+      loadObraImages(id);                         // sin await: carga en paralelo
     } else {
       modalTitle.textContent = 'Nueva Obra';
       saveBtn.textContent    = 'Guardar obra';
       if (existingSection) existingSection.style.display = 'none';
+      // Default para obra nueva
+      fEstado.value = rolActual === 'editor' ? 'En Revisión' : 'Borrador';
     }
 
-    // ── Control de estado por rol ─────────────────────────
-    // EDITOR: estado forzado a "En Revisión", campo no editable
-    const rolActual = window.usuarioActual?.rol || 'editor';
-    if (rolActual === 'editor') {
-      if (!id) fEstado.value = 'En Revisión';  // nueva obra → forzar estado
-      fEstado.disabled = true;
-      fEstado.title    = 'El estado lo asigna el editor responsable';
-    } else {
-      fEstado.disabled = false;
-      fEstado.title    = '';
+    // ── Botones crear: según rol ───────────────────────────
+    // "+ Nueva técnica": solo ADMIN y SUPER_EDITOR
+    if (btnNuevaTecnicaInline) {
+      btnNuevaTecnicaInline.style.display = rolActual === 'editor' ? 'none' : '';
     }
+    // "+ Nuevo Tag": siempre oculto (Ajuste 6 — crear tags solo desde sección Tags)
+    const btnNuevoTagInline = document.getElementById('btnNuevoTagInline');
+    if (btnNuevoTagInline) btnNuevoTagInline.style.display = 'none';
+
+    // Creación de tags en dropdown: desactivada para EDITOR
+    window.TagsInObra?.setAllowCreate(rolActual !== 'editor');
 
     modal.style.display = 'flex';
     fTitulo.focus();
@@ -255,13 +277,29 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // EDITOR: siempre "En Revisión" — seguridad server-side además del campo disabled
-    const rolGuardar = window.usuarioActual?.rol || 'editor';
+    // ── Validar máximo de imágenes (nuevas + ya guardadas) ──
+    const nuevasImgs    = window.MultiImageUpload?.getImages()?.length ?? 0;
+    const existingImgs  = document.querySelectorAll('#existingImagesList .existing-image-item').length;
+    const totalImgs     = nuevasImgs + existingImgs;
+    if (totalImgs > 4) {
+      showAlert(
+        `Máximo 4 imágenes por obra. Tienes ${totalImgs} (${existingImgs} guardada${existingImgs !== 1 ? 's' : ''} + ${nuevasImgs} nueva${nuevasImgs !== 1 ? 's' : ''}).`,
+        'error'
+      );
+      return;
+    }
+
+    // ── Estado: EDITOR solo puede guardar Borrador o En Revisión ──
+    const rolGuardar       = window.usuarioActual?.rol || 'editor';
+    const estadoSelec      = fEstado.value || 'Borrador';
+    const estadoPermitidos = ['Borrador', 'En Revisión'];
     const payload = {
       titulo,
       artista,
       año,
-      estado:      rolGuardar === 'editor' ? 'En Revisión' : (fEstado.value || 'Borrador'),
+      estado:      rolGuardar === 'editor'
+                     ? (estadoPermitidos.includes(estadoSelec) ? estadoSelec : 'En Revisión')
+                     : estadoSelec,
       tecnica_id:  fTecnica.value            || null,
       descripcion: fDescripcion.value.trim() || null,
     };

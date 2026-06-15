@@ -12,9 +12,10 @@
 
 class PortafolioManager {
   constructor() {
-    this._client      = null;
-    this._initialized = false;
-    this._filtro      = '';
+    this._client        = null;
+    this._initialized   = false;
+    this._filtro        = '';
+    this._filtroEstado  = '';
   }
 
   get client() {
@@ -105,7 +106,8 @@ class PortafolioManager {
 
   async cargarObras(filtro = '') {
     this._filtro = filtro;
-    const artista = this._getNombreArtista();
+    const artista      = this._getNombreArtista();
+    const estadoFiltro = this._filtroEstado;
 
     const tbody = document.getElementById('portafolioTbody');
     if (!tbody) return;
@@ -125,6 +127,10 @@ class PortafolioManager {
 
       if (filtro) {
         query = query.ilike('titulo', `%${filtro}%`);
+      }
+
+      if (estadoFiltro) {
+        query = query.eq('estado', estadoFiltro);
       }
 
       const { data, error } = await query;
@@ -174,12 +180,10 @@ class PortafolioManager {
 
     window.IconRegistry?.init();
 
-    // Navegar a Obras y abrir edición
+    // Abrir modal de edición sin abandonar Mi Portafolio
     tbody.querySelectorAll('.portafolio-edit-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        const id = btn.dataset.id;
-        window.showSection?.('obras');
-        setTimeout(() => window.ObrasForm?.editarObra?.(id), 400);
+        window.obrasForm?.open(btn.dataset.id);
       });
     });
   }
@@ -199,9 +203,24 @@ class PortafolioManager {
       });
     }
 
-    // Botón "Nueva Obra" → navegar a sección obras
+    // Filtro por estado
+    const estadoSel = document.getElementById('portafolioEstadoFilter');
+    if (estadoSel) {
+      estadoSel.addEventListener('change', () => {
+        this._filtroEstado = estadoSel.value;
+        this.cargarObras(this._filtro);
+      });
+    }
+
+    // Botón "Nueva Obra" → abre modal sin abandonar Mi Portafolio
     document.getElementById('portafolioBtnNuevaObra')?.addEventListener('click', () => {
-      window.showSection?.('obras');
+      window.obrasForm?.open();
+    });
+
+    // Refrescar portafolio tras guardar obra desde modal (cualquier contexto)
+    document.addEventListener('obras:refresh', () => {
+      this.cargarEstadisticas();
+      this.cargarObras(this._filtro);
     });
   }
 }

@@ -5,11 +5,28 @@
 
 const MultiImageUpload = (() => {
   let images = []; // Array de imágenes seleccionadas
-  const MAX_IMAGES = 10;
+  const MAX_IMAGES = 4;
 
   /**
    * Inicializar UI para multi-imagen
    */
+  // ── Actualizar contador e indicador visual ─────────────
+  function updateCounter() {
+    const count    = images.filter(img => img.file !== null).length;
+    const counter  = document.getElementById('imageCounter');
+    const addBtn   = document.getElementById('addImageBtn');
+    const atLimit  = images.length >= MAX_IMAGES;
+
+    if (counter) {
+      counter.textContent = `${count} de ${MAX_IMAGES} imágenes`;
+      counter.classList.toggle('at-limit', atLimit);
+    }
+    if (addBtn) {
+      addBtn.disabled = atLimit;
+      addBtn.title    = atLimit ? `Máximo ${MAX_IMAGES} imágenes por obra` : '';
+    }
+  }
+
   function init() {
     console.log('📸 Multi-image module loaded');
 
@@ -25,7 +42,7 @@ const MultiImageUpload = (() => {
     if (addImageBtn) {
       addImageBtn.addEventListener('click', () => {
         if (images.length >= MAX_IMAGES) {
-          window.ErrorHandler?.showToast(`Máximo ${MAX_IMAGES} imágenes permitidas`, 'warning');
+          window.ErrorHandler?.showToast(`Máximo ${MAX_IMAGES} imágenes por obra`, 'warning');
           return;
         }
         addImageInput();
@@ -38,6 +55,7 @@ const MultiImageUpload = (() => {
     }
 
     setupDragDrop();
+    updateCounter();
   }
 
   /**
@@ -92,6 +110,7 @@ const MultiImageUpload = (() => {
       if (file) {
         images[index] = { file, principal: checkbox.checked };
         await showPreview(div, file);
+        updateCounter();
       }
     });
 
@@ -114,10 +133,12 @@ const MultiImageUpload = (() => {
           el.setAttribute('data-index', i);
           el.querySelector('label').textContent = `Imagen ${i + 1}`;
         });
+        updateCounter();
       });
     }
 
     images[index] = { file: null, principal: index === 0 };
+    updateCounter();
   }
 
   /**
@@ -213,11 +234,12 @@ const MultiImageUpload = (() => {
    * Resetear formulario
    */
   function reset() {
-  images = [];
-  const imageList = document.getElementById('imageList');
-  if (imageList) imageList.innerHTML = '';
-  addImageInput();
-}
+    images = [];
+    const imageList = document.getElementById('imageList');
+    if (imageList) imageList.innerHTML = '';
+    addImageInput();
+    updateCounter();
+  }
 
   // ── Drag-drop sobre #multiImageContainer ──────────────
   /**

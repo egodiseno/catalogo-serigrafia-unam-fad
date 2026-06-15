@@ -808,8 +808,8 @@
             </div>
           </div>
 
-          <!-- Filtros -->
-          <div class="table-filters">
+          <!-- Filtros inline (búsqueda + estado lado a lado) -->
+          <div class="filter-bar">
             <input type="text"
                    id="portafolioFiltro"
                    placeholder="Buscar por título…"
@@ -919,12 +919,15 @@
 
           <!-- Multi-image upload -->
           <div class="form-group">
-            <label>Imágenes <span class="field-hint">(JPG, PNG o WebP · máx. 5 MB c/u · arrastra aquí o usa el botón)</span></label>
+            <label>Imágenes <span class="field-hint">(JPG, PNG o WebP · máx. 5 MB c/u · máx. 4 imágenes · arrastra o usa el botón)</span></label>
             <div id="multiImageContainer">
               <div id="imageList"></div>
-              <button type="button" id="addImageBtn" class="btn btn-secondary btn-sm">
-                <i data-lucide="image-plus" style="width:14px; height:14px;" aria-hidden="true"></i> Agregar imagen
-              </button>
+              <div class="image-upload-actions">
+                <button type="button" id="addImageBtn" class="btn btn-secondary btn-sm">
+                  <i data-lucide="image-plus" style="width:14px; height:14px;" aria-hidden="true"></i> Agregar imagen
+                </button>
+                <span id="imageCounter" class="image-counter">0 de 4 imágenes</span>
+              </div>
             </div>
           </div>
 
