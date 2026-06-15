@@ -1238,7 +1238,13 @@ body.is-scrolled .filters {
 }
 
 .footer-brand {
-  grid-column: 1 / -1;
+  grid-column: 1 / -1; /* full-width en mobile y tablet */
+}
+
+@media (min-width: 1024px) {
+  .footer-brand {
+    grid-column: auto; /* 1 columna en desktop 4-col */
+  }
 }
 
 .footer-logos {
@@ -1330,6 +1336,82 @@ body.is-scrolled .filters {
 
 .footer-bottom a:hover {
   opacity: 1;
+}
+
+/* ── Footer: Redes Sociales (SÍGUENOS) ───────────────────── */
+
+.footer-rrss h3 {
+  /* hereda de .footer-col h3 */
+}
+
+.rrss-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+/* Círculo individual */
+.rrss-icon-footer {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  color: #fff;
+  text-decoration: none;
+  flex-shrink: 0;
+  transition: transform 200ms var(--ease),
+              box-shadow 200ms var(--ease),
+              filter 200ms var(--ease);
+  /* background-color se aplica inline desde JS */
+}
+
+.rrss-icon-footer i {
+  font-size: 1.25rem;
+  line-height: 1;
+  color: #fff;
+  pointer-events: none;
+}
+
+.rrss-icon-footer:hover {
+  transform: scale(1.15) translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.22);
+  filter: brightness(1.1);
+}
+
+.rrss-icon-footer:active {
+  transform: scale(1);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+}
+
+.rrss-icon-footer:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 3px;
+}
+
+@media (min-width: 768px) {
+  .rrss-grid {
+    gap: 1rem;
+  }
+  .rrss-icon-footer {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .rrss-grid {
+    gap: 1.25rem;
+  }
+  .rrss-icon-footer {
+    width: 44px;
+    height: 44px;
+  }
+  .rrss-icon-footer i {
+    font-size: 1.3125rem;
+  }
 }
 
 /* ============================================================

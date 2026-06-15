@@ -261,6 +261,31 @@ export const api = {
   },
 
   /**
+   * Obtener redes sociales visibles ordenadas por orden
+   * @returns {Promise<Array>} [{ nombre, url, icono, color }] o []
+   */
+  async getRedesSociales() {
+    try {
+      const { data, error } = await supabase
+        .from('redes_sociales')
+        .select('nombre, url, icono, color')
+        .eq('visible', true)
+        .order('orden', { ascending: true });
+
+      if (error) {
+        console.error('❌ Error fetching redes sociales:', error);
+        return [];
+      }
+
+      console.log(`✅ Redes sociales cargadas: ${data.length}`);
+      return data;
+    } catch (err) {
+      console.error('❌ Exception getRedesSociales:', err);
+      return [];
+    }
+  },
+
+  /**
    * Obtener todos los tags
    */
   async getTags() {
