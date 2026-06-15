@@ -78,8 +78,8 @@ const PERMISOS = {
     'usuarios.editar': false,
     'usuarios.borrar': false,
 
-    // Logs
-    'logs.ver': true,
+    // Logs — solo ADMIN (SUPER_EDITOR no accede a logs)
+    'logs.ver': false,
 
     // Portafolio — SUPER_EDITOR no usa portafolio
     'portafolio.ver': false,
@@ -193,71 +193,32 @@ function inicializarPermisos() {
   const rol = getRolActual();
   console.log(`🔒 Permisos inicializados — rol: ${rol}`);
 
-  // ── Sidebar: visibilidad por rol (data-show-for-roles) ─
+  // ── 1. Nav sidebar: todos los ítems tienen data-show-for-roles ─
   renderSidebarByRole();
 
-  // ── Botones CRUD con data-permiso ──────────────────────
-  controlarVisibilidad('[data-permiso="obras.crear"]',    'obras.crear');
-  controlarVisibilidad('[data-permiso="obras.borrar"]',   'obras.borrar');
-  controlarVisibilidad('[data-permiso="tecnicas.crear"]', 'tecnicas.crear');
-  controlarVisibilidad('[data-permiso="tecnicas.borrar"]','tecnicas.borrar');
-  controlarVisibilidad('[data-permiso="tags.crear"]',     'tags.crear');
-  controlarVisibilidad('[data-permiso="tags.borrar"]',    'tags.borrar');
-  controlarVisibilidad('[data-permiso="usuarios.crear"]', 'usuarios.crear');
-  controlarVisibilidad('[data-permiso="usuarios.borrar"]','usuarios.borrar');
+  // ── 2. Botones CRUD (data-permiso) ─────────────────────
+  controlarVisibilidad('[data-permiso="obras.crear"]',     'obras.crear');
+  controlarVisibilidad('[data-permiso="obras.borrar"]',    'obras.borrar');
+  controlarVisibilidad('[data-permiso="tecnicas.crear"]',  'tecnicas.crear');
+  controlarVisibilidad('[data-permiso="tecnicas.borrar"]', 'tecnicas.borrar');
+  controlarVisibilidad('[data-permiso="tags.crear"]',      'tags.crear');
+  controlarVisibilidad('[data-permiso="tags.borrar"]',     'tags.borrar');
+  controlarVisibilidad('[data-permiso="usuarios.crear"]',  'usuarios.crear');
+  controlarVisibilidad('[data-permiso="usuarios.borrar"]', 'usuarios.borrar');
 
-  // ── Nav sidebar: secciones sin data-show-for-roles ─────
-
-  // Dashboard — solo ADMIN / SUPER_EDITOR
-  _navSiPermiso('dashboard', 'dashboard.ver');
-
-  // Técnicas — solo ADMIN / SUPER_EDITOR
-  _navSiPermiso('tecnicas', 'tecnicas.ver');
-
-  // Tags — solo ADMIN / SUPER_EDITOR
-  _navSiPermiso('tags', 'tags.ver');
-
-  // Usuarios — solo ADMIN (+ ocultar sección)
-  _navSiPermiso('usuarios', 'usuarios.ver', 'usuariosSection');
-
-  // Logs — solo ADMIN / SUPER_EDITOR
-  _navSiPermiso('logs', 'logs.ver');
-
-  // ── Sección Mi Portafolio (content) ────────────────────
-  // El nav-item usa data-show-for-roles → ya controlado por renderSidebarByRole()
-  // Aquí solo controlamos si la sección puede mostrarse
+  // ── 3. Contenido de secciones — ocultar si sin permiso ─
+  const usuariosSection   = document.getElementById('usuariosSection');
   const portafolioSection = document.getElementById('miPortafolioSection');
-  if (portafolioSection) {
-    portafolioSection.style.display = tienePermiso('portafolio.ver') ? '' : 'none';
-  }
+  if (usuariosSection)   usuariosSection.style.display   = tienePermiso('usuarios.ver')   ? '' : 'none';
+  if (portafolioSection) portafolioSection.style.display = tienePermiso('portafolio.ver') ? '' : 'none';
 
-  // ── FALLBACK: si la sección activa quedó oculta → ir a portafolio o obras
+  // ── 4. FALLBACK: sección activa oculta → redirigir ─────
   const seccionActiva = sessionStorage.getItem('currentSection') || 'dashboard';
-  const navActivo = document.querySelector(`[data-section="${seccionActiva}"]`);
+  const navActivo     = document.querySelector(`[data-section="${seccionActiva}"]`);
   if (navActivo && navActivo.style.display === 'none') {
     const destino = tienePermiso('portafolio.ver') ? 'mi-portafolio' : 'obras';
-    console.log(`[Permisos] "${seccionActiva}" oculta para rol "${rol}" → redirigiendo a ${destino}`);
+    console.log(`[Permisos] "${seccionActiva}" oculta para "${rol}" → redirigiendo a ${destino}`);
     window.showSection?.(destino);
-  }
-}
-
-/**
- * Muestra/oculta nav-item(s) con data-section=seccion según permiso.
- * Omite los que ya tienen data-show-for-roles (manejados por renderSidebarByRole).
- * @param {string} seccion     — valor de data-section
- * @param {string} permiso     — clave de permiso
- * @param {string} [sectionId] — ID del elemento de sección (sin #)
- */
-function _navSiPermiso(seccion, permiso, sectionId) {
-  const visible = tienePermiso(permiso);
-  document.querySelectorAll(`[data-section="${seccion}"]`).forEach(el => {
-    if (!el.dataset.showForRoles) {
-      el.style.display = visible ? '' : 'none';
-    }
-  });
-  if (sectionId) {
-    const secEl = document.getElementById(sectionId);
-    if (secEl) secEl.style.display = visible ? '' : 'none';
   }
 }
 

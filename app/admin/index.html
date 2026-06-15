@@ -235,7 +235,7 @@
       </div>
 
       <nav class="sidebar-nav">
-        <button class="nav-item active" data-section="dashboard">
+        <button class="nav-item active" data-section="dashboard" data-show-for-roles="admin,super_editor">
           <i data-lucide="layout-dashboard" style="width:18px; height:18px;" aria-hidden="true"></i>
           <span class="nav-label">Dashboard</span>
         </button>
@@ -243,23 +243,23 @@
           <i data-lucide="image" style="width:18px; height:18px;" aria-hidden="true"></i>
           <span class="nav-label">Obras</span>
         </button>
-        <button class="nav-item" data-section="tecnicas">
+        <button class="nav-item" data-section="tecnicas" data-show-for-roles="admin,super_editor">
           <i data-lucide="brush" style="width:18px; height:18px;" aria-hidden="true"></i>
           <span class="nav-label">Técnicas</span>
         </button>
-        <button class="nav-item" data-section="tags">
+        <button class="nav-item" data-section="tags" data-show-for-roles="admin,super_editor">
           <i data-lucide="tag" style="width:18px; height:18px;" aria-hidden="true"></i>
           <span class="nav-label">Tags</span>
         </button>
-        <button class="nav-item" data-section="usuarios">
+        <button class="nav-item" data-section="usuarios" data-show-for-roles="admin">
           <i data-lucide="users" style="width:18px; height:18px;" aria-hidden="true"></i>
           <span class="nav-label">Usuarios</span>
         </button>
-        <button class="nav-item" data-section="logs">
+        <button class="nav-item" data-section="logs" data-show-for-roles="admin">
           <i data-lucide="activity" style="width:18px; height:18px;" aria-hidden="true"></i>
           <span class="nav-label">Logs</span>
         </button>
-        <button class="nav-item" data-section="mi-portafolio" data-show-for-roles="editor" style="display:none;">
+        <button class="nav-item" data-section="mi-portafolio" data-show-for-roles="editor">
           <i data-lucide="layout-grid" style="width:18px; height:18px;" aria-hidden="true"></i>
           <span class="nav-label">Mi Portafolio</span>
         </button>
@@ -272,13 +272,10 @@
           <span class="user-email-drawer" id="userEmailDrawer">admin@example.com</span>
         </div>
 
-        <!-- Mi Perfil, Configuración y Cerrar Sesión -->
+        <!-- Mi Perfil y Cerrar Sesión -->
         <div class="sidebar-footer-actions">
           <button id="userProfileMobileBtn" class="btn btn-tertiary btn-block">
             <i data-lucide="user" style="width:16px; height:16px;" aria-hidden="true"></i> Mi Perfil
-          </button>
-          <button id="userSettingsMobileBtn" class="btn btn-tertiary btn-block">
-            <i data-lucide="settings" style="width:16px; height:16px;" aria-hidden="true"></i> Configuración
           </button>
           <button id="logoutBtn" class="btn btn-secondary btn-block">
             <i data-lucide="log-out" style="width:16px; height:16px;" aria-hidden="true"></i> Cerrar Sesión
@@ -319,11 +316,6 @@
               <button class="user-dropdown-item" id="userProfileBtn">
                 <i data-lucide="user" style="width:18px; height:18px; display:inline; margin-right: var(--spacing-sm); vertical-align: middle;" aria-hidden="true"></i>
                 Mi Perfil
-              </button>
-
-              <button class="user-dropdown-item" id="userSettingsBtn">
-                <i data-lucide="settings" style="width:18px; height:18px; display:inline; margin-right: var(--spacing-sm); vertical-align: middle;" aria-hidden="true"></i>
-                Configuración
               </button>
 
               <div class="user-dropdown-divider"></div>
@@ -742,6 +734,75 @@
             </form>
           </div><!-- /.profile-section-form -->
         </section>
+
+        <!-- ========== MI PORTAFOLIO SECTION ========== -->
+        <section id="miPortafolioSection" class="section">
+          <div class="section-header">
+            <div>
+              <h2>Mi Portafolio</h2>
+              <p>Tus obras en el catálogo</p>
+            </div>
+            <button class="btn btn-primary" id="portafolioBtnNuevaObra" data-permiso="obras.crear">
+              <i data-lucide="plus" style="width:16px; height:16px;" aria-hidden="true"></i> Nueva Obra
+            </button>
+          </div>
+
+          <!-- Estadísticas -->
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-value" id="portafolioTotal">—</div>
+              <div class="stat-label">Total de obras</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value" id="portafolioPublicadas">—</div>
+              <div class="stat-label">Publicadas</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value" id="portafolioBorradores">—</div>
+              <div class="stat-label">Borradores</div>
+            </div>
+            <div class="stat-card stat-card--warning">
+              <div class="stat-value" id="portafolioRevision">—</div>
+              <div class="stat-label">En Revisión</div>
+            </div>
+          </div>
+
+          <!-- Filtros -->
+          <div class="table-filters">
+            <input type="text"
+                   id="portafolioFiltro"
+                   placeholder="Buscar por título…"
+                   class="search-input"
+                   aria-label="Buscar obras por título" />
+            <select id="portafolioEstadoFilter" class="select-input" aria-label="Filtrar por estado">
+              <option value="">Todos los estados</option>
+              <option value="Borrador">Borrador</option>
+              <option value="Publicado">Publicado</option>
+              <option value="En Revisión">En Revisión</option>
+              <option value="Archivado">Archivado</option>
+            </select>
+          </div>
+
+          <!-- Tabla de obras -->
+          <div class="table-wrapper">
+            <table class="admin-table" id="portafolioTable">
+              <thead>
+                <tr>
+                  <th>Título</th>
+                  <th>Técnica</th>
+                  <th>Estado</th>
+                  <th>Fecha</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="portafolioTbody">
+                <tr>
+                  <td colspan="5" class="empty-cell">Cargando obras…</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section><!-- /#miPortafolioSection -->
 
       </div>
     </main>
