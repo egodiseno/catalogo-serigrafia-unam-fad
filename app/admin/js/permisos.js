@@ -53,32 +53,33 @@ const PERMISOS = {
     // Dashboard
     'dashboard.ver': true,
 
-    // Obras
+    // Obras — puede crear, editar y eliminar cualquier obra
     'obras.ver_todas':     true,
     'obras.crear':         true,
     'obras.editar_propia': true,
     'obras.editar_ajena':  true,
-    'obras.borrar':        false,
+    'obras.borrar':        true,
 
-    // Técnicas
+    // Técnicas — control total (sin borrar el catálogo base)
     'tecnicas.ver':    true,
     'tecnicas.crear':  true,
     'tecnicas.editar': true,
-    'tecnicas.borrar': false,
+    'tecnicas.borrar': true,
 
-    // Tags
+    // Tags — control total
     'tags.ver':    true,
     'tags.crear':  true,
     'tags.editar': true,
-    'tags.borrar': false,
+    'tags.borrar': true,
 
-    // Usuarios — SUPER_EDITOR puede ver, crear y editar; no puede borrar
+    // Usuarios — puede gestionar usuarios NO-admin; restricciones en runtime
+    // (no puede eliminar admins ni su propia cuenta — guard en usuarios-crud.js)
     'usuarios.ver':    true,
     'usuarios.crear':  true,
     'usuarios.editar': true,
-    'usuarios.borrar': false,
+    'usuarios.borrar': true,
 
-    // Logs — solo ADMIN (SUPER_EDITOR no accede a logs)
+    // Logs — solo ADMIN
     'logs.ver': false,
 
     // Portafolio — SUPER_EDITOR no usa portafolio

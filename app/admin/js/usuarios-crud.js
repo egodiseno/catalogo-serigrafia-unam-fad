@@ -159,13 +159,34 @@ const UsuariosCRUD = (() => {
     });
   }
 
-  // ── Eliminar usuario (con guard de último admin) ───────
+  // ── Eliminar usuario ────────────────────────────────────
   async function deleteUsuario(id, email) {
-    // Guard: no eliminar el último admin
+    const rolActual   = window.getRolActual?.() ?? 'editor';
+    const emailActual = window.usuarioActual?.email ?? '';
+    const target      = usuariosData.find(u => u.id === id);
+
+    // ── Guard 1: EDITOR no tiene acceso a usuarios ────────
+    if (rolActual === 'editor') {
+      window.ErrorHandler?.showToast('No tienes acceso a esta función.', 'error');
+      return;
+    }
+
+    // ── Guard 2: nadie puede eliminarse a sí mismo ────────
+    if (emailActual && target?.email === emailActual) {
+      window.ErrorHandler?.showToast('No puedes eliminar tu propia cuenta.', 'error');
+      return;
+    }
+
+    // ── Guard 3: SUPER_EDITOR no puede eliminar ADMIN ─────
+    if (rolActual === 'super_editor' && target?.rol === 'admin') {
+      window.ErrorHandler?.showToast('No puedes eliminar cuentas de administrador.', 'error');
+      return;
+    }
+
+    // ── Guard 4: no eliminar el último admin ──────────────
     const admins = usuariosData.filter(u => u.rol === 'admin');
-    const target  = usuariosData.find(u => u.id === id);
     if (target?.rol === 'admin' && admins.length <= 1) {
-      window.ErrorHandler?.showToast('No se puede eliminar el último administrador', 'error');
+      window.ErrorHandler?.showToast('No se puede eliminar el último administrador.', 'error');
       return;
     }
 

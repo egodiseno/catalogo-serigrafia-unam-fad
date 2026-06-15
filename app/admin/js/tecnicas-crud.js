@@ -141,6 +141,12 @@ const TecnicasCRUD = (() => {
 
   // ── Eliminar técnica (CRIT-05: openConfirm) ───────────
   async function deleteTecnica(id, nombre) {
+    // ── Guard de rol ──────────────────────────────────────
+    if ((window.getRolActual?.() ?? 'editor') === 'editor') {
+      window.ErrorHandler?.showToast('Los profesores no pueden eliminar técnicas.', 'error');
+      return;
+    }
+
     if (window.ModalManager?.openConfirm) {
       window.ModalManager.openConfirm({
         title:       '¿Eliminar técnica?',

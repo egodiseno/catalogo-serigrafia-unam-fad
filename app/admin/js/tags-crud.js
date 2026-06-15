@@ -137,6 +137,12 @@ const TagsCRUD = (() => {
 
   // ── Eliminar tag (CRIT-05: openConfirm) ───────────────
   async function deleteTag(id, nombre) {
+    // ── Guard de rol ──────────────────────────────────────
+    if ((window.getRolActual?.() ?? 'editor') === 'editor') {
+      window.ErrorHandler?.showToast('Los profesores no pueden eliminar tags.', 'error');
+      return;
+    }
+
     if (window.ModalManager?.openConfirm) {
       window.ModalManager.openConfirm({
         title:       '¿Eliminar tag?',

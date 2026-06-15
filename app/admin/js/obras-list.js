@@ -273,6 +273,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ── Confirmar y eliminar ──────────────────────────────
   function confirmDelete(id, titulo) {
+    // ── Guard de rol (defense-in-depth) ──────────────────
+    const rolActual = window.getRolActual?.() ?? 'editor';
+    if (rolActual === 'editor') {
+      // EDITOR solo puede eliminar sus propias obras
+      const obra        = state.obras.find(o => String(o.id) === String(id));
+      const emailActual = window.usuarioActual?.email ?? '';
+      if (!obra || obra.artista !== emailActual) {
+        window.ErrorHandler?.showToast('Solo puedes eliminar tus propias obras.', 'error');
+        return;
+      }
+    }
+
     const doDelete = async () => {
       try {
         const { error } = await client.from('obras').delete().eq('id', id);
