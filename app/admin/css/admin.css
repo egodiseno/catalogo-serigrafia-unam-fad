@@ -5936,6 +5936,14 @@ input[type="file"]:hover {
   flex-shrink: 0;
 }
 
+/* ── Botón eliminar crédito: icono centrado ────────────── */
+.credito-del-btn {
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  gap:             0;
+}
+
 /* ── Botón agregar al final de sección ─────────────────── */
 .credito-add-btn {
   margin-top:  0.25rem;
