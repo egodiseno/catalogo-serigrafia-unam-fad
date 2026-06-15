@@ -4338,17 +4338,22 @@ input[type="file"]:hover {
     border-bottom: none;
   }
 
-  /* Email (1ª celda): destacado como título de la card */
+  /* Checkbox (1ª celda): ocultar en vista cards */
   table.usuarios-table td:nth-child(1) {
+    display: none;
+  }
+
+  /* Email (2ª celda): destacado como título de la card */
+  table.usuarios-table td:nth-child(2) {
     font-weight: 600;
     font-size:   var(--text-base, 1rem);
     color:       var(--color-text, #1F2937);
     padding-top: var(--spacing-md, 0.75rem);
   }
 
-  /* Rol / Estado (2ª y 3ª): texto secundario */
-  table.usuarios-table td:nth-child(2),
-  table.usuarios-table td:nth-child(3) {
+  /* Rol / Estado (4ª y 5ª): texto secundario */
+  table.usuarios-table td:nth-child(4),
+  table.usuarios-table td:nth-child(5) {
     color:     var(--color-text-muted, #6B7280);
     font-size: var(--text-xs, 0.8125rem);
   }
@@ -4381,6 +4386,171 @@ input[type="file"]:hover {
     padding:    var(--spacing-xl, 2rem) var(--spacing-md, 0.75rem);
   }
 }
+
+
+
+/* ══════════════════════════════════════════════════════════════════════
+   CSV IMPORT — modal preview + badges
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* Modal ancho para la tabla de preview */
+.modal-dialog--lg {
+  max-width: 780px;
+}
+
+.csv-preview-body {
+  overflow-y: auto;
+  max-height: calc(90vh - 160px);
+  padding: var(--spacing-xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+/* ── Resumen de badges ───────────────────────────────────── */
+.csv-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  align-items: center;
+}
+
+.csv-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--spacing-xs) var(--spacing-md);
+  border-radius: var(--radius-pill, 9999px);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  line-height: 1;
+}
+.csv-badge--crear      { background: #D1FAE5; color: #065F46; }
+.csv-badge--actualizar { background: #DBEAFE; color: #1E40AF; }
+.csv-badge--error      { background: #FEE2E2; color: #991B1B; }
+
+/* ── Bloque de errores (collapsible) ─────────────────────── */
+.csv-errors {
+  border: 1px solid #FECACA;
+  border-radius: var(--radius-md);
+  background: #FFF5F5;
+  padding: var(--spacing-md);
+}
+
+.csv-errors summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: var(--font-size-sm);
+  user-select: none;
+}
+.csv-errors summary::-webkit-details-marker { display: none; }
+
+.csv-error-list {
+  margin: var(--spacing-md) 0 0 var(--spacing-lg);
+  padding: 0;
+  list-style: disc;
+  font-size: var(--font-size-sm);
+  color: #7F1D1D;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+/* ── Tabla preview ───────────────────────────────────────── */
+.csv-table-wrapper {
+  overflow-x: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.csv-preview-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-sm);
+}
+
+.csv-preview-table th,
+.csv-preview-table td {
+  padding: var(--spacing-sm) var(--spacing-md);
+  text-align: left;
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+}
+
+.csv-preview-table thead th {
+  background: var(--color-bg, #F9FAFB);
+  font-weight: 600;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.csv-preview-table tbody tr:last-child td { border-bottom: none; }
+.csv-preview-table tbody tr:hover { background: var(--color-bg, #F9FAFB); }
+
+/* Anchos de columna */
+.csv-col-email  { min-width: 200px; }
+.csv-col-nombre { min-width: 140px; }
+.csv-col-rol    { min-width: 110px; }
+.csv-col-accion { min-width: 100px; }
+
+/* ── Badges de acción ────────────────────────────────────── */
+.csv-action {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+}
+.csv-action--crear      { background: #D1FAE5; color: #065F46; }
+.csv-action--actualizar { background: #DBEAFE; color: #1E40AF; }
+
+/* ── Estado vacío ────────────────────────────────────────── */
+.csv-empty {
+  text-align: center;
+  color: var(--color-text-muted);
+  padding: var(--spacing-xl) 0;
+  font-size: var(--font-size-sm);
+}
+
+/* ── Botones de la sección header (Importar CSV + Nuevo Usuario) */
+.section-header-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+
+
+/* ── Tabla usuarios: checkbox + columna nombre ──────────────────────── */
+.th-checkbox,
+.td-checkbox {
+  width: 40px;
+  text-align: center;
+  padding-left: var(--spacing-sm);
+  padding-right: var(--spacing-sm);
+}
+
+.usuarios-table th:nth-child(3) {
+  width: 150px;
+}
+
+.select-user,
+#selectAllUsers {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: var(--color-primary, #013B75);
+  vertical-align: middle;
+}
+
+/* "Select all" — pointer en la th del header */
+.th-checkbox { cursor: default; }
 
 
 
@@ -5053,4 +5223,331 @@ input[type="file"]:hover {
 /* Respetar preferencia de movimiento reducido */
 @media (prefers-reduced-motion: reduce) {
   .sort-toggle { transition: none; }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   MI PERFIL — Secciones adicionales: Acciones Rápidas + Historial
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── Tarjeta genérica de sección en Mi Perfil ──────────────────────── */
+.profile-section-card {
+  background:    var(--color-white, #fff);
+  border:        1px solid var(--color-border, #e2e8f0);
+  border-radius: var(--radius-md, 8px);
+  padding:       var(--spacing-xl, 24px);
+  margin-bottom: var(--spacing-lg, 20px);
+}
+
+.profile-section-card h3 {
+  margin:        0 0 var(--spacing-md, 16px);
+  font-size:     var(--font-size-md, 1rem);
+  font-weight:   600;
+  color:         var(--color-text, #1e293b);
+  border-bottom: 1px solid var(--color-border, #e2e8f0);
+  padding-bottom: var(--spacing-sm, 8px);
+}
+
+/* ── Hints de carga / vacío ─────────────────────────────────────────── */
+.loading-hint,
+.empty-hint {
+  font-size:  var(--font-size-sm, 0.875rem);
+  color:      var(--color-text-muted, #64748b);
+  margin:     0;
+  padding:    var(--spacing-sm, 8px) 0;
+}
+
+/* ── Acciones rápidas ────────────────────────────────────────────────── */
+.quick-actions-grid {
+  display:   flex;
+  flex-wrap: wrap;
+  gap:       var(--spacing-md, 16px);
+}
+
+.quick-action-btn {
+  display:        flex;
+  flex-direction: column;
+  align-items:    center;
+  gap:            var(--spacing-xs, 6px);
+  padding:        var(--spacing-md, 16px) var(--spacing-lg, 20px);
+  min-width:      120px;
+  background:     var(--color-primary-light, #eef4fb);
+  border:         1px solid transparent;
+  border-radius:  var(--radius-md, 8px);
+  color:          var(--color-primary, #013B75);
+  font-size:      var(--font-size-sm, 0.875rem);
+  font-weight:    500;
+  cursor:         pointer;
+  transition:     background 150ms ease, border-color 150ms ease, transform 100ms ease;
+}
+
+.quick-action-btn:hover {
+  background:    var(--color-primary, #013B75);
+  color:         #fff;
+  border-color:  var(--color-primary, #013B75);
+}
+
+.quick-action-btn:active {
+  transform: scale(0.97);
+}
+
+.quick-action-btn:focus-visible {
+  outline:        2px solid var(--color-primary, #013B75);
+  outline-offset: 2px;
+}
+
+.quick-action-btn span {
+  text-align: center;
+  line-height: 1.2;
+}
+
+/* ── Historial de contraseña ─────────────────────────────────────────── */
+.historial-table {
+  width:           100%;
+  border-collapse: collapse;
+  font-size:       var(--font-size-sm, 0.875rem);
+}
+
+.historial-table th {
+  text-align:    left;
+  padding:       var(--spacing-xs, 6px) var(--spacing-sm, 8px);
+  font-weight:   600;
+  color:         var(--color-text-muted, #64748b);
+  border-bottom: 2px solid var(--color-border, #e2e8f0);
+  font-size:     0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.historial-table td {
+  padding:       var(--spacing-sm, 8px);
+  border-bottom: 1px solid var(--color-border-light, #f1f5f9);
+  color:         var(--color-text, #1e293b);
+}
+
+.historial-table tr:last-child td {
+  border-bottom: none;
+}
+
+.historial-table tr:hover td {
+  background: var(--color-primary-light, #eef4fb);
+}
+
+/* ── profile-section-form ya existía; solo ajustamos wrap ────────────── */
+.profile-section-form {
+  background:    var(--color-white, #fff);
+  border:        1px solid var(--color-border, #e2e8f0);
+  border-radius: var(--radius-md, 8px);
+  padding:       var(--spacing-xl, 24px);
+  margin-bottom: var(--spacing-lg, 20px);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   MI PORTAFOLIO — Sección completa
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── Estadísticas (4 tarjetas) ──────────────────────────────────────── */
+.portafolio-stats {
+  display:               grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap:                   var(--spacing-md, 16px);
+  margin-bottom:         var(--spacing-lg, 20px);
+}
+
+.portafolio-stat-card {
+  display:         flex;
+  flex-direction:  column;
+  align-items:     center;
+  gap:             4px;
+  padding:         var(--spacing-lg, 20px) var(--spacing-md, 16px);
+  background:      var(--color-white, #fff);
+  border:          1px solid var(--color-border, #e2e8f0);
+  border-radius:   var(--radius-md, 8px);
+  border-top:      3px solid var(--color-primary, #013B75);
+  text-align:      center;
+  transition:      box-shadow 150ms ease;
+}
+
+.portafolio-stat-card:hover {
+  box-shadow: var(--shadow-md, 0 4px 12px rgba(0,0,0,.08));
+}
+
+.portafolio-stat-card--publicado { border-top-color: var(--color-success, #16a34a); }
+.portafolio-stat-card--borrador  { border-top-color: var(--color-warning, #d97706); }
+.portafolio-stat-card--revision  { border-top-color: var(--color-info,    #0284c7); }
+
+.portafolio-stat-number {
+  font-size:   2rem;
+  font-weight: 700;
+  color:       var(--color-primary, #013B75);
+  line-height: 1;
+}
+
+.portafolio-stat-label {
+  font-size:  0.75rem;
+  font-weight: 500;
+  color:      var(--color-text-muted, #64748b);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ── Toolbar (búsqueda) ─────────────────────────────────────────────── */
+.portafolio-toolbar {
+  display:         flex;
+  align-items:     center;
+  gap:             var(--spacing-sm, 8px);
+  margin-bottom:   var(--spacing-md, 16px);
+}
+
+.portafolio-search {
+  max-width: 320px;
+  width:     100%;
+}
+
+/* ── Tabla portafolio ───────────────────────────────────────────────── */
+.portafolio-table {
+  width:           100%;
+  border-collapse: collapse;
+  font-size:       var(--font-size-sm, 0.875rem);
+}
+
+.portafolio-table th {
+  padding:        var(--spacing-sm, 8px) var(--spacing-md, 12px);
+  text-align:     left;
+  font-weight:    600;
+  font-size:      0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color:          var(--color-text-muted, #64748b);
+  border-bottom:  2px solid var(--color-border, #e2e8f0);
+  background:     var(--color-surface, #f8fafc);
+}
+
+.portafolio-table td {
+  padding:       var(--spacing-sm, 8px) var(--spacing-md, 12px);
+  border-bottom: 1px solid var(--color-border-light, #f1f5f9);
+  color:         var(--color-text, #1e293b);
+  vertical-align: middle;
+}
+
+.portafolio-table tr:last-child td {
+  border-bottom: none;
+}
+
+.portafolio-table tr:hover td {
+  background: var(--color-primary-light, #eef4fb);
+}
+
+/* ── Responsive: portafolio stats ───────────────────────────────────── */
+@media (max-width: 768px) {
+  .portafolio-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .portafolio-stat-number {
+    font-size: 1.5rem;
+  }
+
+  .quick-actions-grid {
+    gap: var(--spacing-sm, 8px);
+  }
+
+  .quick-action-btn {
+    min-width: 90px;
+    padding:   var(--spacing-sm, 8px) var(--spacing-md, 12px);
+  }
+
+  .historial-table th,
+  .historial-table td {
+    padding: var(--spacing-xs, 4px) var(--spacing-sm, 6px);
+  }
+}
+
+@media (max-width: 480px) {
+  .portafolio-stats {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   MI PERFIL — Grid 3 columnas (desktop) / 1 col (mobile)
+   ═══════════════════════════════════════════════════════════════════
+   DOM order = mobile order:
+     1. .profile-grid__card     (datos de cuenta)
+     2. .profile-grid__actions  (acciones rápidas)
+     3. .profile-grid__pwd      (cambiar contraseña)
+   ═══════════════════════════════════════════════════════════════════ */
+
+.profile-grid {
+  display:               grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap:                   var(--spacing-lg, 20px);
+  align-items:           start;
+}
+
+/* Quitar margin-bottom en los hijos del grid */
+.profile-grid > * {
+  margin-bottom: 0;
+}
+
+/* ── Posición explícita desktop (todos en fila 1) ────────────────── */
+.profile-grid__card    { grid-column: 1; grid-row: 1; }
+.profile-grid__actions { grid-column: 2; grid-row: 1; }
+.profile-grid__pwd     { grid-column: 3; grid-row: 1; }
+
+/* ── Acciones rápidas: grid 2×2, botones llenan ancho ────────────── */
+.quick-actions-grid {
+  display:               grid;
+  grid-template-columns: 1fr 1fr;
+  gap:                   var(--spacing-sm, 8px);
+}
+
+.quick-action-btn {
+  display:         flex;
+  flex-direction:  column;
+  align-items:     center;
+  justify-content: center;
+  gap:             var(--spacing-xs, 6px);
+  padding:         var(--spacing-md, 14px) var(--spacing-sm, 8px);
+  width:           100%;
+  min-width:       unset;
+  background:      var(--color-primary-light, #eef4fb);
+  border:          1px solid transparent;
+  border-radius:   var(--radius-md, 8px);
+  color:           var(--color-primary, #013B75);
+  font-size:       var(--font-size-sm, 0.875rem);
+  font-weight:     500;
+  cursor:          pointer;
+  text-align:      center;
+  transition:      background 150ms ease, border-color 150ms ease, transform 100ms ease;
+}
+
+.quick-action-btn:hover {
+  background:   var(--color-primary, #013B75);
+  color:        #fff;
+  border-color: var(--color-primary, #013B75);
+}
+
+.quick-action-btn:active { transform: scale(0.97); }
+
+.quick-action-btn:focus-visible {
+  outline:        2px solid var(--color-primary, #013B75);
+  outline-offset: 2px;
+}
+
+/* ── Responsive: mobile (<1024px) ───────────────────────────────── */
+@media (max-width: 1023px) {
+  /* Colapsa a 1 columna — los ítems fluyen en orden DOM */
+  .profile-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Limpiar posiciones explícitas para flujo natural */
+  .profile-grid__card,
+  .profile-grid__pwd,
+  .profile-grid__actions {
+    grid-column: 1;
+    grid-row:    auto;
+  }
 }

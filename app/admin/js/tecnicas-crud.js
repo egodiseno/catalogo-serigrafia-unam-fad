@@ -96,7 +96,7 @@ const TecnicasCRUD = (() => {
         if (error) throw error;
 
         window.auditLogger?.crearTecnica(nueva.id, nueva.nombre);
-        window.ErrorHandler?.showToast('✅ Técnica creada correctamente', 'success');
+        window.ErrorHandler?.showToast('Técnica creada correctamente', 'success');
         document.dispatchEvent(new CustomEvent('tecnicas:updated', { detail: nueva }));
       }
     });
@@ -133,7 +133,7 @@ const TecnicasCRUD = (() => {
         if (error) throw error;
 
         window.auditLogger?.editarTecnica(id, data.nombre.trim());
-        window.ErrorHandler?.showToast('✅ Técnica actualizada', 'success');
+        window.ErrorHandler?.showToast('Técnica actualizada', 'success');
         document.dispatchEvent(new CustomEvent('tecnicas:updated'));
       }
     });

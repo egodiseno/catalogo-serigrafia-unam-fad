@@ -220,6 +220,19 @@ function inicializarPermisos() {
     console.log(`[Permisos] "${seccionActiva}" oculta para "${rol}" → redirigiendo a ${destino}`);
     window.showSection?.(destino);
   }
+
+  // ── Sección Mi Portafolio en sidebar ───────────────────
+  if (!tienePermiso('portafolio.ver')) {
+    document.querySelectorAll('[data-section="mi-portafolio"]').forEach(el => {
+      el.style.display = 'none';
+    });
+    const portafolioSection = document.getElementById('miPortafolioSection');
+    if (portafolioSection) portafolioSection.style.display = 'none';
+  } else {
+    document.querySelectorAll('[data-section="mi-portafolio"]').forEach(el => {
+      el.style.display = '';
+    });
+  }
 }
 
 // ── Exponer globalmente ────────────────────────────────────

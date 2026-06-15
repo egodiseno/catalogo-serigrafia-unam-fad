@@ -233,7 +233,7 @@ const PasswordRecovery = (() => {
       }
 
       // Éxito — cerrar sesión de recovery y volver al login limpio
-      window.ErrorHandler?.showToast('✅ Contraseña actualizada correctamente. Inicia sesión.', 'success');
+      window.ErrorHandler?.showToast('Contraseña actualizada correctamente. Inicia sesión.', 'success');
 
       // Limpiar el hash de recovery de la URL (sin recargar la página)
       history.replaceState(null, '', window.location.pathname);

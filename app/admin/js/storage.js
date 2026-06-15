@@ -48,16 +48,64 @@ const StorageModule = (() => {
 
       console.log('📤 Uploading:', file.name);
 
+      // ── Convertir a WebP vía Edge Function ───────────────────────
+      // Si falla (red, error WASM) se usa el archivo original sin interrumpir el flujo.
+      let uploadFile = file;
+      let uploadExt  = file.name.split('.').pop()?.toLowerCase() ?? 'jpg';
+
+      try {
+        const EDGE_FN_URL = 'https://kfvjansfmhamkrnbxmgp.supabase.co/functions/v1/convert-webp';
+        const ANON_KEY    = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmdmphbnNmbWhhbWtybmJ4bWdwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4MzU3MzgsImV4cCI6MjA5NTQxMTczOH0.yesPqr7JhxniQxMa_fVPvwhBg2o98J2UB67G7u7fFsE';
+
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('obra_id', obraId || ('obra-temp-' + Date.now()));
+
+        console.log('🔄 Solicitando conversión WebP…');
+        const convResp = await fetch(EDGE_FN_URL, {
+          method:  'POST',
+          headers: { Authorization: `Bearer ${ANON_KEY}` },
+          body:    formData,
+        });
+
+        if (convResp.ok) {
+          const blob      = await convResp.blob();
+          const converted = convResp.headers.get('X-Converted') === 'true';
+          const xFilename = convResp.headers.get('X-Filename') || file.name;
+          const xSize     = convResp.headers.get('X-Size');
+
+          if (converted) {
+            uploadFile = new File([blob], xFilename, { type: 'image/webp' });
+            uploadExt  = 'webp';
+            console.log(
+              `✅ Imagen convertida a WebP: ${xFilename}`,
+              `(${xSize ? (parseInt(xSize) / 1024).toFixed(1) + ' KB' : blob.size + ' bytes'})`,
+            );
+          } else {
+            // Ya era WebP o conversión no disponible — se usa el blob retornado
+            uploadFile = new File([blob], xFilename, { type: convResp.headers.get('Content-Type') || file.type });
+            console.log('ℹ️ Sin conversión necesaria:', xFilename);
+          }
+        } else {
+          // Edge Function respondió con error HTTP
+          const errBody = await convResp.text().catch(() => String(convResp.status));
+          console.warn('⚠️ Conversión fallida — usando original:', errBody);
+        }
+      } catch (convErr) {
+        // Red cortada, Edge Function caída, etc.
+        console.warn('⚠️ Edge Function inaccesible — usando original:', convErr.message);
+      }
+      // ─────────────────────────────────────────────────────────────
+
       // Generar nombre único
       const timestamp = Date.now();
       const random = Math.random().toString(36).substring(2, 8);
-      const ext = file.name.split('.').pop();
-      const fileName = `${obraId}/${timestamp}-${random}.${ext}`;
+      const fileName = `${obraId}/${timestamp}-${random}.${uploadExt}`;
 
-      // Upload a Storage
+      // Upload a Storage (uploadFile = WebP convertido, o file original si falló Edge Fn)
       const { data, error } = await client.storage
         .from(BUCKET_NAME)
-        .upload(fileName, file, {
+        .upload(fileName, uploadFile, {
           cacheControl: '3600',
           upsert: false,
         });

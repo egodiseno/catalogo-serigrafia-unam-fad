@@ -237,7 +237,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         // ✅ MFA enrollado y verificado con éxito
         const { data: { session } } = await client.auth.getSession();
         mfaFlowActive = false;
-        window.ErrorHandler?.showToast('✅ Autenticación de dos pasos activada correctamente', 'success');
+        window.ErrorHandler?.showToast('Autenticación de dos pasos activada correctamente', 'success');
         showDashboard(session?.user?.email ?? '');
 
       } catch (err) {

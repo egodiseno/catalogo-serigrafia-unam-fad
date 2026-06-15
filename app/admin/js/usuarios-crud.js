@@ -31,20 +31,20 @@ const UsuariosCRUD = (() => {
   async function loadUsuarios() {
     const tbody = document.getElementById('usuariosList');
     if (!tbody) return;
-    tbody.innerHTML = '<tr><td colspan="4" class="empty-state">Cargando…</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Cargando…</td></tr>';
 
     try {
       const _sort = window.sortManager?.getSort('usuarios-table') ?? { field: 'email', direction: 'asc' };
       const { data, error } = await client
         .from('usuarios_admin')
-        .select('id, email, rol, estado')
+        .select('id, email, nombre, rol, estado')
         .order(_sort.field, { ascending: _sort.direction === 'asc' });
       if (error) throw error;
 
       usuariosData = data ?? [];
 
       if (usuariosData.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="4" class="empty-state">
+        tbody.innerHTML = `<tr><td colspan="6" class="empty-state">
           Sin usuarios. <a href="#" class="cta-link"
             onclick="window.UsuariosCRUD?.openCreateModal(); return false">Invitar primero →</a>
         </td></tr>`;
@@ -53,7 +53,11 @@ const UsuariosCRUD = (() => {
 
       tbody.innerHTML = usuariosData.map(u => `
         <tr>
+          <td class="td-checkbox">
+            <input type="checkbox" class="select-user" data-email="${escapeHtml(u.email)}" aria-label="Seleccionar ${escapeHtml(u.email)}">
+          </td>
           <td>${escapeHtml(u.email)}</td>
+          <td>${u.nombre ? escapeHtml(u.nombre) : '<span class="text-muted">—</span>'}</td>
           <td><span class="badge badge-${escapeHtml(u.rol)}">${escapeHtml(u.rol)}</span></td>
           <td>
             <span class="badge ${u.estado ? 'badge-publicado' : 'badge-archivado'}">
@@ -149,7 +153,7 @@ const UsuariosCRUD = (() => {
         if (error) throw error;
 
         window.auditLogger?.editarUsuario(usuario.email);
-        window.ErrorHandler?.showToast('✅ Usuario actualizado', 'success');
+        window.ErrorHandler?.showToast('Usuario actualizado', 'success');
         document.dispatchEvent(new CustomEvent('usuarios:updated'));
       }
     });
@@ -290,6 +294,7 @@ const UsuariosCRUD = (() => {
     window.ModalManager.open({
       title: 'Nuevo Usuario Admin',
       fields: [
+        { name: 'nombre',   label: 'Nombre',     type: 'text',     required: true },
         { name: 'email',    label: 'Email',      type: 'email',    required: true },
         { name: 'password', label: 'Contraseña', type: 'password', required: true },
         {
@@ -306,7 +311,10 @@ const UsuariosCRUD = (() => {
       ],
       onSave: async (data) => {
         try {
-          // ── Validar rol permitido (whitelist) ──────────────────────
+          // ── Validar campos requeridos ──────────────────────────────
+          if (!data.nombre?.trim()) {
+            throw new Error('El nombre es obligatorio.');
+          }
           const VALID_ROLES = ['admin', 'super_editor', 'editor'];
           if (!VALID_ROLES.includes(data.rol)) {
             throw new Error(`Rol no permitido: "${data.rol}". Valores válidos: admin, super_editor, editor.`);
@@ -339,6 +347,7 @@ const UsuariosCRUD = (() => {
               body: JSON.stringify({
                 email:    data.email,
                 password: data.password,
+                nombre:   data.nombre.trim(),
                 rol:      data.rol,
               }),
             });
@@ -360,7 +369,7 @@ const UsuariosCRUD = (() => {
 
           window.auditLogger?.crearUsuario(result.email ?? data.email);
           window.ErrorHandler?.showToast(
-            `✅ Usuario ${result.email} creado y activado correctamente.`,
+            `Usuario ${result.email} creado y activado correctamente.`,
             'success'
           );
           document.dispatchEvent(new CustomEvent('usuarios:updated'));
@@ -424,6 +433,20 @@ const UsuariosCRUD = (() => {
     const btn = document.getElementById('newUsuarioBtn');
     if (btn) btn.addEventListener('click', e => { e.preventDefault(); openCreateModal(); });
 
+    // ── CSV Import ─────────────────────────────────────────
+    const csvBtn  = document.getElementById('csvImportBtn');
+    const csvFile = document.getElementById('csvImportFile');
+    if (csvBtn && csvFile) {
+      csvBtn.addEventListener('click', () => csvFile.click());
+      csvFile.addEventListener('change', () => {
+        const file = csvFile.files?.[0];
+        if (file) {
+          window.csvImportManager?.importarUsuarios(file);
+          csvFile.value = ''; // resetear para permitir reimportar el mismo archivo
+        }
+      });
+    }
+
     document.addEventListener('usuarios:updated', loadUsuarios);
 
     document.querySelectorAll('[data-section="usuarios"]').forEach(navBtn => {
@@ -437,6 +460,14 @@ const UsuariosCRUD = (() => {
       { label: 'Más recientes', field: 'created_at' },
     ], { field: 'email', direction: 'asc' });    // default = comportamiento actual
     window.sortManager?.mountDropdown('usuarios-table', () => loadUsuarios());
+
+    // ── Select All checkbox ────────────────────────────────
+    document.addEventListener('click', (e) => {
+      if (e.target?.id === 'selectAllUsers') {
+        const checked = e.target.checked;
+        document.querySelectorAll('.select-user').forEach(cb => { cb.checked = checked; });
+      }
+    });
 
     console.log('👥 UsuariosCRUD listo');
   }

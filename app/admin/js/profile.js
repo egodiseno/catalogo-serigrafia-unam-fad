@@ -38,21 +38,32 @@ class ProfileManager {
 
   async cargarPerfil() {
     const usuario = window.usuarioActual;
+    console.log('[Profile] cargarPerfil() — usuarioActual:', usuario);
+    console.log('[Profile] supabase_client disponible:', !!this.client);
+
     if (!usuario) {
-      console.warn('[ProfileManager] Sin usuario activo.');
+      console.warn('[ProfileManager] Sin usuario activo — cargarPerfil() abortado.');
       return;
     }
 
     try {
       const { data, error } = await this.client
         .from('usuarios_admin')
-        .select('email, rol, estado, created_at')
+        .select('email, nombre, rol, estado, created_at')
         .eq('email', usuario.email)
         .single();
 
+      console.log('[Profile] Datos cargados desde BD:', data, '| error:', error);
+
       if (error) throw error;
 
+      // Exponer nombre para otros módulos (portafolio.js lo usa como filtro artista)
+      if (data?.nombre && window.usuarioActual) {
+        window.usuarioActual.nombre = data.nombre;
+      }
+
       this._renderPerfil(data);
+      this._renderQuickActions();
 
     } catch (err) {
       console.error('[ProfileManager] cargarPerfil:', err);
@@ -65,12 +76,17 @@ class ProfileManager {
   // ══════════════════════════════════════════════════════
 
   _renderPerfil(datos) {
-    const email = datos?.email ?? window.usuarioActual?.email ?? '—';
+    console.log('[Profile] _renderPerfil() llamado con:', datos);
+    const email  = datos?.email  ?? window.usuarioActual?.email  ?? '—';
+    const nombre = datos?.nombre ?? window.usuarioActual?.nombre ?? '';
 
-    // Avatar: inicial del email
+    // Avatar: inicial del nombre (si existe) o del email
     const el = id => document.getElementById(id);
-    const initial = email.charAt(0).toUpperCase();
+    const initial = (nombre || email).charAt(0).toUpperCase();
     if (el('profileInitial')) el('profileInitial').textContent = initial;
+
+    // Nombre
+    if (el('profileNombre')) el('profileNombre').textContent = nombre || '—';
 
     // Email
     if (el('profileEmail')) el('profileEmail').textContent = email;
@@ -153,8 +169,8 @@ class ProfileManager {
       const { error: updateErr } = await this.client.auth.updateUser({ password: nueva });
       if (updateErr) throw updateErr;
 
-      // ✅ Éxito
-      this._showFormAlert('✅ Contraseña cambiada correctamente.', 'success');
+      // Éxito
+      this._showFormAlert('Contraseña cambiada correctamente.', 'success');
       this._limpiarForm(true);   // resetea inputs, mantiene el alert
       window.ErrorHandler?.showToast('Contraseña actualizada', 'success');
 
@@ -176,6 +192,52 @@ class ProfileManager {
         window.IconRegistry?.init();
       }
     }
+  }
+
+  // ══════════════════════════════════════════════════════
+  // Acciones rápidas según rol
+  // ══════════════════════════════════════════════════════
+
+  _renderQuickActions() {
+    const container = document.getElementById('quickActions');
+    if (!container) return;
+
+    const rol = window.getRolActual?.() ?? 'editor';
+
+    const acciones = {
+      admin: [
+        { label: 'Nueva Obra',      icon: 'plus-circle',  seccion: 'obras',    hint: 'Agregar obra al catálogo' },
+        { label: 'Nuevo Usuario',   icon: 'user-plus',    seccion: 'usuarios', hint: 'Crear cuenta de usuario' },
+        { label: 'Ver Logs',        icon: 'activity',     seccion: 'logs',     hint: 'Auditoría del sistema' },
+        { label: 'Gestionar Tags',  icon: 'tag',          seccion: 'tags',     hint: 'Administrar etiquetas' },
+      ],
+      super_editor: [
+        { label: 'Nueva Obra',       icon: 'plus-circle', seccion: 'obras',     hint: 'Agregar obra al catálogo' },
+        { label: 'Nuevo Usuario',    icon: 'user-plus',   seccion: 'usuarios',  hint: 'Crear cuenta de usuario' },
+        { label: 'Gestionar Tags',   icon: 'tag',         seccion: 'tags',      hint: 'Administrar etiquetas' },
+        { label: 'Técnicas',         icon: 'brush',       seccion: 'tecnicas',  hint: 'Administrar técnicas' },
+      ],
+      editor: [
+        { label: 'Mi Portafolio',  icon: 'layout-grid', seccion: 'mi-portafolio', hint: 'Ver mis obras' },
+        { label: 'Nueva Obra',     icon: 'plus-circle', seccion: 'obras',          hint: 'Agregar obra al catálogo' },
+      ],
+    };
+
+    const lista = acciones[rol] ?? acciones.editor;
+
+    container.innerHTML = lista.map(a => `
+      <button class="quick-action-btn" data-goto="${a.seccion}" title="${a.hint}">
+        <i data-lucide="${a.icon}" style="width:22px;height:22px;" aria-hidden="true"></i>
+        <span>${a.label}</span>
+      </button>`).join('');
+
+    window.IconRegistry?.init();
+
+    container.querySelectorAll('.quick-action-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        window.showSection?.(btn.dataset.goto);
+      });
+    });
   }
 
   // ══════════════════════════════════════════════════════

@@ -1158,3 +1158,704 @@ body.is-scrolled .filters {
 .footer-bottom a:hover {
   opacity: 1;
 }
+
+/* ============================================================
+   Ficha Detalle de Obra — obra.html
+   ============================================================ */
+
+/* Página principal */
+.work-page {
+  padding-block: var(--space-4) var(--space-6);
+}
+
+/* ── Breadcrumb ──────────────────────────────────────────── */
+.work-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: var(--space-4);
+  font-size: 0.875rem;
+  color: var(--color-muted);
+}
+
+.work-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  color: var(--color-blue);
+  font-weight: 500;
+  text-decoration: none;
+  border-radius: var(--radius-ui);
+  padding: 0.25rem 0.5rem;
+  margin-left: -0.5rem;
+  transition: background 150ms var(--ease), color 150ms var(--ease);
+}
+
+.work-back-btn:hover {
+  background: var(--color-blue-soft);
+}
+
+.work-back-btn:focus-visible {
+  outline: 2px solid var(--color-blue);
+  outline-offset: 2px;
+}
+
+.work-back-btn i,
+.work-back-btn svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.work-breadcrumb__sep {
+  color: var(--color-line);
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.work-breadcrumb__current {
+  color: var(--color-ink);
+  font-weight: 500;
+  /* Truncar si el título es muy largo */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 40ch;
+}
+
+/* ── Estados: loading y error ────────────────────────────── */
+.work-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+}
+
+.work-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 300px;
+  justify-content: center;
+  text-align: center;
+  color: var(--color-muted);
+}
+
+.work-error i,
+.work-error svg {
+  width: 40px;
+  height: 40px;
+  color: var(--color-line);
+}
+
+.work-error p {
+  font-size: 1rem;
+  margin: 0;
+}
+
+/* ── Layout principal: 2 columnas en desktop ─────────────── */
+.work-detail {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-5);
+  align-items: start;
+}
+
+/* Alias para compatibilidad con nombres del spec */
+.work-main { display: contents; }
+
+/* ── Hero (columna izquierda) ─────────────────────────────── */
+.work-hero {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  position: sticky;
+  top: calc(60px + 80px + var(--space-2)); /* header + filtros + gap */
+}
+
+/* Figura / contenedor imagen principal */
+.work-hero__figure,
+.work-figure {
+  margin: 0;
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  background: linear-gradient(135deg, #eef2f7, #e0e7f0);
+  aspect-ratio: 1 / 1;
+  position: relative;
+}
+
+.work-hero__figure.is-empty::after {
+  content: '';
+  display: block;
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 10px,
+    rgba(0, 0, 0, 0.03) 10px,
+    rgba(0, 0, 0, 0.03) 20px
+  );
+}
+
+/* Imagen principal */
+.work-hero__img,
+.work-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 400ms var(--ease);
+  border-radius: var(--radius-card);
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.work-hero__img:hover {
+  transform: scale(1.02);
+}
+
+/* ── Galería de miniaturas ────────────────────────────────── */
+.work-gallery,
+.gallery-thumbs {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+  gap: 0.5rem;
+}
+
+.gallery-thumb {
+  aspect-ratio: 1 / 1;
+  border-radius: var(--radius-ui);
+  overflow: hidden;
+  border: 2px solid transparent;
+  background: var(--color-line);
+  cursor: pointer;
+  padding: 0;
+  transition: border-color 150ms var(--ease),
+              box-shadow 150ms var(--ease),
+              opacity 150ms var(--ease),
+              transform 200ms var(--ease);
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.gallery-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+}
+
+.gallery-thumb:hover {
+  border-color: rgba(1, 59, 117, 0.4);
+  opacity: 0.9;
+  transform: scale(1.08);
+}
+
+.gallery-thumb.is-active {
+  border-color: var(--color-blue);
+  box-shadow: 0 0 0 2px var(--color-blue-soft);
+}
+
+.gallery-thumb:focus-visible {
+  outline: 2px solid var(--color-blue);
+  outline-offset: 2px;
+}
+
+/* ── Metadata (columna derecha) ──────────────────────────── */
+.work-meta,
+.work-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* Título de la obra */
+.work-meta__title,
+.work-title {
+  font-family: var(--font-serif);
+  font-size: clamp(1.5rem, 3vw, 2.25rem);
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--color-ink);
+  margin: 0;
+}
+
+/* Definition list — grid 2 cols: label (auto) + valor (1fr) */
+.work-meta__dl {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0;
+  border-left: 4px solid var(--color-gold);
+  padding: var(--space-2);
+  background: rgba(217, 165, 0, 0.05);
+  border-radius: 4px;
+}
+
+.work-meta__row {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.5rem 1.25rem;
+  align-items: baseline;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--color-line);
+}
+
+.work-meta__row dt {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  white-space: nowrap;
+}
+
+.work-meta__row dd {
+  margin: 0;
+  font-size: 0.9375rem;
+  color: var(--color-ink);
+}
+
+/* Tags inline en la ficha */
+.work-meta__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+/* Descripción */
+.work-meta__description,
+.work-description {
+  padding-top: var(--space-2);
+}
+
+.work-meta__desc-heading {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  margin: 0 0 0.625rem;
+}
+
+.work-meta__description p,
+.work-description p {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.7;
+  color: var(--color-ink);
+}
+
+/* ── Obras relacionadas ───────────────────────────────────── */
+.work-related {
+  margin-top: var(--space-6);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-line);
+}
+
+.work-related h2 {
+  font-size: 1.25rem;
+  margin-bottom: var(--space-3);
+}
+
+/* ── Responsive ──────────────────────────────────────────── */
+
+/* Tablet: imagen más pequeña */
+@media (max-width: 1023px) {
+  .work-detail {
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-4);
+  }
+
+  .work-hero {
+    position: static; /* sin sticky en tablet */
+  }
+}
+
+/* Mobile: 1 columna */
+@media (max-width: 639px) {
+  .work-page {
+    padding-block: var(--space-3) var(--space-5);
+  }
+
+  .work-detail {
+    grid-template-columns: 1fr;
+    gap: var(--space-3);
+  }
+
+  .work-hero {
+    position: static;
+  }
+
+  .work-meta__title,
+  .work-title {
+    font-size: 1.5rem;
+  }
+
+  .work-breadcrumb__current {
+    max-width: 24ch;
+  }
+
+  .gallery-thumb {
+    min-width: 52px;
+  }
+}
+
+/* ============================================================
+   Lightbox — overlay fullscreen
+   ============================================================ */
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Overlay */
+.lightbox {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 200ms ease both;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  transition: opacity 200ms ease;
+}
+
+/* Área de contenido (imagen + botones) */
+.lightbox__content {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+/* Fondo clickable para cerrar */
+.lightbox__backdrop {
+  position: absolute;
+  inset: 0;
+  cursor: zoom-out;
+}
+
+/* Imagen principal */
+.lightbox__image {
+  position: relative; /* sobre el backdrop */
+  max-width: 90vw;
+  max-height: 90vh;
+  object-fit: contain;
+  border-radius: var(--radius-card);
+  pointer-events: none; /* click pasa al backdrop */
+  user-select: none;
+}
+
+/* Base de botones (close, prev, next) */
+.lightbox__close,
+.lightbox__prev,
+.lightbox__next {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 0.75rem;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 200ms ease, transform 200ms ease;
+  z-index: 1001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  backdrop-filter: blur(4px);
+}
+
+.lightbox__close svg,
+.lightbox__prev svg,
+.lightbox__next svg {
+  width: 20px;
+  height: 20px;
+  pointer-events: none;
+}
+
+.lightbox__close:hover,
+.lightbox__prev:hover,
+.lightbox__next:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.lightbox__close:focus-visible,
+.lightbox__prev:focus-visible,
+.lightbox__next:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.8);
+  outline-offset: 2px;
+}
+
+/* Posiciones individuales */
+.lightbox__close {
+  top: 1.5rem;
+  right: 1.5rem;
+}
+
+.lightbox__prev {
+  left: 1.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.lightbox__next {
+  right: 1.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.lightbox__prev:hover {
+  transform: translateY(-50%) translateX(-2px);
+}
+
+.lightbox__next:hover {
+  transform: translateY(-50%) translateX(2px);
+}
+
+/* Mobile: botones más pequeños y pegados al borde */
+@media (max-width: 639px) {
+  .lightbox__image {
+    max-width: 100vw;
+    max-height: 85vh;
+    border-radius: 0;
+  }
+
+  .lightbox__close {
+    top: 1rem;
+    right: 1rem;
+    width: 40px;
+    height: 40px;
+    padding: 0.5rem;
+  }
+
+  .lightbox__prev {
+    left: 0.75rem;
+  }
+
+  .lightbox__next {
+    right: 0.75rem;
+  }
+
+  .lightbox__close svg,
+  .lightbox__prev svg,
+  .lightbox__next svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+/* ============================================================
+   Ficha detalle — breakpoints adicionales
+   ============================================================ */
+
+/* Tablet estrecha: reducir gap y thumbs más pequeñas */
+@media (max-width: 768px) {
+  .work-detail,
+  .work-main {
+    gap: var(--space-2);
+  }
+
+  .work-gallery,
+  .gallery-thumbs {
+    grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+  }
+}
+
+/* Mobile pequeño: tipografía y gaps más compactos */
+@media (max-width: 480px) {
+  .work-meta__title,
+  .work-title {
+    font-size: 1.25rem;
+  }
+
+  .work-meta,
+  .work-info {
+    gap: var(--space-1);
+  }
+
+  .work-meta__dl {
+    font-size: 0.875rem;
+  }
+}
+
+/* ── Utilidad: sin selección de texto (swipe / drag) ────── */
+.no-select {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   CARD COMPARTIR OBRA (.work-share) — dentro de .work-meta
+   ═══════════════════════════════════════════════════════════ */
+
+.work-share {
+  margin-top: var(--space-3);
+  padding: var(--space-2);
+  background: var(--color-blue-soft); /* rgba(1,59,117,0.07) */
+  border-radius: 8px;
+}
+
+.work-share h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: calc(var(--space-1) / 2);
+  color: var(--color-blue);
+}
+
+.work-share__subtitle {
+  font-size: 0.875rem;
+  color: var(--color-muted);
+  margin-bottom: var(--space-2);
+}
+
+/* ── Input + botón copiar ───────────────────────────────── */
+.work-share__copy-section {
+  display: flex;
+  gap: var(--space-1);
+  margin-bottom: var(--space-2);
+}
+
+.work-share__input {
+  flex: 1;
+  padding: var(--space-1);
+  border: 1px solid var(--color-line);
+  border-radius: 6px;
+  font-size: 0.85rem;
+  background: var(--color-surface);
+  color: var(--color-muted);
+  min-width: 0; /* evita desbordamiento en flex */
+}
+
+.btn-copy {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: var(--space-1) var(--space-2);
+  background: var(--color-blue);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.875rem;
+  white-space: nowrap;
+  transition: all 200ms var(--ease);
+}
+
+.btn-copy:hover {
+  background: var(--color-blue-deep);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-copy:focus-visible {
+  outline: 2px solid var(--color-blue);
+  outline-offset: 2px;
+}
+
+.btn-copy.copied {
+  background: #10b981; /* verde éxito */
+}
+
+/* ── Botones de red social ──────────────────────────────── */
+.work-share__buttons {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-1);
+}
+
+.btn-share {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  padding: var(--space-1);
+  background: var(--color-surface);
+  color: var(--color-blue);
+  border: 1px solid var(--color-line);
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.9rem;
+  min-width: 100px;
+  transition: all 200ms var(--ease);
+}
+
+.btn-share:hover {
+  border-color: var(--color-blue);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.btn-share:focus-visible {
+  outline: 2px solid var(--color-blue);
+  outline-offset: 2px;
+}
+
+.btn-share svg {
+  width: 18px;
+  height: 18px;
+  color: inherit;
+}
+
+.btn-share i {
+  width: 18px;
+  height: 18px;
+  color: inherit;
+  stroke-width: 1.5;
+}
+
+.btn-copy i {
+  width: 18px;
+  height: 18px;
+}
+
+/* SMS solo visible en mobile */
+@media (min-width: 481px) {
+  .btn-share--sms {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Copy section: columna para que el input y el botón sean full-width */
+  .work-share__copy-section {
+    flex-direction: column;
+  }
+
+  .btn-copy {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Grid 2 cols — layout:
+       [WhatsApp] [Correo]
+       [SMS             ]   ← grid-column: 1 / -1 (ancho completo)
+  */
+  .work-share__buttons {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .btn-share--sms {
+    display: flex;
+    grid-column: 1 / -1;   /* ocupa las 2 columnas */
+    justify-content: center;
+  }
+}
