@@ -12,13 +12,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Textos de secciones — título siempre fijo, subtítulo describe la sección activa
   const sectionTitles = {
-    dashboard:  { title: 'Catálogo de Obra Serigráfica', subtitle: 'Resumen del catálogo' },
-    obras:      { title: 'Catálogo de Obra Serigráfica', subtitle: 'Gestionar obras' },
-    tecnicas:   { title: 'Catálogo de Obra Serigráfica', subtitle: 'Gestionar técnicas' },
-    tags:       { title: 'Catálogo de Obra Serigráfica', subtitle: 'Gestionar tags' },
-    usuarios:   { title: 'Catálogo de Obra Serigráfica', subtitle: 'Gestionar usuarios' },
-    logs:       { title: 'Catálogo de Obra Serigráfica', subtitle: 'Logs de auditoría' },
-    'mi-perfil': { title: 'Catálogo de Obra Serigráfica', subtitle: 'Mi perfil' },
+    dashboard:      { title: 'Catálogo de Obra Serigráfica', subtitle: 'Resumen del catálogo' },
+    obras:          { title: 'Catálogo de Obra Serigráfica', subtitle: 'Gestionar obras' },
+    tecnicas:       { title: 'Catálogo de Obra Serigráfica', subtitle: 'Gestionar técnicas' },
+    tags:           { title: 'Catálogo de Obra Serigráfica', subtitle: 'Gestionar tags' },
+    usuarios:       { title: 'Catálogo de Obra Serigráfica', subtitle: 'Gestionar usuarios' },
+    logs:           { title: 'Catálogo de Obra Serigráfica', subtitle: 'Logs de auditoría' },
+    'mi-perfil':    { title: 'Catálogo de Obra Serigráfica', subtitle: 'Mi perfil' },
+    'mi-portafolio':{ title: 'Catálogo de Obra Serigráfica', subtitle: 'Mi portafolio' },
   };
 
   // ============ FUNCIÓN: Mostrar sección ============
@@ -46,14 +47,34 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
+    // ── Botones "Mi Perfil" — estado activo amarillo ────────────────────────
+    const profileBtns = [
+      document.getElementById('userProfileBtn'),
+      document.getElementById('userProfileMobileBtn'),
+    ];
+    profileBtns.forEach(btn => {
+      if (!btn) return;
+      if (sectionId === 'mi-perfil') {
+        btn.classList.add('active', 'sidebar-btn-active');
+      } else {
+        btn.classList.remove('active', 'sidebar-btn-active');
+      }
+    });
+
     // Callbacks por sección
     if (sectionId === 'mi-perfil') {
       window.profileManager?.inicializar();
+    }
+    if (sectionId === 'mi-portafolio') {
+      window.portafolioManager?.inicializar();
     }
 
     // Guardar en sessionStorage (para mantener sección si recarga)
     sessionStorage.setItem('currentSection', sectionId);
   }
+
+  // ── Exponer globalmente (otros módulos llaman window.showSection) ──────────
+  window.showSection = showSection;
 
   // ============ EVENT LISTENERS: Nav clicks ============
   navItems.forEach(item => {
@@ -107,84 +128,35 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.key === 'Escape') closeSidebar();
   });
 
-  // ════ USUARIO — DESKTOP + MOBILE/TABLET ════════════════════════════════════
+  // ════ USUARIO — Drawer sidebar (toda resolución) ═══════════════════════════
+  // El user-info ya NO está en el header (eliminado). Solo vive en sidebar-footer.
+  // #userEmail es un span oculto en el header que auth.js actualiza para sincronizar.
 
-  const userEmailEl  = document.getElementById('userEmail');
-  const userEmailVal = userEmailEl?.textContent?.trim() || 'user@example.com';
-  const userInitial  = userEmailVal.charAt(0).toUpperCase();
+  const userEmailEl      = document.getElementById('userEmail');
+  const userAvatarDrawer = document.getElementById('userAvatarDrawer');
+  const userEmailDrawer  = document.getElementById('userEmailDrawer');
 
-  // ── DESKTOP: Avatar inicial + Dropdown ──────────────────────────────────
-  const userAvatarBtn   = document.getElementById('userAvatarBtn');
-  const userDropdown    = document.getElementById('userDropdown');
-  const userInitialSpan = document.getElementById('userInitial');
-
-  if (userAvatarBtn && userDropdown) {
-    if (userInitialSpan) userInitialSpan.textContent = userInitial;
-
-    userAvatarBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      userDropdown.classList.toggle('visible');
-    });
-
-    document.addEventListener('click', (e) => {
-      if (!userAvatarBtn.contains(e.target) && !userDropdown.contains(e.target)) {
-        userDropdown.classList.remove('visible');
-      }
-    });
-
-    document.getElementById('logoutDropdownBtn')?.addEventListener('click', () => {
-      userDropdown.classList.remove('visible');
-      document.getElementById('logoutBtn')?.click();
-    });
-
-    // "Mi Perfil" en dropdown desktop → navegar a la sección
-    document.getElementById('userProfileBtn')?.addEventListener('click', () => {
-      userDropdown.classList.remove('visible');
-      showSection('mi-perfil');
-    });
+  // Función de sincronización — lee el span oculto y actualiza el drawer
+  function _syncUserDrawer() {
+    const email   = userEmailEl?.textContent?.trim() || 'user@example.com';
+    const initial = email.charAt(0).toUpperCase();
+    if (userAvatarDrawer) userAvatarDrawer.textContent = initial;
+    if (userEmailDrawer)  userEmailDrawer.textContent  = email;
   }
 
-  // "Mi Perfil" en sidebar footer (mobile/tablet) → navegar a la sección
+  // Inicializar con valor actual
+  _syncUserDrawer();
+
+  // Observar cambios de auth.js sobre #userEmail
+  if (userEmailEl) {
+    const observer = new MutationObserver(_syncUserDrawer);
+    observer.observe(userEmailEl, { childList: true, characterData: true, subtree: true });
+  }
+
+  // ── "Mi Perfil" en sidebar footer → navegar a la sección ─────────────────
   document.getElementById('userProfileMobileBtn')?.addEventListener('click', () => {
     showSection('mi-perfil');
     closeSidebar();
   });
-
-  // ── MOBILE/TABLET: Inicial y email en drawer ─────────────────────────────
-  const userAvatarDrawer = document.getElementById('userAvatarDrawer');
-  const userEmailDrawer  = document.getElementById('userEmailDrawer');
-
-  if (userAvatarDrawer) userAvatarDrawer.textContent = userInitial;
-  if (userEmailDrawer)  userEmailDrawer.textContent  = userEmailVal;
-
-  // ── Sincronizar cuando auth.js actualice #userEmail ──────────────────────
-  if (userEmailEl) {
-    const syncUserEmail = () => {
-      const email   = userEmailEl.textContent.trim();
-      const initial = email.charAt(0).toUpperCase();
-      if (userInitialSpan)  userInitialSpan.textContent  = initial;
-      if (userAvatarDrawer) userAvatarDrawer.textContent = initial;
-      if (userEmailDrawer)  userEmailDrawer.textContent  = email;
-    };
-    const observer = new MutationObserver(syncUserEmail);
-    observer.observe(userEmailEl, { childList: true, characterData: true, subtree: true });
-  }
-
-  // ════ DROPDOWN EN MOBILE/TABLET ════════════════════════════════════════
-  // Reutiliza userAvatarDrawer (declarado arriba, línea ~135) y
-  // userDropdown (declarado en el bloque desktop, línea ~112).
-  if (userAvatarDrawer && userDropdown) {
-    userAvatarDrawer.addEventListener('click', (e) => {
-      e.stopPropagation();
-      userDropdown.classList.toggle('visible');
-    });
-
-    // Cerrar al click fuera (listener adicional al ya existente en desktop)
-    document.addEventListener('click', (e) => {
-      if (!userAvatarDrawer.contains(e.target) && !userDropdown.contains(e.target)) {
-        userDropdown.classList.remove('visible');
-      }
-    });
-  }
 
 });

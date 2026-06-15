@@ -307,8 +307,23 @@ document.addEventListener('DOMContentLoaded', () => {
         await tags.saveTags(obraId);
       }
 
-      showAlert(editId ? 'Obra actualizada correctamente.' : 'Obra creada correctamente.', 'success');
-      window.toast?.success(editId ? 'Obra actualizada correctamente' : 'Obra creada correctamente');
+      // ── Toast contextual según estado y operación ─────────
+      if (editId) {
+        showAlert('Obra actualizada correctamente.', 'success');
+        window.toast?.success('✅ Obra actualizada correctamente');
+      } else {
+        const estadoFinal = payload.estado;
+        if (estadoFinal === 'En Revisión') {
+          showAlert('Obra enviada a revisión correctamente.', 'success');
+          window.toast?.success('🔍 Obra enviada — pendiente de revisión');
+        } else if (estadoFinal === 'Borrador') {
+          showAlert('Borrador guardado correctamente.', 'success');
+          window.toast?.success('📝 Borrador guardado');
+        } else {
+          showAlert('Obra creada correctamente.', 'success');
+          window.toast?.success('✅ Obra creada correctamente');
+        }
+      }
 
       setTimeout(() => {
         close();

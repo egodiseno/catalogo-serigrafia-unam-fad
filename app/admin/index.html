@@ -300,33 +300,11 @@
           <p id="pageSubtitle">Bienvenido al panel administrativo</p>
         </div>
 
-        <!-- Spacer invisible — empuja hamburger/user-info a la derecha -->
+        <!-- Spacer invisible — empuja hamburger a la derecha -->
         <div class="header-spacer" aria-hidden="true"></div>
 
-        <!-- Usuario (visible en desktop) -->
-        <div class="header-right">
-          <div class="user-info" id="userInfoContainer">
-            <div class="user-avatar" id="userAvatarBtn">
-              <span id="userInitial">A</span>
-            </div>
-            <span class="user-email" id="userEmail">admin@example.com</span>
-
-            <!-- Dropdown desktop -->
-            <div class="user-dropdown" id="userDropdown">
-              <button class="user-dropdown-item" id="userProfileBtn">
-                <i data-lucide="user" style="width:18px; height:18px; display:inline; margin-right: var(--spacing-sm); vertical-align: middle;" aria-hidden="true"></i>
-                Mi Perfil
-              </button>
-
-              <div class="user-dropdown-divider"></div>
-
-              <button class="user-dropdown-item" id="logoutDropdownBtn">
-                <i data-lucide="log-out" style="width:18px; height:18px; display:inline; margin-right: var(--spacing-sm); vertical-align: middle;" aria-hidden="true"></i>
-                Cerrar Sesión
-              </button>
-            </div>
-          </div>
-        </div>
+        <!-- Email oculto — auth.js lo actualiza; navigation.js lo lee para sincronizar avatar/drawer -->
+        <span id="userEmail" style="display:none;" aria-hidden="true">admin@example.com</span>
 
         <!-- Hamburger (visible en mobile/tablet) -->
         <button class="hamburger-btn" id="sidebarToggle"
@@ -652,6 +630,51 @@
               </div>
             </div>
           </div><!-- /.profile-card -->
+
+          <!-- ACCIONES RÁPIDAS -->
+          <div class="profile-section-actions">
+            <h3>Acciones rápidas</h3>
+            <div class="profile-quick-actions">
+              <!-- ADMIN -->
+              <button class="btn btn-secondary" data-permiso-action="obras.crear"
+                      data-show-for-roles="admin,super_editor"
+                      onclick="window.showSection?.('obras')">
+                <i data-lucide="image" style="width:16px;height:16px;" aria-hidden="true"></i>
+                Gestionar obras
+              </button>
+              <button class="btn btn-secondary" data-permiso-action="usuarios.ver"
+                      data-show-for-roles="admin"
+                      onclick="window.showSection?.('usuarios')">
+                <i data-lucide="users" style="width:16px;height:16px;" aria-hidden="true"></i>
+                Gestionar usuarios
+              </button>
+              <button class="btn btn-secondary" data-permiso-action="dashboard.ver"
+                      data-show-for-roles="admin,super_editor"
+                      onclick="window.showSection?.('dashboard')">
+                <i data-lucide="bar-chart-2" style="width:16px;height:16px;" aria-hidden="true"></i>
+                Ver estadísticas
+              </button>
+              <button class="btn btn-secondary" data-permiso-action="logs.ver"
+                      data-show-for-roles="admin"
+                      onclick="window.showSection?.('logs')">
+                <i data-lucide="activity" style="width:16px;height:16px;" aria-hidden="true"></i>
+                Ver logs
+              </button>
+              <!-- EDITOR -->
+              <button class="btn btn-primary" data-permiso-action="obras.crear"
+                      data-show-for-roles="editor"
+                      onclick="window.showSection?.('obras'); setTimeout(() => window.obrasForm?.open?.(), 250);">
+                <i data-lucide="plus" style="width:16px;height:16px;" aria-hidden="true"></i>
+                Nueva obra
+              </button>
+              <button class="btn btn-secondary" data-permiso-action="portafolio.ver"
+                      data-show-for-roles="editor"
+                      onclick="window.showSection?.('mi-portafolio')">
+                <i data-lucide="layout-grid" style="width:16px;height:16px;" aria-hidden="true"></i>
+                Mi portafolio
+              </button>
+            </div>
+          </div><!-- /.profile-section-actions -->
 
           <!-- CAMBIAR CONTRASEÑA -->
           <div class="profile-section-form">
