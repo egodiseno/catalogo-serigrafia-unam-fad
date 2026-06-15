@@ -610,7 +610,7 @@
         </section>
 
         <!-- ========== MI PERFIL SECTION ========== -->
-        <section id="miPerfilSection" class="section" style="display:none;">
+        <section id="miPerfilSection" class="section">
           <div class="section-header">
             <div>
               <h2>Mi Perfil</h2>
@@ -618,151 +618,175 @@
             </div>
           </div>
 
-          <!-- GRID 3 COLUMNAS (desktop) / 1 col (mobile) ──────────────
-               DOM order = mobile order: datos → pwd → acciones
-               ──────────────────────────────────────────────────────────── -->
-          <div class="profile-grid">
+          <!-- Layout 2 columnas desktop / 1 columna tablet+mobile -->
+          <div class="perfil-layout">
 
-          <!-- ACCIONES RÁPIDAS -->
-          <div class="profile-section-actions">
-            <h3>Acciones rápidas</h3>
-            <div class="profile-quick-actions">
-              <!-- ADMIN -->
-              <button class="btn btn-secondary" data-permiso-action="obras.crear"
-                      data-show-for-roles="admin,super_editor"
-                      onclick="window.showSection?.('obras')">
-                <i data-lucide="image" style="width:16px;height:16px;" aria-hidden="true"></i>
-                Gestionar obras
-              </button>
-              <button class="btn btn-secondary" data-permiso-action="usuarios.ver"
-                      data-show-for-roles="admin"
-                      onclick="window.showSection?.('usuarios')">
-                <i data-lucide="users" style="width:16px;height:16px;" aria-hidden="true"></i>
-                Gestionar usuarios
-              </button>
-              <button class="btn btn-secondary" data-permiso-action="dashboard.ver"
-                      data-show-for-roles="admin,super_editor"
-                      onclick="window.showSection?.('dashboard')">
-                <i data-lucide="bar-chart-2" style="width:16px;height:16px;" aria-hidden="true"></i>
-                Ver estadísticas
-              </button>
-              <button class="btn btn-secondary" data-permiso-action="logs.ver"
-                      data-show-for-roles="admin"
-                      onclick="window.showSection?.('logs')">
-                <i data-lucide="activity" style="width:16px;height:16px;" aria-hidden="true"></i>
-                Ver logs
-              </button>
-              <!-- EDITOR -->
-              <button class="btn btn-primary" data-permiso-action="obras.crear"
-                      data-show-for-roles="editor"
-                      onclick="window.showSection?.('obras'); setTimeout(() => window.obrasForm?.open?.(), 250);">
-                <i data-lucide="plus" style="width:16px;height:16px;" aria-hidden="true"></i>
-                Nueva obra
-              </button>
-              <button class="btn btn-secondary" data-permiso-action="portafolio.ver"
-                      data-show-for-roles="editor"
-                      onclick="window.showSection?.('mi-portafolio')">
-                <i data-lucide="layout-grid" style="width:16px;height:16px;" aria-hidden="true"></i>
-                Mi portafolio
-              </button>
-            </div>
-          </div><!-- /.profile-section-actions -->
+            <!-- COLUMNA IZQUIERDA: Módulo 1 + Módulo 2 -->
+            <div class="perfil-col-left">
 
-          <!-- CAMBIAR CONTRASEÑA -->
-          <div class="profile-section-form">
-            <h3>Cambiar contraseña</h3>
-
-            <!-- [col 2] ACCIONES RÁPIDAS ───────────────────────────── -->
-            <div class="profile-section-card profile-grid__actions">
-              <h3>Acciones rápidas</h3>
-              <div id="quickActions" class="quick-actions-grid">
-                <!-- Renderizado por profile.js según rol -->
-              </div>
-            </div><!-- /.acciones-rápidas -->
-
-            <!-- [col 3] CAMBIAR CONTRASEÑA ─────────────────────────── -->
-            <div class="profile-section-form profile-grid__pwd">
-              <h3>Cambiar contraseña</h3>
-
-              <form id="formCambiarContrasena" novalidate>
-                <!-- Contraseña actual -->
-                <div class="form-group">
-                  <label for="contrasenaActual">
-                    Contraseña actual <span class="required">*</span>
-                  </label>
-                  <div class="password-toggle-wrapper">
-                    <input type="password"
-                           id="contrasenaActual"
-                           name="contrasenaActual"
-                           placeholder="••••••••"
-                           autocomplete="current-password"
-                           required>
-                    <button type="button" class="password-toggle-btn"
-                            aria-label="Mostrar contraseña" aria-pressed="false">
-                      <i data-lucide="eye" style="width:16px;height:16px;" aria-hidden="true"></i>
-                    </button>
-                  </div>
-                  <span class="field-error" id="errorContrasenaActual" aria-live="polite"></span>
+              <!-- ── MÓDULO 1: DATOS DEL USUARIO ────────────────────── -->
+              <div class="profile-card">
+                <div class="profile-avatar">
+                  <div id="profileInitial" class="avatar-circle" aria-hidden="true">A</div>
                 </div>
-
-                <!-- Contraseña nueva -->
-                <div class="form-group">
-                  <label for="contrasenaNueva">
-                    Contraseña nueva <span class="required">*</span>
-                  </label>
-                  <div class="password-toggle-wrapper">
-                    <input type="password"
-                           id="contrasenaNueva"
-                           name="contrasenaNueva"
-                           placeholder="Mínimo 8 caracteres"
-                           autocomplete="new-password"
-                           required
-                           minlength="8">
-                    <button type="button" class="password-toggle-btn"
-                            aria-label="Mostrar contraseña" aria-pressed="false">
-                      <i data-lucide="eye" style="width:16px;height:16px;" aria-hidden="true"></i>
-                    </button>
+                <div class="profile-info">
+                  <div class="profile-row">
+                    <span class="profile-label">Email</span>
+                    <span id="profileEmail">—</span>
                   </div>
-                  <span class="field-error" id="errorContrasenaNueva" aria-live="polite"></span>
-                </div>
-
-                <!-- Confirmar contraseña -->
-                <div class="form-group">
-                  <label for="contrasenaConfirmar">
-                    Confirmar contraseña <span class="required">*</span>
-                  </label>
-                  <div class="password-toggle-wrapper">
-                    <input type="password"
-                           id="contrasenaConfirmar"
-                           name="contrasenaConfirmar"
-                           placeholder="Repite la contraseña nueva"
-                           autocomplete="new-password"
-                           required
-                           minlength="8">
-                    <button type="button" class="password-toggle-btn"
-                            aria-label="Mostrar contraseña" aria-pressed="false">
-                      <i data-lucide="eye" style="width:16px;height:16px;" aria-hidden="true"></i>
-                    </button>
+                  <div class="profile-row">
+                    <span class="profile-label">Rol</span>
+                    <span id="profileRol" class="badge">—</span>
                   </div>
-                  <span class="field-error" id="errorContrasenaConfirmar" aria-live="polite"></span>
+                  <div class="profile-row">
+                    <span class="profile-label">Miembro desde</span>
+                    <span id="profileFecha">—</span>
+                  </div>
+                  <div class="profile-row">
+                    <span class="profile-label">Estado</span>
+                    <span id="profileEstado" class="badge badge-publicado">Activo</span>
+                  </div>
                 </div>
+              </div><!-- /.profile-card -->
 
-                <div id="perfilFormAlert" class="form-alert" style="display:none;"></div>
+              <!-- ── MÓDULO 2: ACCIONES RÁPIDAS ─────────────────────── -->
+              <div class="quick-actions-module">
+                <h3 class="quick-actions-title">Acciones rápidas</h3>
+                <div class="quick-actions-grid">
 
-                <div class="profile-form-actions">
-                  <button type="button" id="btnCancelarContrasena" class="btn btn-secondary">
-                    Cancelar
+                  <!-- ADMIN + SUPER_EDITOR -->
+                  <button class="btn-action"
+                          data-action-for-roles="admin,super_editor"
+                          onclick="window.showSection('obras')">
+                    <i data-lucide="image" style="width:24px;height:24px;" aria-hidden="true"></i>
+                    Gestionar obras
                   </button>
-                  <button type="submit" id="btnGuardarContrasena" class="btn btn-primary">
-                    <i data-lucide="save" style="width:16px;height:16px;" aria-hidden="true"></i>
-                    Guardar contraseña
+                  <button class="btn-action"
+                          data-action-for-roles="admin"
+                          onclick="window.showSection('usuarios')">
+                    <i data-lucide="users" style="width:24px;height:24px;" aria-hidden="true"></i>
+                    Gestionar usuarios
                   </button>
-                </div>
-              </form>
-            </div><!-- /.profile-section-form -->
+                  <button class="btn-action"
+                          data-action-for-roles="admin,super_editor"
+                          onclick="window.showSection('dashboard')">
+                    <i data-lucide="bar-chart-2" style="width:24px;height:24px;" aria-hidden="true"></i>
+                    Ver estadísticas
+                  </button>
+                  <button class="btn-action"
+                          data-action-for-roles="admin"
+                          onclick="window.showSection('logs')">
+                    <i data-lucide="activity" style="width:24px;height:24px;" aria-hidden="true"></i>
+                    Ver logs
+                  </button>
 
-          </div><!-- /.profile-grid -->
-        </section>
+                  <!-- EDITOR -->
+                  <button class="btn-action btn-action--primary"
+                          data-action-for-roles="editor"
+                          onclick="window.showSection('obras'); setTimeout(() => window.obrasForm?.open?.(), 250);">
+                    <i data-lucide="plus-circle" style="width:24px;height:24px;" aria-hidden="true"></i>
+                    Nueva obra
+                  </button>
+                  <button class="btn-action"
+                          data-action-for-roles="editor"
+                          onclick="window.showSection('mi-portafolio')">
+                    <i data-lucide="layout-grid" style="width:24px;height:24px;" aria-hidden="true"></i>
+                    Mi portafolio
+                  </button>
+
+                </div>
+              </div><!-- /.quick-actions-module -->
+
+            </div><!-- /.perfil-col-left -->
+
+            <!-- COLUMNA DERECHA: Módulo 3 -->
+            <div class="perfil-col-right">
+
+              <!-- ── MÓDULO 3: CAMBIAR CONTRASEÑA ───────────────────── -->
+              <div class="profile-section-form">
+                <h3>Cambiar contraseña</h3>
+
+                <form id="formCambiarContrasena" novalidate>
+                  <!-- Contraseña actual -->
+                  <div class="form-group">
+                    <label for="contrasenaActual">
+                      Contraseña actual <span class="required">*</span>
+                    </label>
+                    <div class="password-toggle-wrapper">
+                      <input type="password"
+                             id="contrasenaActual"
+                             name="contrasenaActual"
+                             placeholder="••••••••"
+                             autocomplete="current-password"
+                             required>
+                      <button type="button" class="password-toggle-btn"
+                              aria-label="Mostrar contraseña" aria-pressed="false">
+                        <i data-lucide="eye" style="width:16px;height:16px;" aria-hidden="true"></i>
+                      </button>
+                    </div>
+                    <span class="field-error" id="errorContrasenaActual" aria-live="polite"></span>
+                  </div>
+
+                  <!-- Contraseña nueva -->
+                  <div class="form-group">
+                    <label for="contrasenaNueva">
+                      Contraseña nueva <span class="required">*</span>
+                    </label>
+                    <div class="password-toggle-wrapper">
+                      <input type="password"
+                             id="contrasenaNueva"
+                             name="contrasenaNueva"
+                             placeholder="Mínimo 8 caracteres"
+                             autocomplete="new-password"
+                             required
+                             minlength="8">
+                      <button type="button" class="password-toggle-btn"
+                              aria-label="Mostrar contraseña" aria-pressed="false">
+                        <i data-lucide="eye" style="width:16px;height:16px;" aria-hidden="true"></i>
+                      </button>
+                    </div>
+                    <span class="field-error" id="errorContrasenaNueva" aria-live="polite"></span>
+                  </div>
+
+                  <!-- Confirmar contraseña -->
+                  <div class="form-group">
+                    <label for="contrasenaConfirmar">
+                      Confirmar contraseña <span class="required">*</span>
+                    </label>
+                    <div class="password-toggle-wrapper">
+                      <input type="password"
+                             id="contrasenaConfirmar"
+                             name="contrasenaConfirmar"
+                             placeholder="Repite la contraseña nueva"
+                             autocomplete="new-password"
+                             required
+                             minlength="8">
+                      <button type="button" class="password-toggle-btn"
+                              aria-label="Mostrar contraseña" aria-pressed="false">
+                        <i data-lucide="eye" style="width:16px;height:16px;" aria-hidden="true"></i>
+                      </button>
+                    </div>
+                    <span class="field-error" id="errorContrasenaConfirmar" aria-live="polite"></span>
+                  </div>
+
+                  <div id="perfilFormAlert" class="form-alert" style="display:none;"></div>
+
+                  <div class="profile-form-actions">
+                    <button type="button" id="btnCancelarContrasena" class="btn btn-secondary">
+                      Cancelar
+                    </button>
+                    <button type="submit" id="btnGuardarContrasena" class="btn btn-primary">
+                      <i data-lucide="save" style="width:16px;height:16px;" aria-hidden="true"></i>
+                      Guardar contraseña
+                    </button>
+                  </div>
+                </form>
+              </div><!-- /.profile-section-form -->
+
+            </div><!-- /.perfil-col-right -->
+
+          </div><!-- /.perfil-layout -->
+        </section><!-- /#miPerfilSection -->
 
         <!-- ========== MI PORTAFOLIO SECTION ========== -->
         <section id="miPortafolioSection" class="section">

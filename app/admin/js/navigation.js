@@ -74,6 +74,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (sectionId === 'mi-perfil') {
       console.log('[Nav] Mostrando sección: mi-perfil — profileManager:', !!window.profileManager);
       window.profileManager?.inicializar();
+      // Renderizar botones de acciones rápidas según rol actual
+      window.renderActionsByRole?.();
     }
     if (sectionId === 'mi-portafolio') {
       window.portafolioManager?.inicializar();

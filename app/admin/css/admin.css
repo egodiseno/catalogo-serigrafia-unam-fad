@@ -4784,32 +4784,99 @@ input[type="file"]:hover {
   flex-shrink:  0;
 }
 
-/* ── Acciones rápidas ─────────────────────────────────────────────────── */
-.profile-section-actions {
-  background:    var(--color-surface);
-  border:        1px solid var(--color-border);
-  border-radius: var(--radius-md, 8px);
-  padding:       var(--spacing-xl, 2rem);
-  box-shadow:    var(--shadow-sm);
-  margin-bottom: var(--spacing-xl, 2rem);
+/* ── Layout 2 columnas (Mi Perfil) ───────────────────────────────────── */
+.perfil-layout {
+  display:               grid;
+  grid-template-columns: 1fr 420px;
+  gap:                   2rem;
+  align-items:           start;
 }
 
-.profile-section-actions h3 {
-  margin:      0 0 var(--spacing-lg, 1.5rem);
+.perfil-col-left {
+  display:        flex;
+  flex-direction: column;
+  gap:            1.5rem;
+  min-width:      0;
+}
+
+.perfil-col-right {
+  position:   sticky;
+  top:        1.5rem;
+  min-width:  0;
+}
+
+/* ── Módulo 2: Acciones Rápidas ──────────────────────────────────────── */
+.quick-actions-module {
+  background-color: #eef4fb;
+  border:           1px solid var(--color-border);
+  border-radius:    8px;
+  padding:          2rem;
+}
+
+.quick-actions-title {
+  margin:      0 0 1.25rem;
   font-size:   var(--text-lg, 1.125rem);
   font-weight: 600;
   color:       var(--color-primary);
 }
 
-.profile-quick-actions {
-  display:   flex;
-  flex-wrap: wrap;
-  gap:       var(--spacing-sm, 0.5rem);
+.quick-actions-grid {
+  display:               grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap:                   1rem;
 }
 
-.profile-quick-actions .btn {
-  flex: 1 1 auto;
-  min-width: 160px;
+/* ── Botones de acción ───────────────────────────────────────────────── */
+.btn-action {
+  display:        flex;
+  flex-direction: column;
+  align-items:    center;
+  gap:            0.5rem;
+  padding:        1rem;
+  background:     #ffffff;
+  border:         1px solid var(--color-border);
+  border-radius:  6px;
+  color:          var(--color-text);
+  font-size:      0.875rem;
+  font-weight:    500;
+  font-family:    inherit;
+  cursor:         pointer;
+  text-align:     center;
+  transition:     background 200ms ease, border-color 200ms ease, box-shadow 200ms ease;
+}
+
+.btn-action:hover {
+  background:    #f0f4f8;
+  border-color:  var(--color-primary);
+  box-shadow:    0 2px 6px rgba(1, 59, 117, 0.1);
+}
+
+.btn-action:focus-visible {
+  outline:        2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.btn-action i,
+.btn-action [data-lucide] {
+  color: var(--color-primary);
+}
+
+/* Variante primaria (Editor: Nueva obra) */
+.btn-action--primary {
+  background:   var(--color-primary);
+  color:        #ffffff;
+  border-color: var(--color-primary);
+}
+
+.btn-action--primary:hover {
+  background:    var(--color-primary-dark, #002A55);
+  border-color:  var(--color-primary-dark, #002A55);
+  box-shadow:    0 2px 8px rgba(1, 59, 117, 0.25);
+}
+
+.btn-action--primary i,
+.btn-action--primary [data-lucide] {
+  color: #ffffff;
 }
 
 /* ── Formulario cambio de contraseña ──────────────────────────────────── */
@@ -4819,7 +4886,7 @@ input[type="file"]:hover {
   border-radius: var(--radius-md, 8px);
   padding:       var(--spacing-xl, 2rem);
   box-shadow:    var(--shadow-sm);
-  max-width:     480px;
+  /* Sin max-width — la columna derecha del perfil-layout ya controla el ancho */
 }
 
 .profile-section-form h3 {
@@ -5226,120 +5293,13 @@ input[type="file"]:hover {
 }
 
 
-/* ═══════════════════════════════════════════════════════════════════
-   MI PERFIL — Secciones adicionales: Acciones Rápidas + Historial
-   ═══════════════════════════════════════════════════════════════════ */
-
-/* ── Tarjeta genérica de sección en Mi Perfil ──────────────────────── */
-.profile-section-card {
-  background:    var(--color-white, #fff);
-  border:        1px solid var(--color-border, #e2e8f0);
-  border-radius: var(--radius-md, 8px);
-  padding:       var(--spacing-xl, 24px);
-  margin-bottom: var(--spacing-lg, 20px);
-}
-
-.profile-section-card h3 {
-  margin:        0 0 var(--spacing-md, 16px);
-  font-size:     var(--font-size-md, 1rem);
-  font-weight:   600;
-  color:         var(--color-text, #1e293b);
-  border-bottom: 1px solid var(--color-border, #e2e8f0);
-  padding-bottom: var(--spacing-sm, 8px);
-}
-
-/* ── Hints de carga / vacío ─────────────────────────────────────────── */
+/* ── Hints de carga / vacío (reutilizado en toda la app) ────────────── */
 .loading-hint,
 .empty-hint {
-  font-size:  var(--font-size-sm, 0.875rem);
-  color:      var(--color-text-muted, #64748b);
-  margin:     0;
-  padding:    var(--spacing-sm, 8px) 0;
-}
-
-/* ── Acciones rápidas ────────────────────────────────────────────────── */
-.quick-actions-grid {
-  display:   flex;
-  flex-wrap: wrap;
-  gap:       var(--spacing-md, 16px);
-}
-
-.quick-action-btn {
-  display:        flex;
-  flex-direction: column;
-  align-items:    center;
-  gap:            var(--spacing-xs, 6px);
-  padding:        var(--spacing-md, 16px) var(--spacing-lg, 20px);
-  min-width:      120px;
-  background:     var(--color-primary-light, #eef4fb);
-  border:         1px solid transparent;
-  border-radius:  var(--radius-md, 8px);
-  color:          var(--color-primary, #013B75);
-  font-size:      var(--font-size-sm, 0.875rem);
-  font-weight:    500;
-  cursor:         pointer;
-  transition:     background 150ms ease, border-color 150ms ease, transform 100ms ease;
-}
-
-.quick-action-btn:hover {
-  background:    var(--color-primary, #013B75);
-  color:         #fff;
-  border-color:  var(--color-primary, #013B75);
-}
-
-.quick-action-btn:active {
-  transform: scale(0.97);
-}
-
-.quick-action-btn:focus-visible {
-  outline:        2px solid var(--color-primary, #013B75);
-  outline-offset: 2px;
-}
-
-.quick-action-btn span {
-  text-align: center;
-  line-height: 1.2;
-}
-
-/* ── Historial de contraseña ─────────────────────────────────────────── */
-.historial-table {
-  width:           100%;
-  border-collapse: collapse;
-  font-size:       var(--font-size-sm, 0.875rem);
-}
-
-.historial-table th {
-  text-align:    left;
-  padding:       var(--spacing-xs, 6px) var(--spacing-sm, 8px);
-  font-weight:   600;
-  color:         var(--color-text-muted, #64748b);
-  border-bottom: 2px solid var(--color-border, #e2e8f0);
-  font-size:     0.8rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.historial-table td {
-  padding:       var(--spacing-sm, 8px);
-  border-bottom: 1px solid var(--color-border-light, #f1f5f9);
-  color:         var(--color-text, #1e293b);
-}
-
-.historial-table tr:last-child td {
-  border-bottom: none;
-}
-
-.historial-table tr:hover td {
-  background: var(--color-primary-light, #eef4fb);
-}
-
-/* ── profile-section-form ya existía; solo ajustamos wrap ────────────── */
-.profile-section-form {
-  background:    var(--color-white, #fff);
-  border:        1px solid var(--color-border, #e2e8f0);
-  border-radius: var(--radius-md, 8px);
-  padding:       var(--spacing-xl, 24px);
-  margin-bottom: var(--spacing-lg, 20px);
+  font-size: 0.875rem;
+  color:     var(--color-text-muted);
+  margin:    0;
+  padding:   0.5rem 0;
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -5471,83 +5431,61 @@ input[type="file"]:hover {
 
 
 /* ═══════════════════════════════════════════════════════════════════
-   MI PERFIL — Grid 3 columnas (desktop) / 1 col (mobile)
-   ═══════════════════════════════════════════════════════════════════
-   DOM order = mobile order:
-     1. .profile-grid__card     (datos de cuenta)
-     2. .profile-grid__actions  (acciones rápidas)
-     3. .profile-grid__pwd      (cambiar contraseña)
+   MI PERFIL — Responsive layout
    ═══════════════════════════════════════════════════════════════════ */
 
-.profile-grid {
-  display:               grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap:                   var(--spacing-lg, 20px);
-  align-items:           start;
+/* ── Tablet (768–1199px) — 1 columna, botones en 2 cols ──────────── */
+@media (max-width: 1199px) {
+  .perfil-layout {
+    grid-template-columns: 1fr;
+    gap:                   1.5rem;
+  }
+
+  .perfil-col-right {
+    position: static;
+  }
+
+  .profile-card {
+    max-width: 100%;
+  }
+
+  .profile-section-form {
+    max-width: 100%;
+  }
 }
 
-/* Quitar margin-bottom en los hijos del grid */
-.profile-grid > * {
-  margin-bottom: 0;
-}
+/* ── Mobile (< 768px) — 1 columna, botones apilados ──────────────── */
+@media (max-width: 767px) {
+  .perfil-layout {
+    gap: 1rem;
+  }
 
-/* ── Posición explícita desktop (todos en fila 1) ────────────────── */
-.profile-grid__card    { grid-column: 1; grid-row: 1; }
-.profile-grid__actions { grid-column: 2; grid-row: 1; }
-.profile-grid__pwd     { grid-column: 3; grid-row: 1; }
+  .quick-actions-module {
+    padding: 1rem;
+  }
 
-/* ── Acciones rápidas: grid 2×2, botones llenan ancho ────────────── */
-.quick-actions-grid {
-  display:               grid;
-  grid-template-columns: 1fr 1fr;
-  gap:                   var(--spacing-sm, 8px);
-}
-
-.quick-action-btn {
-  display:         flex;
-  flex-direction:  column;
-  align-items:     center;
-  justify-content: center;
-  gap:             var(--spacing-xs, 6px);
-  padding:         var(--spacing-md, 14px) var(--spacing-sm, 8px);
-  width:           100%;
-  min-width:       unset;
-  background:      var(--color-primary-light, #eef4fb);
-  border:          1px solid transparent;
-  border-radius:   var(--radius-md, 8px);
-  color:           var(--color-primary, #013B75);
-  font-size:       var(--font-size-sm, 0.875rem);
-  font-weight:     500;
-  cursor:          pointer;
-  text-align:      center;
-  transition:      background 150ms ease, border-color 150ms ease, transform 100ms ease;
-}
-
-.quick-action-btn:hover {
-  background:   var(--color-primary, #013B75);
-  color:        #fff;
-  border-color: var(--color-primary, #013B75);
-}
-
-.quick-action-btn:active { transform: scale(0.97); }
-
-.quick-action-btn:focus-visible {
-  outline:        2px solid var(--color-primary, #013B75);
-  outline-offset: 2px;
-}
-
-/* ── Responsive: mobile (<1024px) ───────────────────────────────── */
-@media (max-width: 1023px) {
-  /* Colapsa a 1 columna — los ítems fluyen en orden DOM */
-  .profile-grid {
+  .quick-actions-grid {
     grid-template-columns: 1fr;
   }
 
-  /* Limpiar posiciones explícitas para flujo natural */
-  .profile-grid__card,
-  .profile-grid__pwd,
-  .profile-grid__actions {
-    grid-column: 1;
-    grid-row:    auto;
+  .btn-action {
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    text-align: left;
+  }
+
+  .profile-section-form {
+    padding: 1rem;
+  }
+
+  .profile-form-actions {
+    flex-direction: column-reverse;
+  }
+
+  .profile-form-actions .btn {
+    width:           100%;
+    justify-content: center;
   }
 }

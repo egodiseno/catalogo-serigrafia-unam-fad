@@ -173,7 +173,7 @@ function controlarVisibilidad(selector, permiso) {
 }
 
 /**
- * Muestra/oculta elementos del sidebar según data-show-for-roles y rol actual.
+ * Muestra/oculta elementos según data-show-for-roles y rol actual.
  * Uso en HTML: <button data-show-for-roles="admin,super_editor">
  * Si el rol actual no está en la lista, el elemento se oculta.
  */
@@ -186,6 +186,20 @@ function renderSidebarByRole() {
 }
 
 /**
+ * Muestra/oculta botones de Acciones Rápidas según data-action-for-roles.
+ * Uso en HTML: <button data-action-for-roles="admin,super_editor">
+ * Se llama desde inicializarPermisos() y también puede invocarse manualmente
+ * cuando se muestra #miPerfilSection.
+ */
+function renderActionsByRole() {
+  const rol = getRolActual();
+  document.querySelectorAll('[data-action-for-roles]').forEach(el => {
+    const roles = el.dataset.actionForRoles.split(',').map(r => r.trim());
+    el.style.display = roles.includes(rol) ? '' : 'none';
+  });
+}
+
+/**
  * Aplicar todos los controles de visibilidad en la página actual.
  * Llamar: (1) tras login/checkAuth, (2) tras renderizar cada tabla dinámica.
  */
@@ -193,8 +207,9 @@ function inicializarPermisos() {
   const rol = getRolActual();
   console.log(`🔒 Permisos inicializados — rol: ${rol}`);
 
-  // ── 1. Nav sidebar: todos los ítems tienen data-show-for-roles ─
+  // ── 1. Nav sidebar + Acciones Rápidas de Mi Perfil ─────────────
   renderSidebarByRole();
+  renderActionsByRole();
 
   // ── 2. Botones CRUD (data-permiso) ─────────────────────
   controlarVisibilidad('[data-permiso="obras.crear"]',     'obras.crear');
@@ -240,5 +255,6 @@ window.tienePermiso        = tienePermiso;
 window.getRolActual        = getRolActual;
 window.inicializarPermisos = inicializarPermisos;
 window.renderSidebarByRole = renderSidebarByRole;
+window.renderActionsByRole = renderActionsByRole;
 
 console.log('🔒 permisos.js cargado');
