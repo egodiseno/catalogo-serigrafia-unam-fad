@@ -74,12 +74,14 @@ class ConfiguracionManager {
   // ══════════════════════════════════════════════════════
 
   async loadAcerca() {
-    const textarea = document.getElementById('configuracionAcercaTexto');
-    const ts       = document.getElementById('acercaTimestamp');
-    if (!textarea) return;
+    const textareaEs = document.getElementById('configuracionAcercaTextoEs');
+    const textareaEn = document.getElementById('configuracionAcercaTextoEn');
+    const ts         = document.getElementById('acercaTimestamp');
+    if (!textareaEs) return;
 
-    textarea.disabled    = true;
-    textarea.placeholder = 'Cargando…';
+    [textareaEs, textareaEn].forEach(t => {
+      if (t) { t.disabled = true; t.placeholder = 'Cargando…'; }
+    });
 
     try {
       const { data, error } = await this.client
@@ -89,9 +91,16 @@ class ConfiguracionManager {
 
       if (error && error.code !== 'PGRST116') throw error;
 
-      textarea.value       = data?.contenido ?? '';
-      textarea.disabled    = false;
-      textarea.placeholder = 'Escribe la descripción del catálogo…';
+      if (textareaEs) {
+        textareaEs.value       = data?.contenido_es ?? '';
+        textareaEs.disabled    = false;
+        textareaEs.placeholder = 'Escribe la descripción en español…';
+      }
+      if (textareaEn) {
+        textareaEn.value       = data?.contenido_en ?? '';
+        textareaEn.disabled    = false;
+        textareaEn.placeholder = 'Write the description in English…';
+      }
 
       if (ts) {
         if (data?.updated_at) {
@@ -107,32 +116,59 @@ class ConfiguracionManager {
 
     } catch (err) {
       console.error('[ConfiguracionManager] loadAcerca:', err);
-      textarea.disabled    = false;
-      textarea.placeholder = 'Error al cargar. Intenta de nuevo.';
+      [textareaEs, textareaEn].forEach(t => {
+        if (t) { t.disabled = false; t.placeholder = 'Error al cargar. Intenta de nuevo.'; }
+      });
       window.ErrorHandler?.showToast('Error al cargar Acerca', 'error');
     }
   }
 
   _conectarGuardarAcerca() {
     document.getElementById('btnGuardarAcerca')?.addEventListener('click', () => this.saveAcerca());
+
+    // Mini-tabs ES / EN dentro del panel Acerca
+    document.querySelectorAll('.acerca-lang-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const lang = btn.dataset.acercaLang;
+
+        document.querySelectorAll('.acerca-lang-btn').forEach(b => {
+          b.classList.toggle('acerca-lang-btn--active', b === btn);
+          b.setAttribute('aria-selected', b === btn ? 'true' : 'false');
+        });
+        document.querySelectorAll('.acerca-lang-panel').forEach(p => {
+          p.classList.toggle('acerca-lang-panel--active', p.dataset.acercaPanel === lang);
+        });
+      });
+    });
   }
 
   async saveAcerca() {
-    const textarea = document.getElementById('configuracionAcercaTexto');
-    const btn      = document.getElementById('btnGuardarAcerca');
-    const ts       = document.getElementById('acercaTimestamp');
-    if (!textarea) return;
+    const textareaEs = document.getElementById('configuracionAcercaTextoEs');
+    const textareaEn = document.getElementById('configuracionAcercaTextoEn');
+    const btn        = document.getElementById('btnGuardarAcerca');
+    const ts         = document.getElementById('acercaTimestamp');
+    if (!textareaEs) return;
 
-    const contenido = textarea.value.trim();
+    const contenidoEs = textareaEs.value.trim();
+    const contenidoEn = textareaEn?.value.trim() ?? '';
 
-    if (!contenido) {
-      window.ErrorHandler?.showToast('El contenido no puede estar vacío', 'error');
-      textarea.focus();
+    if (!contenidoEs) {
+      window.ErrorHandler?.showToast('El texto en español no puede estar vacío', 'error');
+      // Asegurarse de que el panel ES esté visible antes de enfocar
+      document.querySelectorAll('.acerca-lang-btn').forEach(b => {
+        const isEs = b.dataset.acercaLang === 'es';
+        b.classList.toggle('acerca-lang-btn--active', isEs);
+        b.setAttribute('aria-selected', isEs ? 'true' : 'false');
+      });
+      document.querySelectorAll('.acerca-lang-panel').forEach(p => {
+        p.classList.toggle('acerca-lang-panel--active', p.dataset.acercaPanel === 'es');
+      });
+      textareaEs.focus();
       return;
     }
-    if (contenido.length < 10) {
-      window.ErrorHandler?.showToast('Escribe al menos 10 caracteres', 'error');
-      textarea.focus();
+    if (contenidoEs.length < 10) {
+      window.ErrorHandler?.showToast('Escribe al menos 10 caracteres en español', 'error');
+      textareaEs.focus();
       return;
     }
 
@@ -144,7 +180,8 @@ class ConfiguracionManager {
       const { error } = await this.client
         .from('configuracion_acerca')
         .update({
-          contenido,
+          contenido_es:    contenidoEs,
+          contenido_en:    contenidoEn,
           updated_at:      new Date().toISOString(),
           actualizado_por: email,
         })
