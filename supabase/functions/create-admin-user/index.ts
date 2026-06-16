@@ -53,6 +53,7 @@ interface RequestBody {
   email:    string;
   password: string;
   rol:      Rol;
+  nombre?:  string;   // opcional — se guarda en usuarios_admin.nombre
 }
 
 interface SuccessResponse {
@@ -98,7 +99,7 @@ serve(async (req: Request) => {
       return jsonError({ success: false, error: 'Body inválido. Se esperaba JSON.' });
     }
 
-    const { email, password, rol } = body;
+    const { email, password, rol, nombre } = body;
 
     if (!email || !password || !rol) {
       return jsonError({
@@ -202,6 +203,7 @@ serve(async (req: Request) => {
         id:     userId,
         email,
         rol,
+        nombre: nombre?.trim() || null,   // recibido del frontend; null limpia el DEFAULT '-'
         estado: 'activo',
       }]);
 
