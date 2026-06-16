@@ -202,10 +202,10 @@ class ConfiguracionManager {
     if (!container) return;
 
     const SECCIONES = [
-      { key: 'unam',      label: 'UNAM',                 addLabel: '+ Agregar cargo' },
-      { key: 'fad',       label: 'FAD',                  addLabel: '+ Agregar cargo' },
-      { key: 'taller',    label: 'Taller de Serigrafía', addLabel: '+ Agregar profesor' },
-      { key: 'webmaster', label: 'Webmaster',            addLabel: '+ Agregar' },
+      { key: 'unam',      label: 'UNAM',                 addLabel: 'Agregar cargo' },
+      { key: 'fad',       label: 'FAD',                  addLabel: 'Agregar cargo' },
+      { key: 'taller',    label: 'Taller de Serigrafía', addLabel: 'Agregar profesor' },
+      { key: 'webmaster', label: 'Webmaster',            addLabel: 'Agregar' },
     ];
 
     container.innerHTML = SECCIONES.map(sec => {
@@ -221,9 +221,9 @@ class ConfiguracionManager {
               : '<p class="field-hint">Sin registros en esta sección.</p>'}
           </div>
           <button type="button"
-                  class="btn btn-ghost btn-sm credito-add-btn"
+                  class="btn btn-secondary btn-sm credito-add-btn"
                   data-seccion="${sec.key}">
-            <i data-lucide="plus" style="width:13px;height:13px;" aria-hidden="true"></i>
+            <i data-lucide="plus" style="width:14px;height:14px;" aria-hidden="true"></i>
             ${esc(sec.addLabel)}
           </button>
         </div>`;

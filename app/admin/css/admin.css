@@ -5945,15 +5945,9 @@ input[type="file"]:hover {
 }
 
 /* ── Botón agregar al final de sección ─────────────────── */
+/* Usa .btn-secondary — solo añadir el margen superior    */
 .credito-add-btn {
-  margin-top:  0.25rem;
-  font-size:   0.8rem;
-  color:       var(--color-blue, #013B75);
-  border-style: dashed;
-}
-
-.credito-add-btn:hover {
-  background: var(--color-primary-light, #EEF4FB);
+  margin-top: 0.5rem;
 }
 
 /* ── Responsive: apilar en mobile ───────────────────────── */
