@@ -211,13 +211,18 @@ export const api = {
 
   /**
    * Obtener texto "Acerca" desde configuracion_acerca
+   * Selecciona la columna según el idioma activo:
+   *   'es' → contenido_es  |  'en' → contenido_en
+   * Requiere columnas contenido_es y contenido_en en la tabla.
+   * @param {string} [lang='es'] - idioma activo ('es' | 'en')
    * @returns {Promise<string>} contenido o cadena vacía si falla
    */
-  async getAcerca() {
+  async getAcerca(lang = 'es') {
+    const col = lang === 'en' ? 'contenido_en' : 'contenido_es';
     try {
       const { data, error } = await supabase
         .from('configuracion_acerca')
-        .select('contenido')
+        .select(col)
         .limit(1)
         .single();
 
@@ -226,8 +231,8 @@ export const api = {
         return '';
       }
 
-      console.log('✅ Acerca cargada');
-      return data?.contenido ?? '';
+      console.log(`✅ Acerca cargada (${lang})`);
+      return data?.[col] ?? '';
     } catch (err) {
       console.error('❌ Exception getAcerca:', err);
       return '';

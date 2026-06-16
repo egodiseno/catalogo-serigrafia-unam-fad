@@ -55,7 +55,7 @@ export class PublicCreditos {
 
   async _loadAcerca() {
     try {
-      return await api.getAcerca();
+      return await api.getAcerca(i18n.currentLang);
     } catch (err) {
       console.error('❌ loadAcerca:', err);
       return '';
