@@ -5811,6 +5811,47 @@ input[type="file"]:hover {
   cursor:        not-allowed;
 }
 
+/* ── Mini-tabs ES/EN del panel Acerca ───────────────────── */
+.acerca-lang-tabs {
+  display:       flex;
+  gap:           0.25rem;
+  margin-bottom: var(--spacing-sm, 0.75rem);
+  border-bottom: 2px solid var(--color-border, #e5e7eb);
+  padding-bottom: 0;
+}
+
+.acerca-lang-btn {
+  padding:       0.3rem 0.9rem;
+  font-size:     0.78rem;
+  font-weight:   600;
+  letter-spacing: 0.05em;
+  border:        none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;           /* overlap the tabs border-bottom */
+  border-radius: var(--radius-sm, 4px) var(--radius-sm, 4px) 0 0;
+  background:    transparent;
+  color:         var(--color-text-muted, #6b7280);
+  cursor:        pointer;
+  transition:    color 150ms, border-color 150ms;
+}
+
+.acerca-lang-btn:hover {
+  color: var(--color-blue, #013B75);
+}
+
+.acerca-lang-btn--active {
+  color:        var(--color-blue, #013B75);
+  border-bottom-color: var(--color-blue, #013B75);
+}
+
+.acerca-lang-panel {
+  display: none;
+}
+
+.acerca-lang-panel--active {
+  display: block;
+}
+
 /* ── Footer del panel Acerca ────────────────────────────── */
 .config-acerca-footer {
   display:         flex;
@@ -6134,9 +6175,11 @@ input[type="file"]:hover {
 
 /* ── Botón "Agregar red social" ─────────────────────────── */
 .btn-rrss-agregar {
-  width:       100%;
-  justify-content: center;
-  gap:         0.4rem;
+  width:       auto;
+  max-width:   fit-content;
+  padding:     0.45rem 1rem;
+  font-size:   0.82rem;
+  gap:         0.35rem;
 }
 
 .btn-rrss-agregar:disabled {
