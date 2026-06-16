@@ -159,7 +159,7 @@ serve(async (req: Request) => {
     // 5. Cliente admin con service_role_key ────────────────────────────────
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL')              ?? '',
-      Deno.env.get('SERVICE_ROLE_KEY') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
       {
         auth: { autoRefreshToken: false, persistSession: false },
       }
