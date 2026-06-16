@@ -37,6 +37,10 @@
   --container: 1280px;
   --grid-gap: 1.5rem;
   --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+
+  /* Footer tokens */
+  --border-subtle:       rgba(255, 255, 255, 0.2);
+  --color-text-tertiary: rgba(255, 255, 255, 0.62);
 }
 
 /* ============================================================
@@ -1212,28 +1216,31 @@ body.is-scrolled .filters {
    Footer
    ============================================================ */
 .site-footer {
-  background: var(--color-blue);
+  background: var(--color-blue-deep);
   color: var(--color-surface);
-  padding-block: var(--space-4);
+  padding-block: clamp(var(--space-5), 6vw, 72px);
   margin-top: clamp(48px, 8vw, 80px);
 }
 
 .footer-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: var(--space-4);
-  margin-bottom: var(--space-4);
+  gap: var(--space-5);
+  margin-bottom: var(--space-5);
 }
 
 @media (min-width: 768px) {
   .footer-grid {
     grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-4);
   }
 }
 
 @media (min-width: 1024px) {
   .footer-grid {
-    grid-template-columns: repeat(4, 1fr);
+    /* Brand más ancha para que respire; las 3 cols de nav son iguales */
+    grid-template-columns: 1.6fr 1fr 1fr 1fr;
+    gap: clamp(var(--space-4), 4vw, 56px);
   }
 }
 
@@ -1277,16 +1284,17 @@ body.is-scrolled .filters {
 .footer-logo-desc {
   font-family: var(--font-sans);
   font-size: 0.86rem;
-  color: var(--color-muted);
+  color: var(--color-text-tertiary);
   line-height: 1.5;
   margin: 0;
-  opacity: 0.85;
 }
 
 .footer-col h3 {
-  font-size: 0.9rem;
-  font-weight: 600;
-  margin-bottom: var(--space-1);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: var(--space-2);
   color: var(--color-gold);
   font-family: var(--font-sans);
 }
@@ -1341,8 +1349,7 @@ body.is-scrolled .filters {
   padding-top: var(--space-3);
   text-align: left;
   font-size: 0.8rem;
-  color: var(--color-muted);
-  opacity: 0.9;
+  color: var(--color-text-tertiary);
 }
 
 .footer-bottom p {
@@ -1379,7 +1386,7 @@ body.is-scrolled .filters {
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.7);
+  border: 1px solid var(--border-subtle);
   background: transparent !important; /* anula el inline style del JS */
   color: #fff;
   text-decoration: none;
