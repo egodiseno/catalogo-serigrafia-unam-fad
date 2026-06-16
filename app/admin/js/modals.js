@@ -85,28 +85,42 @@ const ModalManager = (() => {
     const modal = document.getElementById(modalId);
 
     // Event listeners
-    const form = modal.querySelector('.modal-form');
-    const closeBtn = modal.querySelector('.modal-close');
+    const form      = modal.querySelector('.modal-form');
+    const closeBtn  = modal.querySelector('.modal-close');
     const cancelBtn = modal.querySelector('.modal-cancel');
-    const errorDiv = modal.querySelector('.modal-error');
+    const errorDiv  = modal.querySelector('.error-alert');   // fix: era '.modal-error'
+    const submitBtn = modal.querySelector('[type="submit"]');
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
+      console.log('[ModalManager] form submit disparado — modalId:', modalId);
 
       const formData = new FormData(form);
       const data = Object.fromEntries(formData);
+      console.log('[ModalManager] form data:', data);
 
       try {
         // Validar datos antes de onSave
         if (!validateFormData(data, fields)) {
+          window.ErrorHandler?.showToast('Completa los campos obligatorios', 'error');
           return;
         }
 
+        if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Guardando…'; }
+
         const _result = await onSave(data);
         if (_result !== false) close(modalId);
+
       } catch (error) {
         console.error('❌ Modal error:', error);
         showError(errorDiv, error.message || 'Error desconocido');
+      } finally {
+        // Restaurar botón si el modal sigue abierto
+        const stillOpen = document.getElementById(modalId);
+        if (stillOpen && submitBtn) {
+          submitBtn.disabled    = false;
+          submitBtn.textContent = submitText;
+        }
       }
     });
 

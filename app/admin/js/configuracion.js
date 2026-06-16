@@ -393,10 +393,23 @@ class ConfiguracionManager {
   // ══════════════════════════════════════════════════════
 
   openEditModal(id) {
-    const credito = this._creditos.find(c => c.id === id);
-    if (!credito) return;
+    console.log('[Créditos] openEditModal — id:', id);
 
-    const cargoEditable = credito.editable_cargo;
+    const credito = this._creditos.find(c => c.id === id);
+    if (!credito) {
+      console.error('[Créditos] openEditModal — crédito no encontrado en caché. id:', id,
+        '| caché actual:', this._creditos.length, 'items');
+      window.ErrorHandler?.showToast('Crédito no encontrado. Recarga la página.', 'error');
+      return;
+    }
+
+    if (!window.ModalManager) {
+      console.error('[Créditos] openEditModal — window.ModalManager no disponible');
+      window.ErrorHandler?.showToast('Error interno: módulo de modal no disponible', 'error');
+      return;
+    }
+
+    const cargoEditable = credito.editable_cargo !== false;   // default true si undefined
 
     // Construir campos según editabilidad
     const fields = [
@@ -428,11 +441,15 @@ class ConfiguracionManager {
       });
     }
 
-    window.ModalManager?.open({
+    console.log('[Créditos] openEditModal — abriendo modal para:', credito.nombre);
+
+    window.ModalManager.open({
       title:      'Editar crédito',
       submitText: 'Guardar',
       fields,
       onSave: async (values) => {
+        console.log('[Créditos] onSave editar — values:', values);
+
         const nombre = values.nombre?.trim();
         const cargo  = cargoEditable
           ? (values.cargo?.trim() || credito.cargo)
@@ -442,6 +459,8 @@ class ConfiguracionManager {
           window.ErrorHandler?.showToast('El nombre es obligatorio', 'error');
           return false;   // mantiene el modal abierto
         }
+
+        console.log('[Créditos] guardando UPDATE — nombre:', nombre, 'cargo:', cargo);
 
         try {
           const { error } = await this.client
@@ -456,6 +475,8 @@ class ConfiguracionManager {
 
           if (error) throw error;
 
+          console.log('[Créditos] UPDATE exitoso — id:', id);
+
           const item = this._creditos.find(c => c.id === id);
           if (item) { item.nombre = nombre; item.cargo = cargo; }
 
@@ -463,8 +484,8 @@ class ConfiguracionManager {
           window.ErrorHandler?.showToast('Crédito actualizado', 'success');
 
         } catch (err) {
-          console.error('[ConfiguracionManager] editarCredito:', err);
-          window.ErrorHandler?.showToast('Error al guardar', 'error');
+          console.error('[Créditos] ERROR en UPDATE:', err);
+          window.ErrorHandler?.showToast('Error al guardar: ' + (err.message ?? err), 'error');
           return false;
         }
       },
@@ -476,6 +497,14 @@ class ConfiguracionManager {
   // ══════════════════════════════════════════════════════
 
   openCreateModal(seccion) {
+    console.log('[Créditos] openCreateModal — sección:', seccion);
+
+    if (!window.ModalManager) {
+      console.error('[Créditos] openCreateModal — window.ModalManager no disponible');
+      window.ErrorHandler?.showToast('Error interno: módulo de modal no disponible', 'error');
+      return;
+    }
+
     const labels = {
       unam:      'Agregar cargo UNAM',
       fad:       'Agregar cargo FAD',
@@ -487,7 +516,9 @@ class ConfiguracionManager {
       .filter(c => c.seccion === seccion)
       .reduce((max, c) => Math.max(max, c.orden), 0);
 
-    window.ModalManager?.open({
+    console.log('[Créditos] openCreateModal — abriendo modal, maxOrden:', maxOrden);
+
+    window.ModalManager.open({
       title:      labels[seccion] ?? 'Agregar crédito',
       submitText: 'Agregar',
       fields: [
@@ -517,6 +548,8 @@ class ConfiguracionManager {
         },
       ],
       onSave: async (values) => {
+        console.log('[Créditos] onSave agregar — values:', values);
+
         const nombre  = values.nombre?.trim();
         const cargo   = values.cargo?.trim();
         const visible = values.visible !== 'no';
@@ -529,6 +562,8 @@ class ConfiguracionManager {
           window.ErrorHandler?.showToast('El cargo es obligatorio', 'error');
           return false;
         }
+
+        console.log('[Créditos] ejecutando INSERT — seccion:', seccion, 'nombre:', nombre);
 
         try {
           const { data, error } = await this.client
@@ -548,13 +583,15 @@ class ConfiguracionManager {
 
           if (error) throw error;
 
+          console.log('[Créditos] INSERT exitoso — data:', data);
+
           this._creditos.push(data);
           this._renderCreditos();
           window.ErrorHandler?.showToast('Crédito agregado', 'success');
 
         } catch (err) {
-          console.error('[ConfiguracionManager] agregarCredito:', err);
-          window.ErrorHandler?.showToast('Error al agregar', 'error');
+          console.error('[Créditos] ERROR en INSERT:', err);
+          window.ErrorHandler?.showToast('Error al agregar: ' + (err.message ?? err), 'error');
           return false;
         }
       },
