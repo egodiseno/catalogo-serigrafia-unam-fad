@@ -492,40 +492,118 @@
 
         <!-- ========== USUARIOS SECTION ========== -->
         <section id="usuariosSection" class="section">
+
+          <!-- Cabecera -->
           <div class="section-header">
             <h2>Gestionar Usuarios Admin</h2>
             <div class="section-header-actions">
+              <button class="btn btn-secondary btn-sm" id="btnExportarUsuarios" data-permiso="usuarios.crear">
+                <i data-lucide="download" style="width:15px;height:15px;" aria-hidden="true"></i>
+                Exportar CSV
+              </button>
               <button class="btn btn-secondary" id="csvImportBtn" data-permiso="usuarios.crear">
-                <i data-lucide="upload" style="width:16px;height:16px;" aria-hidden="true"></i> Importar CSV
+                <i data-lucide="upload" style="width:16px;height:16px;" aria-hidden="true"></i>
+                Importar CSV
               </button>
               <input type="file" id="csvImportFile" accept=".csv" style="display:none;">
               <button class="btn btn-primary" id="newUsuarioBtn" data-permiso="usuarios.crear">
-                <i data-lucide="user-plus" style="width:16px; height:16px;" aria-hidden="true"></i> Nuevo Usuario
+                <i data-lucide="user-plus" style="width:16px;height:16px;" aria-hidden="true"></i>
+                Nuevo Usuario
               </button>
             </div>
           </div>
 
+          <!-- Toolbar: búsqueda + filtros -->
+          <div class="usuarios-toolbar">
+            <div class="usuarios-toolbar__search">
+              <div class="search-field">
+                <i data-lucide="search" class="search-field__icon"
+                   style="width:15px;height:15px;" aria-hidden="true"></i>
+                <input type="text" id="inputBuscarUsuario"
+                       class="search-field__input"
+                       placeholder="Buscar por email o nombre…"
+                       autocomplete="off">
+              </div>
+            </div>
+            <div class="usuarios-toolbar__filters">
+              <select id="filterRol" class="select-input select-input--sm"
+                      aria-label="Filtrar por rol">
+                <option value="">Todos los roles</option>
+                <option value="admin">Admin</option>
+                <option value="super_editor">Super Editor</option>
+                <option value="editor">Editor</option>
+              </select>
+              <select id="filterEstado" class="select-input select-input--sm"
+                      aria-label="Filtrar por estado">
+                <option value="">Todos los estados</option>
+                <option value="activo">Activo</option>
+                <option value="inactivo">Inactivo</option>
+              </select>
+              <button type="button" class="btn btn-ghost btn-sm" id="btnLimpiarFiltros">
+                <i data-lucide="x" style="width:13px;height:13px;" aria-hidden="true"></i>
+                Limpiar
+              </button>
+            </div>
+          </div>
+
+          <!-- Tabla -->
           <div class="table-wrapper">
-          <table class="usuarios-table">
-            <thead>
-              <tr>
-                <th class="th-checkbox">
-                  <input type="checkbox" id="selectAllUsers" title="Seleccionar todos">
-                </th>
-                <th>Email</th>
-                <th>Nombre</th>
-                <th>Rol</th>
-                <th>Estado</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody id="usuariosList">
-              <tr>
-                <td colspan="6" class="empty-state">Cargando usuarios...</td>
-              </tr>
-            </tbody>
-          </table>
+            <table class="usuarios-table" id="usuariosTable">
+              <thead>
+                <tr>
+                  <th class="th-checkbox">
+                    <input type="checkbox" id="selectAllUsers" title="Seleccionar todos">
+                  </th>
+                  <th class="sortable-col" data-sort-col="email" aria-sort="ascending">
+                    Email <i data-lucide="chevrons-up-down" style="width:12px;height:12px;" aria-hidden="true"></i>
+                  </th>
+                  <th class="sortable-col" data-sort-col="nombre" aria-sort="none">
+                    Nombre <i data-lucide="chevrons-up-down" style="width:12px;height:12px;" aria-hidden="true"></i>
+                  </th>
+                  <th class="sortable-col" data-sort-col="rol" aria-sort="none">
+                    Rol <i data-lucide="chevrons-up-down" style="width:12px;height:12px;" aria-hidden="true"></i>
+                  </th>
+                  <th class="sortable-col" data-sort-col="estado" aria-sort="none">
+                    Estado <i data-lucide="chevrons-up-down" style="width:12px;height:12px;" aria-hidden="true"></i>
+                  </th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="usuariosList">
+                <tr>
+                  <td colspan="6" class="empty-state">Cargando usuarios…</td>
+                </tr>
+              </tbody>
+            </table>
           </div><!-- /.table-wrapper -->
+
+          <!-- Footer: contador · paginación · filas/pág · batch -->
+          <div class="usuarios-table-footer">
+            <div class="usuarios-footer__left">
+              <span id="usuariosCounter" class="table-counter">Cargando…</span>
+            </div>
+            <div class="usuarios-footer__center">
+              <nav id="usuariosPaginacion" class="table-pagination"
+                   aria-label="Paginación de usuarios"></nav>
+            </div>
+            <div class="usuarios-footer__right">
+              <label class="rows-label">
+                Mostrar:
+                <select id="selectRowsPerPage" class="select-input select-input--sm">
+                  <option value="10" selected>10</option>
+                  <option value="20">20</option>
+                  <option value="30">30</option>
+                  <option value="50">50</option>
+                </select>
+              </label>
+              <button type="button" class="btn btn-sm btn-danger" id="btnBorrarSeleccionados"
+                      style="display:none;" data-permiso="usuarios.borrar">
+                <i data-lucide="trash-2" style="width:14px;height:14px;" aria-hidden="true"></i>
+                Borrar seleccionados
+              </button>
+            </div>
+          </div>
+
         </section>
         <!-- ========== LOGS SECTION ========== -->
         <section id="logsSection" class="section">
@@ -890,15 +968,47 @@
               <h3 class="config-subtitle">Acerca del Catálogo</h3>
               <p class="field-hint" style="margin-bottom: var(--spacing-md);">
                 Este texto aparece en la página pública <strong>Acerca</strong>.
+                Edita ambos idiomas antes de guardar.
               </p>
 
-              <div class="form-group">
-                <label for="configuracionAcercaTexto">Descripción</label>
-                <textarea id="configuracionAcercaTexto"
-                          class="form-textarea"
-                          rows="9"
-                          placeholder="Escribe la descripción del catálogo…"
-                          maxlength="5000"></textarea>
+              <!-- Mini-tabs ES / EN -->
+              <div class="acerca-lang-tabs" role="tablist" aria-label="Idioma del texto Acerca">
+                <button type="button"
+                        class="acerca-lang-btn acerca-lang-btn--active"
+                        data-acerca-lang="es"
+                        role="tab"
+                        aria-selected="true">ES</button>
+                <button type="button"
+                        class="acerca-lang-btn"
+                        data-acerca-lang="en"
+                        role="tab"
+                        aria-selected="false">EN</button>
+              </div>
+
+              <!-- Panel ES -->
+              <div class="acerca-lang-panel acerca-lang-panel--active"
+                   id="acercaPanelEs" data-acerca-panel="es" role="tabpanel">
+                <div class="form-group">
+                  <label for="configuracionAcercaTextoEs">Descripción (Español)</label>
+                  <textarea id="configuracionAcercaTextoEs"
+                            class="form-textarea"
+                            rows="9"
+                            placeholder="Escribe la descripción en español…"
+                            maxlength="5000"></textarea>
+                </div>
+              </div>
+
+              <!-- Panel EN -->
+              <div class="acerca-lang-panel"
+                   id="acercaPanelEn" data-acerca-panel="en" role="tabpanel">
+                <div class="form-group">
+                  <label for="configuracionAcercaTextoEn">Description (English)</label>
+                  <textarea id="configuracionAcercaTextoEn"
+                            class="form-textarea"
+                            rows="9"
+                            placeholder="Write the description in English…"
+                            maxlength="5000"></textarea>
+                </div>
               </div>
 
               <div class="config-acerca-footer">
