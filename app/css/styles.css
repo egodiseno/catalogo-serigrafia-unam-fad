@@ -392,13 +392,15 @@ h1, h2, h3 {
   margin-bottom: var(--space-3);
 }
 
-/* Línea vertical dorada al lado izquierdo del eyebrow */
+/* Línea horizontal dorada al lado izquierdo del eyebrow */
 .hero__accent-line {
-  width: 3px;
-  height: 20px;
+  display: inline-block;
+  width: 60px;
+  height: 3px;
   background: var(--color-gold);
   border-radius: 2px;
   flex-shrink: 0;
+  vertical-align: middle;
 }
 
 .hero__eyebrow {
