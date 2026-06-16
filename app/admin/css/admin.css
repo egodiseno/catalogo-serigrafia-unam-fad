@@ -6477,48 +6477,71 @@ input[type="file"]:hover {
   flex-wrap:   wrap;
 }
 
-/* Selects del toolbar: premium */
-.usuarios-toolbar__filters select,
-.usuarios-toolbar__filters .select-input--sm {
-  appearance:    none;
+/*
+ * ── Controles del toolbar: aspecto idéntico al catálogo público ──
+ *
+ * Referencia: app/css/styles.css → .filter-field select
+ * Aplica a: selects de rol/estado, select de filas/pág, campo búsqueda
+ */
+
+/* ── Chevron SVG compartido (polyline, igual que catálogo) ──────── */
+/* Variable local para reutilizar el data-URI en todos los selects  */
+
+/* ── Selects: filterRol, filterEstado, selectRowsPerPage ─────────── */
+#filterRol,
+#filterEstado,
+#selectRowsPerPage,
+.usuarios-toolbar__filters select {
+  height:            40px;
+  padding:           0 2.5rem 0 0.875rem;
+  border:            1px solid var(--color-border, #d1d5db);
+  border-radius:     var(--radius-sm, 6px);
+  background:        var(--color-surface, #fff)
+                     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7' viewBox='0 0 12 7'%3E%3Cpolyline points='1 1 6 6 11 1' stroke='%236b7280' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+                     no-repeat right 0.875rem center / 12px 7px;
+  color:             var(--color-text, #111827);
+  font-size:         0.9rem;
+  font-family:       inherit;
+  cursor:            pointer;
+  appearance:        none;
   -webkit-appearance: none;
-  background:    var(--color-surface, #fff)
-                 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%236b7280' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E")
-                 no-repeat right 0.65rem center;
-  border:        1px solid var(--color-border, #e5e7eb);
-  border-radius: 6px;
-  padding:       0.45rem 2.2rem 0.45rem 0.75rem;
-  font-size:     0.85rem;
-  font-family:   inherit;
-  color:         var(--color-text, #1f2937);
-  cursor:        pointer;
-  transition:    border-color 150ms, box-shadow 150ms, background-color 150ms;
-  max-width:     unset;
+  transition:        border-color 200ms ease, box-shadow 200ms ease;
+  max-width:         unset;
 }
 
-.usuarios-toolbar__filters select:hover,
-.usuarios-toolbar__filters .select-input--sm:hover {
+#filterRol:hover,
+#filterEstado:hover,
+#selectRowsPerPage:hover,
+.usuarios-toolbar__filters select:hover {
   border-color: var(--color-blue, #013B75);
-  background-color: #f8fafc;
+  box-shadow:   0 2px 6px rgba(1, 59, 117, 0.06);
 }
 
-.usuarios-toolbar__filters select:focus,
-.usuarios-toolbar__filters .select-input--sm:focus {
+#filterRol:focus,
+#filterEstado:focus,
+#selectRowsPerPage:focus,
+.usuarios-toolbar__filters select:focus {
   outline:      none;
   border-color: var(--color-blue, #013B75);
-  box-shadow:   0 0 0 3px rgba(1, 59, 117, 0.12);
+  box-shadow:   0 0 0 3px rgba(1, 59, 117, 0.10);
 }
 
-/* Search: hover */
+/* ── Campo búsqueda: misma altura y estética ──────────────────────── */
+.search-field__input {
+  height: 40px;   /* alinear con los selects */
+}
+
 .search-field__input:hover {
   border-color: var(--color-blue, #013B75);
+  box-shadow:   0 2px 6px rgba(1, 59, 117, 0.06);
 }
 
-/* Select compacto fuera del toolbar (sin override de apariencia) */
+/* ── select-input--sm fuera del toolbar (rows-label, etc.) ───────── */
 .select-input--sm {
-  padding:     0.45rem 1.8rem 0.45rem 0.7rem;
+  padding:     0 1.8rem 0 0.7rem;
   font-size:   0.85rem;
   max-width:   unset;
+  height:      36px;
 }
 
 /* ── Avatar por fila (inline en td email) ───────────────── */
