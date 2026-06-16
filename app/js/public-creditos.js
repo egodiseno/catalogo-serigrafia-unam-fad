@@ -26,16 +26,29 @@ export class PublicCreditos {
   async init() {
     console.log('🚀 Inicializando Créditos...');
 
-    // Carga en paralelo
+    await this._fetch();
+
+    // Recargar contenido al cambiar idioma
+    document.addEventListener('lang:changed', async (e) => {
+      const lang = e.detail?.lang;
+      console.log(`🌐 Créditos: recargando para idioma "${lang}"`);
+      this._showSpinners();
+      await this._fetch();
+      // Volver a aplicar traducciones estáticas del DOM
+      i18n.updateLanguage(lang);
+    });
+
+    console.log('✅ Créditos inicializados');
+  }
+
+  /** Carga y renderiza acerca + créditos en paralelo */
+  async _fetch() {
     const [acerca, creditos] = await Promise.all([
       this._loadAcerca(),
       this._loadCreditos(),
     ]);
-
     this._renderAcerca(acerca);
     this._renderCreditos(creditos);
-
-    console.log('✅ Créditos inicializados');
   }
 
   /* ── Carga de datos ──────────────────────────────────────── */
@@ -58,10 +71,21 @@ export class PublicCreditos {
     }
   }
 
+  /* ── Helpers de UI ───────────────────────────────────────── */
+
+  _showSpinners() {
+    if (this.spinnerAcerca) this.spinnerAcerca.style.display = '';
+    if (this.spinnerCred)   this.spinnerCred.style.display   = '';
+  }
+
+  _hideSpinner(el) {
+    if (el) el.style.display = 'none';
+  }
+
   /* ── Renderizado ─────────────────────────────────────────── */
 
   _renderAcerca(texto) {
-    if (this.spinnerAcerca) this.spinnerAcerca.setAttribute('hidden', '');
+    this._hideSpinner(this.spinnerAcerca);
     if (!this.acercaEl) return;
 
     if (!texto || !texto.trim()) {
@@ -76,11 +100,12 @@ export class PublicCreditos {
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;');
 
-    this.acercaEl.innerHTML = `<p>${safe.replace(/\n{2,}/g, '</p><p>').replace(/\n/g, '<br>')}</p>`;
+    this.acercaEl.innerHTML =
+      `<p>${safe.replace(/\n{2,}/g, '</p><p>').replace(/\n/g, '<br>')}</p>`;
   }
 
   _renderCreditos(personas) {
-    if (this.spinnerCred) this.spinnerCred.setAttribute('hidden', '');
+    this._hideSpinner(this.spinnerCred);
     if (!this.creditosEl) return;
 
     if (!personas.length) {
@@ -104,10 +129,9 @@ export class PublicCreditos {
     ];
 
     const html = seccionKeys.map(key => {
-      const label   = SECCION_LABELS[key] || key.toUpperCase();
-      const gente   = grouped[key];
+      const label    = SECCION_LABELS[key] || key.toUpperCase();
+      const gente    = grouped[key];
       const personas = gente.map(p => this._renderPersona(p)).join('');
-
       return `
         <div class="creditos-subsection">
           <h3>${label}</h3>

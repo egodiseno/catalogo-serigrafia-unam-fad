@@ -28,6 +28,9 @@ export const i18n = {
     this.currentLang = lang;
     localStorage.setItem('lang', lang);
     this.updateLanguage(lang);
+
+    // Notificar a módulos que escuchen cambios de idioma
+    document.dispatchEvent(new CustomEvent('lang:changed', { detail: { lang } }));
   },
 
   updateLanguage(lang) {
