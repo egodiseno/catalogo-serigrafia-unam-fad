@@ -2,7 +2,7 @@
  * usuarios-crud.js — CRUD de Usuarios Admin
  *
  * SPRINT 1: búsqueda, filtros, paginación dinámica, contador
- * SPRINT 2: batch delete, exportar CSV, confirmación delete
+ * SPRINT 2: batch delete (BD + Auth via Edge Function), exportar CSV, confirmación delete
  * SPRINT 3: avatar con inicial, sort por columna, nombre en edit modal
  *
  * Depende de: config.js, modals.js, error-handler.js
@@ -323,6 +323,57 @@ const UsuariosCRUD = (() => {
   }
 
   // ══════════════════════════════════════════════════════════════
+  // HELPER — llamar delete-users-batch Edge Function
+  // ══════════════════════════════════════════════════════════════
+
+  /**
+   * Llama a la Edge Function delete-users-batch que elimina usuarios
+   * de AMBAS tablas: usuarios_admin Y auth.users (requiere service_role_key en el servidor).
+   *
+   * @param {string[]} emails — lista de emails a eliminar
+   * @returns {Promise<{success:true, deleted_count:number, not_found?:string[], auth_errors?:Array, message:string}>}
+   * @throws {Error} si la red falla, la respuesta no es JSON, o la función devuelve success=false
+   */
+  async function _callDeleteBatch(emails) {
+    const { data: sessionData } = await client.auth.getSession();
+    const accessToken = sessionData?.session?.access_token;
+    if (!accessToken) throw new Error('Sesión expirada. Por favor, inicia sesión nuevamente.');
+
+    const SUPABASE_URL = window.supabaseConfig?.url     ?? 'https://kfvjansfmhamkrnbxmgp.supabase.co';
+    const ANON_KEY     = window.supabaseConfig?.anonKey ?? '';
+    const FUNCTION_URL = `${SUPABASE_URL}/functions/v1/delete-users-batch`;
+
+    let response;
+    try {
+      response = await fetch(FUNCTION_URL, {
+        method:  'POST',
+        headers: {
+          'Content-Type':  'application/json',
+          'Authorization': `Bearer ${accessToken}`,
+          'apikey':        ANON_KEY,
+        },
+        body: JSON.stringify({ emails }),
+      });
+    } catch (netErr) {
+      throw new Error(`Error de red al eliminar usuario(s): ${netErr.message}`);
+    }
+
+    let result;
+    try { result = await response.json(); }
+    catch { throw new Error(`Respuesta inválida del servidor (HTTP ${response.status}).`); }
+
+    if (!response.ok || !result.success)
+      throw new Error(result.error ?? `Error ${response.status} al eliminar usuario(s).`);
+
+    // Advertir en consola si algún Auth delete falló (el registro de BD ya se borró)
+    if (result.auth_errors?.length) {
+      console.warn('[UsuariosCRUD] Algunos usuarios se borraron de la BD pero su cuenta Auth no pudo eliminarse:', result.auth_errors);
+    }
+
+    return result;
+  }
+
+  // ══════════════════════════════════════════════════════════════
   // BATCH DELETE
   // ══════════════════════════════════════════════════════════════
 
@@ -344,8 +395,8 @@ const UsuariosCRUD = (() => {
       return;
     }
     // Guard: no eliminar el último admin
-    const todosAdmins    = usuariosData.filter(u => u.rol === 'admin');
-    const borrAdmins     = toDelete.filter(u => u.rol === 'admin');
+    const todosAdmins = usuariosData.filter(u => u.rol === 'admin');
+    const borrAdmins  = toDelete.filter(u => u.rol === 'admin');
     if (borrAdmins.length >= todosAdmins.length) {
       window.ErrorHandler?.showToast('No se puede eliminar el último administrador.', 'error');
       return;
@@ -354,22 +405,23 @@ const UsuariosCRUD = (() => {
     const n = toDelete.length;
     window.ModalManager.openConfirm({
       title:       `¿Borrar ${n} usuario${n !== 1 ? 's' : ''}?`,
-      message:     `Esta acción eliminará ${n} usuario${n !== 1 ? 's' : ''} permanentemente y no se puede deshacer.`,
+      message:     `Esta acción eliminará ${n} usuario${n !== 1 ? 's' : ''} permanentemente (BD + cuenta Auth) y no se puede deshacer.`,
       confirmText: `Borrar ${n}`,
       cancelText:  'Cancelar',
       tipo:        'danger',
       onConfirm:   async () => {
         try {
-          const ids = toDelete.map(u => u.id);
-          const { error } = await client.from('usuarios_admin').delete().in('id', ids);
-          if (error) throw error;
+          const emails = toDelete.map(u => u.email);
+          const result = await _callDeleteBatch(emails);
           selectedIds.clear();
           window.ErrorHandler?.showToast(
-            `${n} usuario${n !== 1 ? 's eliminados' : ' eliminado'}`, 'success');
+            result.message ?? `${n} usuario${n !== 1 ? 's eliminados' : ' eliminado'}`,
+            'success'
+          );
           document.dispatchEvent(new CustomEvent('usuarios:updated'));
         } catch (err) {
           console.error('[UsuariosCRUD] batchDelete:', err);
-          window.ErrorHandler?.showToast('No se pudieron eliminar los usuarios.', 'error');
+          window.ErrorHandler?.showToast(err.message || 'No se pudieron eliminar los usuarios.', 'error');
         }
       },
     });
@@ -625,15 +677,15 @@ const UsuariosCRUD = (() => {
 
   async function _doDelete(id, email) {
     try {
-      const { error } = await client.from('usuarios_admin').delete().eq('id', id);
-      if (error) throw error;
+      // Edge Function elimina de usuarios_admin Y auth.users (requiere service_role en el servidor)
+      await _callDeleteBatch([email]);
       selectedIds.delete(id);
       window.auditLogger?.borrarUsuario(email);
       window.ErrorHandler?.showToast(`Usuario "${email}" eliminado`, 'success');
       document.dispatchEvent(new CustomEvent('usuarios:updated'));
     } catch (err) {
       console.error('[UsuariosCRUD] _doDelete:', err);
-      window.ErrorHandler?.showToast('No se pudo eliminar el usuario.', 'error');
+      window.ErrorHandler?.showToast(err.message || 'No se pudo eliminar el usuario.', 'error');
     }
   }
 
