@@ -384,54 +384,57 @@ h1, h2, h3 {
   padding-block: clamp(48px, 8vw, 80px);
 }
 
-/* Envuelve la línea vertical + el eyebrow en una fila flex */
-.hero__eyebrow-wrap {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: var(--space-3);
-}
-
-/* Línea horizontal dorada al lado izquierdo del eyebrow */
-.hero__accent-line {
-  display: inline-block;
-  width: 40px;
-  height: 2px;
-  background: var(--color-gold);
-  border-radius: 1px;
-  flex-shrink: 0;
-  vertical-align: middle;
-}
-
+/* Eyebrow: línea dorada (::before) + texto institucional */
 .hero__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 1rem;
+  color: var(--color-blue-deep);
   font-size: 0.74rem;
   font-weight: 700;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--color-blue-deep);
-  margin-bottom: 0;
+}
+
+.hero__eyebrow::before {
+  content: "";
+  display: inline-block;
+  width: 24px;
+  height: 2px;
+  background: var(--color-gold);
+  border-radius: 1px;
+  flex-shrink: 0;
 }
 
 .hero__title {
   font-family: var(--font-serif);
-  font-size: clamp(2.5rem, 5vw, 3.5rem);
+  font-size: clamp(2.2rem, 5.5vw, 3.6rem);
   font-weight: 700;
   color: var(--color-ink);
+  max-width: 18ch;
   margin-bottom: var(--space-2);
-  line-height: 1.1;
+  line-height: 1.08;
   letter-spacing: -0.02em;
 }
 
-/* Segunda palabra del título — azul */
+/* Primera parte del título — negro (hereda de hero__title) */
+.title-black {
+  color: var(--color-ink);
+}
+
+/* Segunda parte del título — azul */
+.title-blue,
 .accent {
   color: var(--color-blue);
 }
 
 .hero__lead {
-  font-size: 1.05rem;
+  margin: 1.1rem 0 0;
+  max-width: 56ch;
+  font-size: clamp(1rem, 1.4vw, 1.12rem);
   color: var(--color-muted);
-  max-width: 600px;
-  line-height: 1.6;
+  line-height: 1.7;
 }
 
 /* ============================================================
@@ -483,11 +486,11 @@ body.is-scrolled .filters {
 
 /* Labels en uppercase institucional */
 .filter-field label {
-  font-size: 0.8125rem;
+  font-size: 0.72rem;
   font-weight: 700;
-  letter-spacing: 0.75px;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--color-ink);
+  color: var(--color-muted);
   line-height: 1;
   white-space: nowrap;
   flex-shrink: 0;
