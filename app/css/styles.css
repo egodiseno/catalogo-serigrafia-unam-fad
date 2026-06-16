@@ -384,12 +384,21 @@ h1, h2, h3 {
   padding-block: clamp(48px, 8vw, 80px);
 }
 
+/* Envuelve la línea vertical + el eyebrow en una fila flex */
+.hero__eyebrow-wrap {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: var(--space-3);
+}
+
+/* Línea vertical dorada al lado izquierdo del eyebrow */
 .hero__accent-line {
-  width: 60px;
-  height: 3px;
+  width: 3px;
+  height: 20px;
   background: var(--color-gold);
   border-radius: 2px;
-  margin-bottom: var(--space-4);
+  flex-shrink: 0;
 }
 
 .hero__eyebrow {
@@ -397,22 +406,23 @@ h1, h2, h3 {
   font-weight: 700;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--color-gold);
-  margin-bottom: var(--space-3);
+  color: var(--color-blue-deep);
+  margin-bottom: 0;
 }
 
 .hero__title {
   font-family: var(--font-serif);
   font-size: clamp(2.5rem, 5vw, 3.5rem);
   font-weight: 700;
-  color: var(--color-blue-deep);
+  color: var(--color-ink);
   margin-bottom: var(--space-2);
   line-height: 1.1;
   letter-spacing: -0.02em;
 }
 
+/* Segunda palabra del título — azul */
 .accent {
-  color: var(--color-gold);
+  color: var(--color-blue);
 }
 
 .hero__lead {
