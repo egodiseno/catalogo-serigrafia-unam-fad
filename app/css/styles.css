@@ -1371,44 +1371,38 @@ body.is-scrolled .filters {
   margin-top: 0.25rem;
 }
 
-/* Círculo individual — estilo outline blanco, hover dorado */
+/* Círculo individual — outline 1px blanco, hover dorado profundo sin escala */
 .rrss-icon-footer {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
-  border: 2px solid rgba(255, 255, 255, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.7);
   background: transparent !important; /* anula el inline style del JS */
   color: #fff;
   text-decoration: none;
   flex-shrink: 0;
-  transition: transform 200ms var(--ease),
-              box-shadow 200ms var(--ease),
-              background 200ms var(--ease),
+  transition: background 200ms var(--ease),
               border-color 200ms var(--ease);
 }
 
 .rrss-icon-footer i {
-  font-size: 1.25rem;
+  font-size: 0.9rem;
   line-height: 1;
   color: #fff;
   pointer-events: none;
 }
 
 .rrss-icon-footer:hover {
-  background: var(--color-gold) !important;
-  border-color: var(--color-gold);
-  transform: scale(1.15) translateY(-4px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.22);
+  background: var(--color-gold-deep) !important;
+  border-color: var(--color-gold-deep);
 }
 
 .rrss-icon-footer:active {
-  background: var(--color-gold-deep) !important;
-  border-color: var(--color-gold-deep);
-  transform: scale(1);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+  background: var(--color-gold) !important;
+  border-color: var(--color-gold);
 }
 
 .rrss-icon-footer:focus-visible {
@@ -1418,24 +1412,27 @@ body.is-scrolled .filters {
 
 @media (min-width: 768px) {
   .rrss-grid {
-    gap: 1rem;
+    gap: 0.875rem;
   }
   .rrss-icon-footer {
-    width: 40px;
-    height: 40px;
+    width: 32px;
+    height: 32px;
+  }
+  .rrss-icon-footer i {
+    font-size: 1rem;
   }
 }
 
 @media (min-width: 1024px) {
   .rrss-grid {
-    gap: 1.25rem;
+    gap: 0.875rem;
   }
   .rrss-icon-footer {
-    width: 44px;
-    height: 44px;
+    width: 36px;
+    height: 36px;
   }
   .rrss-icon-footer i {
-    font-size: 1.3125rem;
+    font-size: 1.0625rem;
   }
 }
 
