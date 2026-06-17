@@ -7,7 +7,7 @@
  * Endpoint: POST /functions/v1/create-admin-user
  *
  * Body:
- *   { email: string, password: string, rol: 'admin' | 'editor' | 'viewer' }
+ *   { email: string, password: string, nombre?: string, rol: 'admin' | 'super_editor' | 'editor' }
  *
  * Headers requeridos:
  *   Authorization: Bearer <session_access_token>
@@ -47,7 +47,7 @@ const JSON_HEADERS = {
 };
 
 // ── Tipos ────────────────────────────────────────────────────────────────────
-type Rol = 'admin' | 'editor' | 'viewer';
+type Rol = 'admin' | 'super_editor' | 'editor';
 
 interface RequestBody {
   email:    string;
@@ -124,7 +124,7 @@ serve(async (req: Request) => {
     }
 
     // Validar rol
-    const VALID_ROLES: Rol[] = ['admin', 'editor', 'viewer'];
+    const VALID_ROLES: Rol[] = ['admin', 'super_editor', 'editor'];
     if (!VALID_ROLES.includes(rol as Rol)) {
       return jsonError({
         success: false,
