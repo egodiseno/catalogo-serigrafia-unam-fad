@@ -261,6 +261,9 @@ function inicializarPermisos() {
       el.style.display = '';
     });
   }
+
+  // ── Aplicar matriz de visibilidad centralizada (navigation.js) ─────────────
+  window.Navigation?.applyNavVisibility(rol);
 }
 
 // ── Exponer globalmente ────────────────────────────────────

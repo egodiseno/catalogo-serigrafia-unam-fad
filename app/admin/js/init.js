@@ -12,7 +12,9 @@ const AdminInit = (() => {
     { name: 'ObrasForm', key: 'ObrasForm', required: false },
     { name: 'TecnicasCRUD', key: 'TecnicasCRUD', required: false },
     { name: 'TagsCRUD', key: 'TagsCRUD', required: false },
-    { name: 'UsuariosCRUD', key: 'UsuariosCRUD', required: false }
+    { name: 'UsuariosCRUD', key: 'UsuariosCRUD', required: false },
+    { name: 'RegistrosPendientes', key: 'RegistrosPendientes', required: false },
+    { name: 'ControlRegistro', key: 'controlRegistroManager', required: false }
   ];
 
   const status = {

@@ -10,17 +10,37 @@ document.addEventListener('DOMContentLoaded', () => {
   const pageTitle = document.getElementById('pageTitle');
   const pageSubtitle = document.getElementById('pageSubtitle');
 
-  // Textos de secciones — título siempre fijo, subtítulo describe la sección activa
+  // ── Textos de secciones ───────────────────────────────────────────────────
   const sectionTitles = {
-    dashboard:      { title: 'Catálogo de Obra Serigráfica', subtitle: 'Resumen del catálogo' },
-    obras:          { title: 'Catálogo de Obra Serigráfica', subtitle: 'Gestionar obras' },
-    tecnicas:       { title: 'Catálogo de Obra Serigráfica', subtitle: 'Gestionar técnicas' },
-    tags:           { title: 'Catálogo de Obra Serigráfica', subtitle: 'Gestionar tags' },
-    usuarios:       { title: 'Catálogo de Obra Serigráfica', subtitle: 'Gestionar usuarios' },
-    logs:           { title: 'Catálogo de Obra Serigráfica', subtitle: 'Logs de auditoría' },
-    'mi-perfil':    { title: 'Catálogo de Obra Serigráfica', subtitle: 'Mi perfil' },
-    'mi-portafolio':  { title: 'Catálogo de Obra Serigráfica', subtitle: 'Mi portafolio' },
-    'configuracion':  { title: 'Catálogo de Obra Serigráfica', subtitle: 'Configuración' },
+    dashboard:             { title: 'Catálogo de Obra Serigráfica', subtitle: 'Resumen del catálogo' },
+    obras:                 { title: 'Catálogo de Obra Serigráfica', subtitle: 'Gestionar obras' },
+    tecnicas:              { title: 'Catálogo de Obra Serigráfica', subtitle: 'Gestionar técnicas' },
+    tags:                  { title: 'Catálogo de Obra Serigráfica', subtitle: 'Gestionar tags' },
+    usuarios:              { title: 'Catálogo de Obra Serigráfica', subtitle: 'Gestionar usuarios' },
+    logs:                  { title: 'Catálogo de Obra Serigráfica', subtitle: 'Logs de auditoría' },
+    'mi-perfil':           { title: 'Catálogo de Obra Serigráfica', subtitle: 'Mi perfil' },
+    'mi-portafolio':       { title: 'Catálogo de Obra Serigráfica', subtitle: 'Mi portafolio' },
+    'configuracion':       { title: 'Catálogo de Obra Serigráfica', subtitle: 'Configuración' },
+    'registros-pendientes':{ title: 'Catálogo de Obra Serigráfica', subtitle: 'Registros pendientes de validación' },
+    'control-registro':    { title: 'Catálogo de Obra Serigráfica', subtitle: 'Control de registro de alumnos' },
+  };
+
+  // ── Matriz de visibilidad por rol ─────────────────────────────────────────
+  // Fuente de verdad centralizada: qué roles pueden VER cada sección del nav.
+  // Se sincroniza con los data-show-for-roles del HTML pero aquí es authoritative
+  // para la lógica de redirección automática cuando se cambia de rol.
+  const sectionVisibility = {
+    'dashboard':             ['admin', 'super_editor', 'editor'],
+    'obras':                 ['admin', 'super_editor', 'editor'],
+    'tecnicas':              ['admin', 'super_editor'],
+    'tags':                  ['admin', 'super_editor'],
+    'usuarios':              ['admin'],
+    'registros-pendientes':  ['admin'],
+    'logs':                  ['admin'],
+    'configuracion':         ['admin'],
+    'control-registro':      ['admin', 'super_editor'],
+    'mi-perfil':             ['admin', 'super_editor', 'editor'],  // siempre visible (no en nav principal)
+    'mi-portafolio':         ['editor'],
   };
 
   // ============ FUNCIÓN: Mostrar sección ============
@@ -84,13 +104,52 @@ document.addEventListener('DOMContentLoaded', () => {
     if (sectionId === 'configuracion') {
       window.configuracionManager?.inicializar();
     }
+    if (sectionId === 'registros-pendientes') {
+      window.RegistrosPendientes?.inicializar();
+    } else {
+      // Detener auto-refresh al salir de la sección de registros
+      window.RegistrosPendientes?.detener();
+    }
+    if (sectionId === 'control-registro') {
+      window.controlRegistroManager?.inicializar();
+    }
 
     // Guardar en sessionStorage (para mantener sección si recarga)
     sessionStorage.setItem('currentSection', sectionId);
   }
 
-  // ── Exponer globalmente (otros módulos llaman window.showSection) ──────────
+  // ── applyNavVisibility ────────────────────────────────────────────────────
+  // Muestra u oculta cada ítem del nav según la matriz sectionVisibility.
+  // Llama también a la lógica de redirección si la sección activa queda oculta.
+  function applyNavVisibility(rol) {
+    if (!rol) return;
+
+    navItems.forEach(item => {
+      const sectionId = item.dataset.section;
+      if (!sectionId) return;
+      const allowed = sectionVisibility[sectionId];
+      if (!allowed) return;   // sección sin regla → no tocar
+      item.style.display = allowed.includes(rol) ? '' : 'none';
+    });
+
+    // Si la sección guardada ya no es visible para este rol, redirigir
+    const currentSection = sessionStorage.getItem('currentSection') || 'dashboard';
+    const allowedForCurrent = sectionVisibility[currentSection];
+    if (allowedForCurrent && !allowedForCurrent.includes(rol)) {
+      // Buscar la primera sección permitida para este rol
+      const fallback = Object.keys(sectionVisibility).find(s =>
+        sectionVisibility[s].includes(rol) && !['mi-perfil', 'mi-portafolio'].includes(s)
+      ) || 'dashboard';
+      console.log(`[Nav] "${currentSection}" no disponible para "${rol}" → redirigiendo a "${fallback}"`);
+      showSection(fallback);
+    }
+
+    console.log(`[Nav] Visibilidad aplicada para rol: ${rol}`);
+  }
+
+  // ── Exponer globalmente ────────────────────────────────────────────────────
   window.showSection = showSection;
+  window.Navigation  = { applyNavVisibility, showSection };
 
   // ============ EVENT LISTENERS: Nav clicks ============
   navItems.forEach(item => {

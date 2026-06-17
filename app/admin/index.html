@@ -257,6 +257,14 @@
           <i data-lucide="users" style="width:18px; height:18px;" aria-hidden="true"></i>
           <span class="nav-label">Usuarios</span>
         </button>
+        <button class="nav-item" data-section="registros-pendientes" data-show-for-roles="admin,super_editor">
+          <i data-lucide="user-check" style="width:18px; height:18px;" aria-hidden="true"></i>
+          <span class="nav-label">Registros</span>
+        </button>
+        <button class="nav-item" data-section="control-registro" data-show-for-roles="admin,super_editor">
+          <i data-lucide="toggle-right" style="width:18px; height:18px;" aria-hidden="true"></i>
+          <span class="nav-label">Control Registro</span>
+        </button>
         <button class="nav-item" data-section="logs" data-show-for-roles="admin">
           <i data-lucide="activity" style="width:18px; height:18px;" aria-hidden="true"></i>
           <span class="nav-label">Logs</span>
@@ -1076,6 +1084,153 @@
 
         </section><!-- /#configuracionSection -->
 
+        <!-- ========== REGISTROS PENDIENTES SECTION ========== -->
+        <section id="registrosPendientesSection" class="section">
+          <div class="section-header">
+            <div>
+              <h2>Registros Pendientes</h2>
+              <p id="registrosPendientesSubtitle">Alumnos esperando validación de acceso</p>
+            </div>
+            <button class="btn btn-secondary" id="btnRefreshRegistros" title="Actualizar lista">
+              <i data-lucide="refresh-cw" style="width:16px;height:16px;" aria-hidden="true"></i>
+              Actualizar
+            </button>
+          </div>
+
+          <!-- Barra de resumen -->
+          <div class="registros-counter-bar">
+            <span class="registros-badge" id="registrosBadgeCount">0 pendientes</span>
+            <span class="registros-auto-refresh-hint">
+              <i data-lucide="clock" style="width:12px;height:12px;" aria-hidden="true"></i>
+              Actualización automática cada 30 seg
+            </span>
+          </div>
+
+          <!-- Tabla -->
+          <div class="table-wrapper">
+            <table class="registros-table">
+              <thead>
+                <tr>
+                  <th>Núm. de Cuenta</th>
+                  <th>Nombre</th>
+                  <th>Email</th>
+                  <th>Teléfono</th>
+                  <th>WhatsApp</th>
+                  <th>Registrado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="registrosPendientesList">
+                <tr>
+                  <td colspan="7" class="empty-state">Cargando registros…</td>
+                </tr>
+              </tbody>
+            </table>
+          </div><!-- /.table-wrapper -->
+
+        </section><!-- /#registrosPendientesSection -->
+
+        <!-- ========== CONTROL DE REGISTRO SECTION ========== -->
+        <section id="controlRegistroSection" class="section">
+          <div class="section-header">
+            <div>
+              <h2>Control de Registro</h2>
+              <p>Administra cuándo pueden registrarse los alumnos</p>
+            </div>
+            <a href="../registro.html" target="_blank" rel="noopener" class="btn btn-ghost btn-sm">
+              <i data-lucide="external-link" style="width:14px;height:14px;" aria-hidden="true"></i>
+              Ver página de registro
+            </a>
+          </div>
+
+          <!-- Estado actual (dinámico) -->
+          <div class="cr-status-bar" id="crStatusBar">
+            <span class="cr-status-badge cr-status-badge--loading" id="crStatusBadge">
+              <i data-lucide="loader" style="width:13px;height:13px;" aria-hidden="true"></i>
+              Cargando…
+            </span>
+            <span class="cr-status-text" id="crStatusText"></span>
+          </div>
+
+          <!-- Formulario de configuración -->
+          <div class="cr-form-card">
+
+            <!-- Toggle: Aceptar registros -->
+            <div class="form-group cr-toggle-group">
+              <label class="cr-toggle-label" for="crRegistroActivoToggle">
+                ¿Aceptar nuevos registros?
+              </label>
+              <div class="cr-toggle-wrapper">
+                <button type="button"
+                        id="crRegistroActivoToggle"
+                        class="cr-toggle"
+                        role="switch"
+                        aria-checked="false"
+                        aria-label="Activar o desactivar el registro de alumnos">
+                  <span class="cr-toggle-thumb"></span>
+                </button>
+                <span class="cr-toggle-hint" id="crToggleHint">Registro cerrado</span>
+              </div>
+            </div>
+
+            <!-- Fechas -->
+            <div class="form-row cr-dates-row">
+              <div class="form-group">
+                <label for="crFechaInicio">
+                  Fecha de inicio
+                  <span class="field-hint">(inclusive)</span>
+                </label>
+                <input type="date"
+                       id="crFechaInicio"
+                       class="search-input cr-date-input"
+                       aria-label="Fecha de inicio del período de registro" />
+              </div>
+              <div class="form-group">
+                <label for="crFechaFin">
+                  Fecha de fin
+                  <span class="field-hint">(inclusive)</span>
+                </label>
+                <input type="date"
+                       id="crFechaFin"
+                       class="search-input cr-date-input"
+                       aria-label="Fecha de cierre del período de registro" />
+              </div>
+            </div>
+
+            <!-- Mensaje personalizado -->
+            <div class="form-group">
+              <label for="crMensaje">
+                Mensaje personalizado
+                <span class="field-hint">(opcional — se muestra en la página pública)</span>
+              </label>
+              <textarea
+                id="crMensaje"
+                class="form-textarea"
+                rows="3"
+                maxlength="400"
+                placeholder="Ej: El registro está abierto del 1 al 15 de julio para alumnos de tercer semestre."></textarea>
+              <span class="field-hint cr-char-count" id="crCharCount">0 / 400</span>
+            </div>
+
+            <!-- Error de validación -->
+            <div class="form-alert form-alert--error" id="crFormError" style="display:none;" role="alert"></div>
+
+            <!-- Acciones -->
+            <div class="cr-form-actions">
+              <button type="button" class="btn btn-secondary" id="crResetBtn">
+                <i data-lucide="rotate-ccw" style="width:14px;height:14px;" aria-hidden="true"></i>
+                Descartar cambios
+              </button>
+              <button type="button" class="btn btn-primary" id="crSaveBtn">
+                <i data-lucide="save" style="width:14px;height:14px;" aria-hidden="true"></i>
+                Guardar cambios
+              </button>
+            </div>
+
+          </div><!-- /.cr-form-card -->
+
+        </section><!-- /#controlRegistroSection -->
+
       </div>
     </main>
   </div>
@@ -1263,6 +1418,8 @@
     </div>
   </div>
 
+  <script src="js/registros-pendientes.js" defer></script>
+  <script src="js/control-registro.js" defer></script>
   <script src="js/init.js" defer></script>
   <!-- Seed data (solo localhost) -->
   <script src="js/seed.js" defer></script>
@@ -1340,6 +1497,52 @@
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" id="rrssModalCancelBtn">Cancelar</button>
         <button type="button" class="btn btn-primary"   id="rrssModalSaveBtn">Agregar</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========================
+       MODAL: RECHAZAR REGISTRO
+       ======================== -->
+  <div id="rechazarRegistroModal" class="modal-overlay" style="display:none;"
+       role="dialog" aria-modal="true" aria-labelledby="rechazarModalTitle">
+    <div class="modal-dialog modal-dialog--sm">
+
+      <div class="modal-header">
+        <h3 id="rechazarModalTitle">Rechazar Registro</h3>
+        <button class="modal-close btn btn-ghost" id="rechazarModalCloseBtn" aria-label="Cerrar">
+          <i data-lucide="x" style="width:16px;height:16px;" aria-hidden="true"></i>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <p class="rechazar-modal-alumno">
+          Alumno: <strong id="rechazarModalNombre">—</strong>
+        </p>
+        <div class="form-group" style="margin-top:var(--spacing-md,1rem);">
+          <label for="rechazarNotasInput">
+            Motivo del rechazo
+            <span class="field-hint">(opcional)</span>
+          </label>
+          <textarea
+            id="rechazarNotasInput"
+            class="form-textarea"
+            rows="4"
+            maxlength="500"
+            placeholder="Indica el motivo para informar al alumno…"></textarea>
+          <span class="field-hint" style="display:block;margin-top:4px;">
+            Máx. 500 caracteres
+          </span>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="rechazarModalCancelBtn">Cancelar</button>
+        <button type="button" class="btn btn-danger"    id="rechazarModalConfirmBtn">
+          <i data-lucide="x-circle" style="width:15px;height:15px;" aria-hidden="true"></i>
+          Rechazar registro
+        </button>
       </div>
 
     </div>
