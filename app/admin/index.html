@@ -341,22 +341,37 @@
           </div>
 
           <div class="stats-grid">
+            <!-- 1. Obras Totales -->
             <div class="stat-card">
               <div class="stat-value" id="totalObras">0</div>
               <div class="stat-label">Obras Totales</div>
             </div>
+            <!-- 2. Pendientes de Revisión (naranja, junto a Obras) -->
+            <div class="stat-card stat-card--warning"
+                 id="cardPendientesRevision"
+                 style="display:none;"
+                 role="button"
+                 tabindex="0"
+                 title="Ver obras pendientes de revisión">
+              <div class="stat-value" id="totalPendientes">0</div>
+              <div class="stat-label">Pendientes de Revisión</div>
+            </div>
+            <!-- 3. Técnicas -->
             <div class="stat-card">
               <div class="stat-value" id="totalTecnicas">0</div>
               <div class="stat-label">Técnicas</div>
             </div>
+            <!-- 4. Tags -->
             <div class="stat-card">
               <div class="stat-value" id="totalTags">0</div>
               <div class="stat-label">Tags</div>
             </div>
+            <!-- 5. Usuarios Admin -->
             <div class="stat-card">
               <div class="stat-value" id="totalUsuarios">0</div>
               <div class="stat-label">Usuarios Admin</div>
             </div>
+            <!-- 6. Registros Pendientes (naranja) -->
             <div class="stat-card stat-card--warning"
                  id="cardRegistrosPendientes"
                  style="display:none;"
@@ -366,15 +381,6 @@
               <div class="stat-value" id="totalRegistrosPendientes">0</div>
               <div class="stat-label">Registros Pendientes</div>
               <div class="stat-card-action">Ver registros →</div>
-            </div>
-            <div class="stat-card stat-card--warning"
-                 id="cardPendientesRevision"
-                 style="display:none;"
-                 role="button"
-                 tabindex="0"
-                 title="Ver obras pendientes de revisión">
-              <div class="stat-value" id="totalPendientes">0</div>
-              <div class="stat-label">Pendientes de Revisión</div>
             </div>
           </div>
 
