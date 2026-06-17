@@ -196,10 +196,13 @@ serve(async (req: Request) => {
       { auth: { autoRefreshToken: false, persistSession: false } }
     );
 
-    const siteUrl  = Deno.env.get('SITE_URL') ?? 'http://localhost:8000/app/admin/index.html';
+    const siteUrl   = Deno.env.get('SITE_URL') ?? 'http://localhost:8000/app/admin/index.html';
     const resendKey = Deno.env.get('RESEND_API_KEY');
 
+    console.log(`[send-welcome-email] Config — siteUrl: ${siteUrl}, método: ${resendKey ? 'resend' : 'supabase'}`);
+
     // Generar recovery link (sirve como link de "setup inicial de contraseña")
+    console.log(`[send-welcome-email] Generando recovery link para: ${email}`);
     const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
       type:    'recovery',
       email,
@@ -214,8 +217,11 @@ serve(async (req: Request) => {
     const setupLink = (linkData as { properties?: { action_link?: string } })
       ?.properties?.action_link ?? siteUrl;
 
+    console.log(`[send-welcome-email] Recovery link generado — usando fallback: ${!( linkData as { properties?: { action_link?: string } })?.properties?.action_link}`);
+
     // ── Opción A: Resend (email HTML personalizado) ───────────────────────────
     if (resendKey) {
+      console.log(`[send-welcome-email] Enviando via Resend a: ${email}`);
       const htmlBody = buildWelcomeHtml(nombre, email, rol, setupLink, siteUrl);
 
       const resendRes = await fetch('https://api.resend.com/emails', {
@@ -232,9 +238,11 @@ serve(async (req: Request) => {
         }),
       });
 
+      console.log(`[send-welcome-email] Resend HTTP status: ${resendRes.status}`);
+
       if (!resendRes.ok) {
         const resendErr = await resendRes.text();
-        console.error('[send-welcome-email] Resend error:', resendErr);
+        console.error('[send-welcome-email] Resend error body:', resendErr);
         return fail({ success: false, error: `Error Resend: ${resendErr}`, code: 'RESEND_ERROR' }, 500);
       }
 
@@ -243,9 +251,8 @@ serve(async (req: Request) => {
     }
 
     // ── Opción B: Supabase genera y envía el email de recovery automáticamente ─
-    // El link ya fue generado arriba — Supabase envía el email de "Reset Password"
-    // que sirve como invitación de primer acceso.
-    console.log(`[send-welcome-email] ✓ Recovery link (Supabase) enviado a ${email} (rol: ${rol})`);
+    // generateLink() ya disparó el envío del email de "Reset Password" de Supabase.
+    console.log(`[send-welcome-email] ✓ Recovery email (Supabase nativo) enviado a ${email} (rol: ${rol})`);
     return ok({ success: true, method: 'supabase' });
 
   } catch (e) {
