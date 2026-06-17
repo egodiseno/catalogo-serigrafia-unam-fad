@@ -884,6 +884,7 @@
         }
 
         // Éxito
+        $btnReg.innerHTML = '✓ Registro enviado';   // limpiar spinner antes de deshabilitar
         $form.querySelectorAll('input, button').forEach(el => el.disabled = true);
         $msgExito.classList.add('visible');
         toast('¡Registro enviado con éxito!', 'success');
@@ -892,9 +893,13 @@
         console.error('[registro] submit error:', err);
         toast(err.message || 'No se pudo enviar el registro. Intenta nuevamente.', 'error');
       } finally {
+        // Limpiar spinner SIEMPRE (éxito o error)
+        if ($btnReg.innerHTML.includes('btn-spinner')) {
+          $btnReg.innerHTML = 'Registrarse';
+        }
+        // Re-habilitar SOLO si no hubo éxito
         if (!$msgExito.classList.contains('visible')) {
           $btnReg.disabled = false;
-          $btnReg.textContent = 'Registrarse';
         }
       }
     });
