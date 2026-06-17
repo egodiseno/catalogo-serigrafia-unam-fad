@@ -326,6 +326,9 @@ const CSVImportManager = (() => {
       }
 
       // 7. Procesar en secuencia
+      const SUPABASE_URL = window.supabaseConfig?.url     ?? 'https://kfvjansfmhamkrnbxmgp.supabase.co';
+      const ANON_KEY     = window.supabaseConfig?.anonKey ?? '';
+
       let creados    = 0;
       let actualizados = 0;
       const errores  = [];
@@ -338,6 +341,7 @@ const CSVImportManager = (() => {
           // Enviar email de bienvenida (no crítico si falla)
           try {
             const wUrl = `${SUPABASE_URL}/functions/v1/send-welcome-email`;
+            console.log('[CSVImport] Llamando a send-welcome-email para:', row.email);
             await fetch(wUrl, {
               method:  'POST',
               headers: {
@@ -348,7 +352,7 @@ const CSVImportManager = (() => {
               body: JSON.stringify({ email: row.email, nombre: row.nombre, rol: row.rol }),
             });
           } catch (_) {
-            // No crítico — email puede llegar después o enviarse manualmente
+            console.error('[CSVImport] Error en send-welcome-email:', _);
           }
 
           creados++;
