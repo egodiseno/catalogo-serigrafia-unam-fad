@@ -78,6 +78,8 @@ serve(async (req: Request) => {
     return fail({ success: false, error: 'Método no permitido. Usa POST.', code: 'METHOD_NOT_ALLOWED' }, 405);
   }
 
+  console.log('[save-registro-alumno] Iniciando...');
+
   try {
     // ── 1. Parsear body ────────────────────────────────────────────────────────
     let body: {
@@ -100,6 +102,7 @@ serve(async (req: Request) => {
     const telefono       = typeof body.telefono      === 'string' ? body.telefono.trim() || null       : null;
     const tiene_whatsapp = body.tiene_whatsapp === true;
 
+    console.log('[save-registro-alumno] Body recibido:', { email, nombre, numero_cuenta });
     console.log(`[save-registro-alumno] Registro recibido: ${email}`);
 
     // ── 2. Validar campos requeridos ───────────────────────────────────────────
@@ -111,6 +114,7 @@ serve(async (req: Request) => {
       });
     }
 
+    console.log('[save-registro-alumno] Validando email...');
     if (!EMAIL_RE.test(email)) {
       return fail({ success: false, error: 'Formato de email inválido.', code: 'INVALID_EMAIL' });
     }
@@ -123,6 +127,7 @@ serve(async (req: Request) => {
       });
     }
 
+    console.log('[save-registro-alumno] Validando número...');
     if (!CUENTA_RE.test(numero_cuenta)) {
       return fail({
         success: false,
@@ -142,6 +147,7 @@ serve(async (req: Request) => {
     );
 
     // ── 4. Verificar que el registro está abierto ──────────────────────────────
+    console.log('[save-registro-alumno] Validando registro_config...');
     const { data: config, error: configErr } = await supabase
       .from('registro_config')
       .select('registro_activo, fecha_inicio, fecha_fin')
@@ -149,7 +155,7 @@ serve(async (req: Request) => {
       .single();
 
     if (configErr) {
-      console.error('[save-registro-alumno] Error leyendo registro_config:', configErr);
+      console.error('[save-registro-alumno] ERROR:', configErr.message, configErr.details);
       return fail({
         success: false,
         error:   'No se pudo verificar el estado del registro.',
@@ -196,7 +202,7 @@ serve(async (req: Request) => {
       .or(`email.eq.${email},numero_cuenta.eq.${numero_cuenta}`);
 
     if (dupErr) {
-      console.error('[save-registro-alumno] Error verificando duplicados:', dupErr);
+      console.error('[save-registro-alumno] ERROR:', dupErr.message, dupErr.details);
       return fail({
         success: false,
         error:   'Error al verificar duplicados.',
@@ -230,6 +236,7 @@ serve(async (req: Request) => {
     console.log(`[save-registro-alumno] Sin duplicados — procediendo a insertar: ${email}`);
 
     // ── 6. INSERT en registro_alumnos ──────────────────────────────────────────
+    console.log('[save-registro-alumno] Insertando en registro_alumnos...');
     const { data: inserted, error: insertErr } = await supabase
       .from('registro_alumnos')
       .insert([{
@@ -259,7 +266,7 @@ serve(async (req: Request) => {
         }, 409);
       }
 
-      console.error(`[save-registro-alumno] Error al insertar en BD:`, insertErr);
+      console.error('[save-registro-alumno] ERROR:', insertErr.message, insertErr.details);
       return fail({
         success: false,
         error:   `Error al guardar el registro: ${insertErr.message}`,
@@ -268,9 +275,11 @@ serve(async (req: Request) => {
     }
 
     const id = inserted?.id;
+    console.log('[save-registro-alumno] ✓ Insertado con ID:', id);
     console.log(`[save-registro-alumno] ✓ Insertado en BD: ${id} — ${email}`);
 
     // ── 7. Respuesta exitosa ───────────────────────────────────────────────────
+    console.log('[save-registro-alumno] ✓ Completado exitosamente');
     return ok({
       success: true,
       id,
@@ -279,6 +288,8 @@ serve(async (req: Request) => {
 
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Error interno del servidor.';
+    const details = err instanceof Error ? (err as Record<string, unknown>).details : undefined;
+    console.error('[save-registro-alumno] ERROR:', message, details);
     console.error('[save-registro-alumno] Unhandled error:', err);
     return fail({ success: false, error: message, code: 'INTERNAL_ERROR' }, 500);
   }
