@@ -109,6 +109,14 @@ CREATE POLICY "registro_config_admin_only"
     )
   );
 
+-- Anon puede leer el estado del registro (necesario para registro.html público)
+DROP POLICY IF EXISTS "registro_config_public_read" ON registro_config;
+CREATE POLICY "registro_config_public_read"
+  ON registro_config
+  FOR SELECT
+  TO anon
+  USING (true);
+
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- BLOQUE 6: Policies — registro_alumnos
@@ -165,15 +173,16 @@ CREATE POLICY "registro_alumnos_self_read"
 --     ORDER BY relname;
 --    → relrowsecurity = true en registro_alumnos y registro_config
 --
--- 2. Policies creadas (esperado: 4 filas):
+-- 2. Policies creadas (esperado: 5 filas):
 --    SELECT tablename, policyname, cmd, roles::text
 --      FROM pg_policies
 --     WHERE tablename IN ('registro_alumnos', 'registro_config')
 --     ORDER BY tablename, policyname;
---    → registro_alumnos | registro_alumnos_admin_all    | ALL    | {authenticated}
---    → registro_alumnos | registro_alumnos_public_insert| INSERT | {anon}
---    → registro_alumnos | registro_alumnos_self_read    | SELECT | {authenticated}
---    → registro_config  | registro_config_admin_only    | ALL    | {authenticated}
+--    → registro_alumnos | registro_alumnos_admin_all     | ALL    | {authenticated}
+--    → registro_alumnos | registro_alumnos_public_insert | INSERT | {anon}
+--    → registro_alumnos | registro_alumnos_self_read     | SELECT | {authenticated}
+--    → registro_config  | registro_config_admin_only     | ALL    | {authenticated}
+--    → registro_config  | registro_config_public_read    | SELECT | {anon}
 --
 -- 3. Columna numero_cuenta en usuarios_admin:
 --    SELECT column_name, data_type, is_nullable
