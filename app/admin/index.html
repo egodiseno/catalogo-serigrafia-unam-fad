@@ -358,6 +358,16 @@
               <div class="stat-label">Usuarios Admin</div>
             </div>
             <div class="stat-card stat-card--warning"
+                 id="cardRegistrosPendientes"
+                 style="display:none;"
+                 role="button"
+                 tabindex="0"
+                 title="Ver registros pendientes de validación">
+              <div class="stat-value" id="totalRegistrosPendientes">0</div>
+              <div class="stat-label">Registros Pendientes</div>
+              <div class="stat-card-action">Ver registros →</div>
+            </div>
+            <div class="stat-card stat-card--warning"
                  id="cardPendientesRevision"
                  style="display:none;"
                  role="button"
@@ -1497,6 +1507,48 @@
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" id="rrssModalCancelBtn">Cancelar</button>
         <button type="button" class="btn btn-primary"   id="rrssModalSaveBtn">Agregar</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========================
+       MODAL: VALIDAR REGISTRO
+       ======================== -->
+  <div id="validarRegistroModal" class="modal-overlay" style="display:none;"
+       role="dialog" aria-modal="true" aria-labelledby="validarModalTitle">
+    <div class="modal-dialog modal-dialog--sm">
+
+      <div class="modal-header">
+        <h3 id="validarModalTitle">Validar Registro</h3>
+        <button class="modal-close btn btn-ghost" id="validarModalCloseBtn" aria-label="Cerrar">
+          <i data-lucide="x" style="width:16px;height:16px;" aria-hidden="true"></i>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <p style="margin:0 0 1rem;">
+          ¿Activar la cuenta de <strong id="validarModalNombre">—</strong>?
+        </p>
+        <div class="validar-modal-info">
+          <p>
+            <i data-lucide="mail" style="width:15px;height:15px;vertical-align:-3px;" aria-hidden="true"></i>
+            Se enviará un email de bienvenida a:<br>
+            <strong id="validarModalEmail" style="word-break:break-all;">—</strong>
+          </p>
+          <p style="margin-bottom:0;">
+            <i data-lucide="key-round" style="width:15px;height:15px;vertical-align:-3px;" aria-hidden="true"></i>
+            El alumno deberá establecer su contraseña al ingresar por primera vez.
+          </p>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="validarModalCancelBtn">Cancelar</button>
+        <button type="button" class="btn btn-primary"   id="validarModalConfirmBtn">
+          <i data-lucide="check-circle" style="width:15px;height:15px;" aria-hidden="true"></i>
+          Validar y activar
+        </button>
       </div>
 
     </div>

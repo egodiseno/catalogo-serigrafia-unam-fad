@@ -16,6 +16,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const elUsuarios  = document.getElementById('totalUsuarios');
   const elRecientes = document.getElementById('recentObrasList');
 
+  // Card Registros Pendientes (solo admin/super_editor)
+  const cardRegPendientes = document.getElementById('cardRegistrosPendientes');
+  const elRegPendientes   = document.getElementById('totalRegistrosPendientes');
+
   // ── Carga de estadísticas ─────────────────────────────
   async function loadStats() {
     setLoading(true);
@@ -39,18 +43,23 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       // ADMIN / SUPER_EDITOR: sin filtro adicional
 
-      // Query pendientes solo para ADMIN/SUPER_EDITOR (evita consulta innecesaria para EDITOR)
-      const pendientesQ = rolActual !== 'editor'
+      // Queries solo para ADMIN/SUPER_EDITOR
+      const esAdmin     = rolActual !== 'editor';
+      const pendientesQ = esAdmin
         ? client.from('obras').select('*', { count: 'exact', head: true }).eq('estado', 'En Revisión')
+        : Promise.resolve({ count: 0 });
+      const regPendientesQ = esAdmin
+        ? client.from('registro_alumnos').select('*', { count: 'exact', head: true }).eq('estado', 'pendiente_validacion')
         : Promise.resolve({ count: 0 });
 
       const [
-        { count: obras     },
-        { count: tecnicas  },
-        { count: tags      },
-        { count: usuarios  },
-        { data: recientes  },
-        { count: pendientes },
+        { count: obras        },
+        { count: tecnicas     },
+        { count: tags         },
+        { count: usuarios     },
+        { data: recientes     },
+        { count: pendientes   },
+        { count: regPendientes },
       ] = await Promise.all([
         obrasCountQ,
         client.from('tecnicas').select('*',        { count: 'exact', head: true }),
@@ -58,6 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
         client.from('usuarios_admin').select('*',  { count: 'exact', head: true }),
         obrasListQ,
         pendientesQ,
+        regPendientesQ,
       ]);
 
       // Stat cards base
@@ -66,12 +76,20 @@ document.addEventListener('DOMContentLoaded', () => {
       elTags.textContent     = tags     ?? 0;
       elUsuarios.textContent = usuarios ?? 0;
 
-      // Widget pendientes — solo visible para ADMIN / SUPER_EDITOR
-      if (rolActual !== 'editor' && cardPendientes) {
+      // Widget "Pendientes de Revisión" (obras) — solo ADMIN / SUPER_EDITOR
+      if (esAdmin && cardPendientes) {
         cardPendientes.style.display = '';
         if (elPendientes) elPendientes.textContent = pendientes ?? 0;
       } else if (cardPendientes) {
         cardPendientes.style.display = 'none';
+      }
+
+      // Widget "Registros Pendientes" (alumnos) — solo ADMIN / SUPER_EDITOR
+      if (esAdmin && cardRegPendientes) {
+        cardRegPendientes.style.display = '';
+        if (elRegPendientes) elRegPendientes.textContent = regPendientes ?? 0;
+      } else if (cardRegPendientes) {
+        cardRegPendientes.style.display = 'none';
       }
 
       // Tabla de últimas obras
@@ -93,7 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
     'Archivado':   'badge-archivado',
   };
 
-  // ── Widget "Pendientes de Revisión" ──────────────────
+  // ── Widget "Pendientes de Revisión" (obras) ──────────
   const cardPendientes  = document.getElementById('cardPendientesRevision');
   const elPendientes    = document.getElementById('totalPendientes');
 
@@ -109,12 +127,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }, 300);
     });
-    // Accesibilidad: activar con teclado
     cardPendientes.addEventListener('keydown', e => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        cardPendientes.click();
-      }
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); cardPendientes.click(); }
+    });
+  }
+
+  // ── Widget "Registros Pendientes" (alumnos) ───────────
+  if (cardRegPendientes) {
+    cardRegPendientes.addEventListener('click', () => {
+      window.showSection?.('registros-pendientes');
+    });
+    cardRegPendientes.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); cardRegPendientes.click(); }
     });
   }
 
@@ -175,12 +199,6 @@ document.addEventListener('DOMContentLoaded', () => {
       .replace(/"/g, '&quot;');
   }
 
-  // ── Recarga al volver al Dashboard desde otra sección ─
-  const dashboardNavBtn = document.querySelector('[data-section="dashboard"]');
-  if (dashboardNavBtn) {
-    dashboardNavBtn.addEventListener('click', loadStats);
-  }
-
   // ── NTH-04: Botón "Nueva Obra" de acceso rápido ───────
   const quickNewObraBtn = document.getElementById('dashboardQuickNewObra');
   if (quickNewObraBtn) {
@@ -195,6 +213,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ── Carga inicial ─────────────────────────────────────
   loadStats();
+
+  // ── Auto-refresh 30 s — solo cuando el dashboard está visible ─
+  let _dashboardRefreshId = null;
+
+  function _iniciarRefresh() {
+    if (_dashboardRefreshId) return;
+    _dashboardRefreshId = setInterval(() => {
+      const dashSection = document.getElementById('dashboardSection');
+      if (dashSection && !dashSection.classList.contains('hidden') &&
+          dashSection.style.display !== 'none') {
+        loadStats();
+      }
+    }, 30_000);
+  }
+
+  _iniciarRefresh();
+
+  // Reiniciar el intervalo al navegar al dashboard
+  const dashboardNavBtn = document.querySelector('[data-section="dashboard"]');
+  if (dashboardNavBtn) {
+    dashboardNavBtn.addEventListener('click', loadStats);
+  }
 
   // ── Exponer API para recarga desde auth.js tras login/logout ──
   window.dashboardManager = {

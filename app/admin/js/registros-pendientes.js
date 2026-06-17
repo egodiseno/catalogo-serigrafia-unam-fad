@@ -28,7 +28,9 @@ const RegistrosPendientes = (() => {
   let _registros     = [];
   let _autoRefreshId = null;
   let _initialized   = false;
-  let _rechazarId    = null;    // UUID del registro actualmente en el modal
+  let _rechazarId    = null;    // UUID del registro actualmente en el modal de rechazo
+  let _validarId     = null;    // UUID del registro actualmente en el modal de validación
+  let _validarEmail  = '';      // Email del alumno a validar
 
   const AUTO_REFRESH_MS = 30_000;   // 30 segundos
 
@@ -177,16 +179,51 @@ const RegistrosPendientes = (() => {
   // ══════════════════════════════════════════════════════════════════════════
 
   function _onValidarClick(btn) {
-    const id     = btn.dataset.id;
-    const nombre = btn.dataset.nombre;
+    _validarId    = btn.dataset.id;
+    _validarEmail = btn.dataset.email ?? '';
+    const nombre  = btn.dataset.nombre;
 
-    // Confirmación nativa (se puede mejorar con ModalManager en sprint futuro)
-    const ok = window.confirm(
-      `¿Validar el registro de ${nombre}?\n\nSe creará su cuenta de acceso y recibirá un email de bienvenida.`
-    );
-    if (!ok) return;
+    const modal    = $('validarRegistroModal');
+    const nombreEl = $('validarModalNombre');
+    const emailEl  = $('validarModalEmail');
+    const confirmBtn = $('validarModalConfirmBtn');
 
-    _ejecutarValidar(btn, id);
+    if (!modal) {
+      // Fallback: usar confirm nativo si no existe el modal
+      if (!window.confirm(`¿Validar el registro de ${nombre}?`)) return;
+      _ejecutarValidar(btn, _validarId);
+      return;
+    }
+
+    if (nombreEl)   nombreEl.textContent = nombre;
+    if (emailEl)    emailEl.textContent  = _validarEmail;
+    if (confirmBtn) {
+      confirmBtn.disabled = false;
+      confirmBtn.innerHTML = `<i data-lucide="check-circle" style="width:15px;height:15px;" aria-hidden="true"></i> Validar y activar`;
+    }
+
+    // Guardar referencia al botón de la fila para restaurarlo si cancela
+    modal.dataset.btnRef = btn.closest('tr')?.dataset.regId ?? '';
+    modal.style.display  = 'flex';
+    window.IconRegistry?.init();
+  }
+
+  function _cerrarModalValidar() {
+    const modal = $('validarRegistroModal');
+    if (modal) modal.style.display = 'none';
+    _validarId    = null;
+    _validarEmail = '';
+  }
+
+  function _confirmarValidar() {
+    if (!_validarId) return;
+    // Buscar el botón validar de la fila correspondiente
+    const row = document.querySelector(`tr[data-reg-id="${_validarId}"]`);
+    const btn = row?.querySelector('.btn-validar');
+    _cerrarModalValidar();
+    if (btn) {
+      _ejecutarValidar(btn, _validarId);
+    }
   }
 
   async function _ejecutarValidar(btn, id) {
@@ -379,23 +416,27 @@ const RegistrosPendientes = (() => {
     // Botón "Actualizar"
     $('btnRefreshRegistros')?.addEventListener('click', cargar);
 
-    // Modal rechazar — cerrar
+    // Modal VALIDAR — botones
+    $('validarModalCloseBtn') ?.addEventListener('click', _cerrarModalValidar);
+    $('validarModalCancelBtn')?.addEventListener('click', _cerrarModalValidar);
+    $('validarModalConfirmBtn')?.addEventListener('click', _confirmarValidar);
+    $('validarRegistroModal')?.addEventListener('click', e => {
+      if (e.target === $('validarRegistroModal')) _cerrarModalValidar();
+    });
+
+    // Modal RECHAZAR — botones
     $('rechazarModalCloseBtn') ?.addEventListener('click', _cerrarModalRechazar);
     $('rechazarModalCancelBtn')?.addEventListener('click', _cerrarModalRechazar);
-
-    // Cerrar al hacer clic en el overlay
     $('rechazarRegistroModal')?.addEventListener('click', e => {
       if (e.target === $('rechazarRegistroModal')) _cerrarModalRechazar();
     });
-
-    // Modal rechazar — confirmar
     $('rechazarModalConfirmBtn')?.addEventListener('click', _ejecutarRechazar);
 
-    // Cerrar modal con Escape
+    // Cerrar cualquier modal con Escape
     document.addEventListener('keydown', e => {
-      if (e.key === 'Escape' && $('rechazarRegistroModal')?.style.display === 'flex') {
-        _cerrarModalRechazar();
-      }
+      if (e.key !== 'Escape') return;
+      if ($('validarRegistroModal')?.style.display  === 'flex') _cerrarModalValidar();
+      if ($('rechazarRegistroModal')?.style.display === 'flex') _cerrarModalRechazar();
     });
 
     console.log('✅ RegistrosPendientes module inicializado');

@@ -6866,6 +6866,38 @@ input[type="file"]:hover {
   border-top-color:  var(--color-primary, #013B75);
 }
 
+/* ── Modal de validación — info box ────────────────────────────────── */
+.validar-modal-info {
+  background:    #EFF6FF;
+  border:        1px solid #BFDBFE;
+  border-radius: 8px;
+  padding:       0.875rem 1rem;
+  font-size:     0.875rem;
+  color:         #1E40AF;
+  line-height:   1.55;
+}
+
+.validar-modal-info p {
+  margin: 0 0 0.625rem;
+}
+
+.validar-modal-info p:last-child {
+  margin-bottom: 0;
+}
+
+/* ── Stat card — texto de acción ────────────────────────────────────── */
+.stat-card-action {
+  font-size:   0.75rem;
+  font-weight: 600;
+  color:       #B45309;
+  margin-top:  0.25rem;
+  opacity:     0.8;
+}
+
+.stat-card--warning:hover .stat-card-action {
+  opacity: 1;
+}
+
 /* ── Modal de rechazo ────────────────────────────────────────────────── */
 .rechazar-modal-alumno {
   font-size:     0.9375rem;
