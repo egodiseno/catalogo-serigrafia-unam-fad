@@ -334,6 +334,23 @@ const CSVImportManager = (() => {
         try {
           await crearUsuario(row, accessToken);
           window.auditLogger?.crearUsuario(row.email);
+
+          // Enviar email de bienvenida (no crítico si falla)
+          try {
+            const wUrl = `${SUPABASE_URL}/functions/v1/send-welcome-email`;
+            await fetch(wUrl, {
+              method:  'POST',
+              headers: {
+                'Content-Type':  'application/json',
+                'Authorization': `Bearer ${accessToken}`,
+                'apikey':        ANON_KEY,
+              },
+              body: JSON.stringify({ email: row.email, nombre: row.nombre, rol: row.rol }),
+            });
+          } catch (_) {
+            // No crítico — email puede llegar después o enviarse manualmente
+          }
+
           creados++;
         } catch (e) {
           console.error('[CSVImport] crear:', row.email, e);
