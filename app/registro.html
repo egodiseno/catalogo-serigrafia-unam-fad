@@ -842,13 +842,20 @@
       $btnReg.innerHTML = '<div class="btn-spinner"></div> Registrando…';
 
       try {
+        const fetchHeaders = {
+          'Content-Type':  'application/json',
+          'apikey':        SUPABASE_ANON,
+          'Authorization': 'Bearer ' + SUPABASE_ANON,
+        };
+        const fetchBody = JSON.stringify({ email, nombre, numero_cuenta: cuenta, telefono: tel, tiene_whatsapp: wapp });
+
+        console.log('[registro] Enviando POST con headers:', fetchHeaders);
+        console.log('[registro] Body:', fetchBody);
+
         const res = await fetch(`${SUPABASE_URL}/functions/v1/save-registro-alumno`, {
           method:  'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey':       SUPABASE_ANON,
-          },
-          body: JSON.stringify({ email, nombre, numero_cuenta: cuenta, telefono: tel, tiene_whatsapp: wapp }),
+          headers: fetchHeaders,
+          body:    fetchBody,
         });
 
         let result;
