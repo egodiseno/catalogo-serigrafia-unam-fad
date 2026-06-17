@@ -161,7 +161,7 @@ serve(async (req: Request) => {
       }, 400);
     }
 
-    const { email, nombre, estado } = registro as {
+    const { email, nombre, numero_cuenta, estado } = registro as {
       email:         string;
       nombre:        string;
       numero_cuenta: string;
@@ -223,11 +223,12 @@ serve(async (req: Request) => {
     const { error: insertErr } = await supabaseAdmin
       .from('usuarios_admin')
       .insert([{
-        id:     userId,
+        id:            userId,
         email,
-        nombre: nombre?.trim() || null,
-        rol:    'editor',    // los alumnos del catálogo acceden como 'editor'
-        estado: 'activo',
+        nombre:        nombre?.trim() || null,
+        numero_cuenta: numero_cuenta  || null,
+        rol:           'editor',    // los alumnos del catálogo acceden como 'editor'
+        estado:        'activo',
       }]);
 
     if (insertErr) {
