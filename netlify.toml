@@ -1,2 +1,8 @@
 [build]
   publish = "app"
+
+# ── SPA redirect: /app/admin/* → index.html (maneja rutas y hash tokens) ──────
+[[redirects]]
+  from   = "/app/admin/*"
+  to     = "/app/admin/index.html"
+  status = 200
