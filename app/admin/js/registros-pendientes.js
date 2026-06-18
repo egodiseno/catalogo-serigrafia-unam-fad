@@ -183,6 +183,9 @@ const RegistrosPendientes = (() => {
     _validarEmail = btn.dataset.email ?? '';
     const nombre  = btn.dataset.nombre;
 
+    console.log('[DEBUG-VALIDAR] btn.dataset.id:', btn.dataset.id);
+    console.log('[DEBUG-VALIDAR] _validarId capturado:', _validarId);
+
     const modal    = $('validarRegistroModal');
     const nombreEl = $('validarModalNombre');
     const emailEl  = $('validarModalEmail');
@@ -217,16 +220,33 @@ const RegistrosPendientes = (() => {
 
   function _confirmarValidar() {
     if (!_validarId) return;
+
+    // Capturar id ANTES de cerrar el modal (cerrar resetea _validarId a null)
+    const idToValidate = _validarId;
+
+    console.log('[DEBUG-CONFIRMAR] _validarId antes de cerrar:', _validarId);
+    console.log('[DEBUG-CONFIRMAR] idToValidate guardado:', idToValidate);
+
     // Buscar el botón validar de la fila correspondiente
-    const row = document.querySelector(`tr[data-reg-id="${_validarId}"]`);
+    const row = document.querySelector(`tr[data-reg-id="${idToValidate}"]`);
     const btn = row?.querySelector('.btn-validar');
-    _cerrarModalValidar();
+
+    console.log('[DEBUG-CONFIRMAR] row encontrada:', row);
+    console.log('[DEBUG-CONFIRMAR] btn en row:', btn);
+
+    _cerrarModalValidar();   // resetea _validarId → null (seguro: ya guardamos idToValidate)
+
     if (btn) {
-      _ejecutarValidar(btn, _validarId);
+      _ejecutarValidar(btn, idToValidate);
+    } else {
+      console.warn('[DEBUG-CONFIRMAR] btn no encontrado — idToValidate:', idToValidate);
     }
   }
 
   async function _ejecutarValidar(btn, id) {
+    console.log('[DEBUG-EJECUTAR] id recibido:', id);
+    console.log('[DEBUG-EJECUTAR] body que se enviará:', JSON.stringify({ id }));
+
     const row       = btn.closest('tr');
     const rechazBtn = row?.querySelector('.btn-rechazar');
 
