@@ -1,13 +1,8 @@
 /**
  * Edge Function: send-welcome-email
  * ──────────────────────────────────────────────────────────────────────────────
- * Envía email de bienvenida a un nuevo usuario admin.
- *
- * Estrategia: genera un link de recovery (type='recovery') para que el nuevo
- * usuario establezca su propia contraseña en el primer acceso. Supabase
- * entrega el email mediante su sistema interno.
- *
- * Usa Brevo SMTP via nodemailer con logging diagnóstico completo.
+ * Envía email de bienvenida a un nuevo usuario admin via Brevo HTTP API v3.
+ * Genera un recovery link para que el usuario establezca su contraseña.
  *
  * Endpoint: POST /functions/v1/send-welcome-email
  *
@@ -19,16 +14,23 @@
  *   apikey: <supabase_anon_key>
  *
  * Respuesta exitosa (200):
- *   { success: true, method: 'brevo', messageId: string }
+ *   { success: true, method: 'brevo-api', messageId: string }
  *
  * Respuesta de error:
  *   { success: false, error: string, code?: string }
+ *
+ * Códigos de error:
+ *   INVALID_EMAIL   — email inválido o faltante
+ *   UNAUTHORIZED    — token inválido o ausente (401)
+ *   CONFIG_ERROR    — BREVO_API_KEY no configurado (500)
+ *   LINK_ERROR      — Supabase no pudo generar el recovery link (400)
+ *   BREVO_ERROR     — Brevo API rechazó el envío (500)
+ *   INTERNAL_ERROR  — error no capturado (500)
  * ──────────────────────────────────────────────────────────────────────────────
  */
 
 import { serve }        from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import nodemailer       from 'npm:nodemailer@6';
 
 // ── CORS ─────────────────────────────────────────────────────────────────────
 const CORS_HEADERS: Record<string, string> = {
@@ -49,7 +51,7 @@ function fail(body: object, status = 400): Response {
 }
 
 // ── HTML del email de bienvenida ──────────────────────────────────────────────
-function buildWelcomeHtml(nombre: string, email: string, rol: string, setupLink: string, _siteUrl: string): string {
+function buildWelcomeHtml(nombre: string, email: string, rol: string, setupLink: string): string {
   const displayName = nombre || email.split('@')[0];
   return `
 <!DOCTYPE html>
@@ -60,16 +62,19 @@ function buildWelcomeHtml(nombre: string, email: string, rol: string, setupLink:
   <title>Bienvenido al Catálogo — UNAM/FAD</title>
 </head>
 <body style="margin:0;padding:0;background:#F4F6F9;font-family:'Segoe UI',Arial,sans-serif;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F4F6F9;padding:40px 0;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+         style="background:#F4F6F9;padding:40px 0;">
     <tr>
       <td align="center">
         <table role="presentation" width="600" cellpadding="0" cellspacing="0"
-               style="background:#ffffff;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);max-width:600px;width:100%;">
+               style="background:#ffffff;border-radius:8px;overflow:hidden;
+                      box-shadow:0 2px 8px rgba(0,0,0,0.08);max-width:600px;width:100%;">
 
           <!-- Header azul UNAM -->
           <tr>
             <td style="background:#013B75;padding:32px 40px;text-align:center;">
-              <h1 style="color:#ffffff;margin:0;font-size:22px;font-weight:700;letter-spacing:0.5px;">
+              <h1 style="color:#ffffff;margin:0;font-size:22px;font-weight:700;
+                         letter-spacing:0.5px;">
                 Catálogo de Obra Serigráfica
               </h1>
               <p style="color:rgba(255,255,255,0.75);margin:6px 0 0;font-size:13px;">
@@ -100,11 +105,14 @@ function buildWelcomeHtml(nombre: string, email: string, rol: string, setupLink:
               </p>
 
               <!-- CTA -->
-              <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 28px;">
+              <table role="presentation" cellpadding="0" cellspacing="0"
+                     style="margin:0 0 28px;">
                 <tr>
                   <td style="border-radius:6px;background:#013B75;">
                     <a href="${setupLink}"
-                       style="display:inline-block;padding:14px 28px;color:#ffffff;text-decoration:none;font-size:15px;font-weight:600;letter-spacing:0.3px;">
+                       style="display:inline-block;padding:14px 28px;color:#ffffff;
+                              text-decoration:none;font-size:15px;font-weight:600;
+                              letter-spacing:0.3px;">
                       Establecer mi contraseña →
                     </a>
                   </td>
@@ -114,7 +122,8 @@ function buildWelcomeHtml(nombre: string, email: string, rol: string, setupLink:
               <p style="color:#6B7280;font-size:13px;margin:0 0 8px;">
                 Si el botón no funciona, copia y pega este link en tu navegador:
               </p>
-              <p style="color:#013B75;font-size:12px;word-break:break-all;margin:0 0 24px;">
+              <p style="color:#013B75;font-size:12px;word-break:break-all;
+                        margin:0 0 24px;">
                 ${setupLink}
               </p>
 
@@ -130,9 +139,11 @@ function buildWelcomeHtml(nombre: string, email: string, rol: string, setupLink:
 
           <!-- Footer -->
           <tr>
-            <td style="background:#F9FAFB;padding:20px 40px;text-align:center;border-top:1px solid #E5E7EB;">
+            <td style="background:#F9FAFB;padding:20px 40px;text-align:center;
+                       border-top:1px solid #E5E7EB;">
               <p style="color:#9CA3AF;font-size:11px;margin:0;">
-                © UNAM / Facultad de Artes y Diseño — Panel Admin del Catálogo de Obra Serigráfica
+                © UNAM / Facultad de Artes y Diseño —
+                Panel Admin del Catálogo de Obra Serigráfica
               </p>
             </td>
           </tr>
@@ -155,7 +166,7 @@ serve(async (req: Request) => {
   }
 
   try {
-    // Validar body
+    // ── 1. Parsear body ────────────────────────────────────────────────────────
     let body: { email?: string; nombre?: string; rol?: string };
     try {
       body = await req.json();
@@ -165,16 +176,20 @@ serve(async (req: Request) => {
 
     const { email, nombre = '', rol = 'editor' } = body;
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return fail({ success: false, error: 'Email inválido o faltante.', code: 'INVALID_EMAIL' });
+      return fail({
+        success: false,
+        error:   'Email inválido o faltante.',
+        code:    'INVALID_EMAIL',
+      });
     }
 
-    // Verificar sesión del caller
+    // ── 2. Verificar sesión del caller ─────────────────────────────────────────
     const authHeader = req.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {
       return fail({ success: false, error: 'No autorizado.' }, 401);
     }
 
-    const callerToken = authHeader.replace('Bearer ', '').trim();
+    const callerToken   = authHeader.replace('Bearer ', '').trim();
     const supabaseCaller = createClient(
       Deno.env.get('SUPABASE_URL')      ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
@@ -191,29 +206,27 @@ serve(async (req: Request) => {
 
     console.log(`[send-welcome-email] Caller verificado: ${callerUser.email}`);
 
-    // Admin client
+    // ── 3. Leer BREVO_API_KEY ──────────────────────────────────────────────────
+    const brevoApiKey = Deno.env.get('BREVO_API_KEY') ?? '';
+    if (!brevoApiKey) {
+      console.error('[send-welcome-email] BREVO_API_KEY no configurada');
+      return fail({
+        success: false,
+        error:   'Servicio de email no configurado (BREVO_API_KEY).',
+        code:    'CONFIG_ERROR',
+      }, 500);
+    }
+
+    // ── 4. Cliente admin ───────────────────────────────────────────────────────
     const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL')     ?? '',
+      Deno.env.get('SUPABASE_URL')              ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
       { auth: { autoRefreshToken: false, persistSession: false } }
     );
 
-    const siteUrl = Deno.env.get('SITE_URL') ?? 'http://localhost:8000/app/admin/index.html';
+    const siteUrl = Deno.env.get('SITE_URL') ?? 'https://kfvjansfmhamkrnbxmgp.supabase.co';
 
-    // ── Credenciales SMTP Brevo ────────────────────────────────────────────────
-    const smtpHost = Deno.env.get('BREVO_SMTP_HOST') ?? '';
-    const smtpPort = parseInt(Deno.env.get('BREVO_SMTP_PORT') ?? '587');
-    const smtpUser = Deno.env.get('BREVO_SMTP_USER') ?? '';
-    const smtpPass = Deno.env.get('BREVO_SMTP_PASS') ?? '';
-
-    console.log(`[send-welcome-email] SMTP config — host:"${smtpHost}" port:${smtpPort} user:"${smtpUser}" pass_set:${!!smtpPass}`);
-
-    if (!smtpHost || !smtpUser || !smtpPass) {
-      console.error('[send-welcome-email] Credenciales SMTP Brevo no configuradas');
-      return fail({ success: false, error: 'Servicio de email no configurado.', code: 'CONFIG_ERROR' }, 500);
-    }
-
-    // ── Generar recovery link ──────────────────────────────────────────────────
+    // ── 5. Generar recovery link ───────────────────────────────────────────────
     console.log(`[send-welcome-email] Generando recovery link para: ${email}`);
     const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
       type:    'recovery',
@@ -223,67 +236,53 @@ serve(async (req: Request) => {
 
     if (linkError) {
       console.error('[send-welcome-email] generateLink error:', linkError);
-      return fail({ success: false, error: linkError.message, code: 'LINK_ERROR' }, 400);
+      return fail({
+        success: false,
+        error:   linkError.message,
+        code:    'LINK_ERROR',
+      }, 400);
     }
 
     const setupLink = (linkData as { properties?: { action_link?: string } })
       ?.properties?.action_link ?? siteUrl;
 
-    console.log(`[send-welcome-email] Recovery link generado OK. Enviando via SMTP Brevo a: ${email}`);
+    console.log(`[send-welcome-email] Recovery link generado. Llamando Brevo API para: ${email}`);
 
-    // ── Enviar via SMTP Brevo ──────────────────────────────────────────────────
-    const htmlBody    = buildWelcomeHtml(nombre, email, rol, setupLink, siteUrl);
-    const transporter = nodemailer.createTransport({
-      host:    smtpHost,
-      port:    smtpPort,
-      secure:  false,        // STARTTLS en puerto 587
-      auth:    { user: smtpUser, pass: smtpPass },
-      debug:   true,         // log SMTP conversation completa
-      logger:  true,         // habilitar logs internos de nodemailer
-      connectionTimeout: 15000,
-      greetingTimeout:   10000,
-      socketTimeout:     30000,
+    // ── 6. Enviar via Brevo HTTP API v3 ────────────────────────────────────────
+    const htmlContent = buildWelcomeHtml(nombre, email, rol, setupLink);
+
+    const brevoRes = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method:  'POST',
+      headers: {
+        'api-key':      brevoApiKey,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        sender:      { name: 'Catálogo UNAM/FAD', email: 'af249a001@smtp-brevo.com' },
+        to:          [{ email }],
+        subject:     'Bienvenido al Panel Admin — Catálogo de Obra Serigráfica UNAM',
+        htmlContent,
+      }),
     });
 
-    // Verificar conectividad antes de enviar
-    console.log('[send-welcome-email] Verificando conexión SMTP...');
-    try {
-      await transporter.verify();
-      console.log('[send-welcome-email] ✓ Conexión SMTP verificada correctamente');
-    } catch (verifyErr) {
-      const msg = verifyErr instanceof Error ? verifyErr.message : String(verifyErr);
-      console.error('[send-welcome-email] ✗ Fallo en verify SMTP:', msg);
-      return fail({ success: false, error: `SMTP verify falló: ${msg}`, code: 'SMTP_VERIFY_ERROR' }, 500);
+    const brevoBody = await brevoRes.json().catch(() => ({})) as Record<string, unknown>;
+
+    console.log(`[send-welcome-email] Brevo API status: ${brevoRes.status}`);
+    console.log(`[send-welcome-email] Brevo API response:`, JSON.stringify(brevoBody));
+
+    if (!brevoRes.ok) {
+      console.error('[send-welcome-email] Brevo API error:', brevoBody);
+      return fail({
+        success: false,
+        error:   (brevoBody.message as string) ?? `Brevo respondió ${brevoRes.status}`,
+        code:    'BREVO_ERROR',
+      }, 500);
     }
 
-    let sendInfo: Record<string, unknown>;
-    try {
-      sendInfo = await transporter.sendMail({
-        from:    `Catalogo UNAM/FAD <${smtpUser}>`,
-        to:      email,
-        subject: 'Bienvenido al Panel Admin — Catalogo de Obra Serigrafica UNAM',
-        html:    htmlBody,
-      });
-    } catch (smtpErr) {
-      const msg = smtpErr instanceof Error ? smtpErr.message : String(smtpErr);
-      console.error('[send-welcome-email] ✗ SMTP sendMail error:', msg);
-      return fail({ success: false, error: `Error SMTP: ${msg}`, code: 'SMTP_ERROR' }, 500);
-    }
+    const messageId = (brevoBody.messageId as string) ?? '';
+    console.log(`[send-welcome-email] ✓ Email enviado. messageId: ${messageId}`);
 
-    // Log completo de la respuesta del servidor SMTP
-    console.log('[send-welcome-email] ✓ sendMail completado');
-    console.log('[send-welcome-email]   messageId :', sendInfo.messageId);
-    console.log('[send-welcome-email]   response  :', sendInfo.response);
-    console.log('[send-welcome-email]   accepted  :', JSON.stringify(sendInfo.accepted));
-    console.log('[send-welcome-email]   rejected  :', JSON.stringify(sendInfo.rejected));
-    console.log('[send-welcome-email]   pending   :', JSON.stringify(sendInfo.pending));
-    console.log(`[send-welcome-email] ✓ Welcome email enviado a ${email} (rol: ${rol})`);
-
-    return ok({
-      success:   true,
-      method:    'brevo',
-      messageId: sendInfo.messageId,
-    });
+    return ok({ success: true, method: 'brevo-api', messageId });
 
   } catch (e) {
     const message = e instanceof Error ? e.message : 'Error interno del servidor.';

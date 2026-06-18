@@ -1,13 +1,13 @@
 /**
  * Edge Function: reset-user-password
  * ──────────────────────────────────────────────────────────────────────────────
- * Genera un recovery link para un usuario existente y lo envía por Brevo SMTP.
+ * Genera un recovery link y lo envía via Brevo HTTP API v3.
  * Llamado desde el panel admin para resetear la contraseña de un alumno/editor.
  *
  * Endpoint: POST /functions/v1/reset-user-password
  *
  * Headers requeridos:
- *   Authorization: Bearer <session_access_token>   // sesión del admin caller
+ *   Authorization: Bearer <session_access_token>
  *   apikey: <supabase_anon_key>
  *   Content-Type: application/json
  *
@@ -21,19 +21,17 @@
  *   { success: false, error: string, code: string }
  *
  * Códigos de error:
- *   INVALID_EMAIL       — email inválido o faltante
- *   UNAUTHORIZED        — token inválido o ausente
- *   CONFIG_ERROR        — credenciales SMTP no configuradas
- *   LINK_ERROR          — Supabase no pudo generar el recovery link
- *   SMTP_VERIFY_ERROR   — no se pudo conectar al servidor SMTP
- *   SMTP_ERROR          — fallo al enviar el mensaje
- *   INTERNAL_ERROR      — error no capturado
+ *   INVALID_EMAIL   — email inválido o faltante
+ *   UNAUTHORIZED    — token inválido o ausente (401)
+ *   CONFIG_ERROR    — BREVO_API_KEY no configurado (500)
+ *   LINK_ERROR      — Supabase no pudo generar el recovery link (400)
+ *   BREVO_ERROR     — Brevo API rechazó el envío (500)
+ *   INTERNAL_ERROR  — error no capturado (500)
  * ──────────────────────────────────────────────────────────────────────────────
  */
 
 import { serve }        from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import nodemailer       from 'npm:nodemailer@6';
 
 // ── CORS ──────────────────────────────────────────────────────────────────────
 const CORS_HEADERS: Record<string, string> = {
@@ -60,7 +58,7 @@ function buildResetHtml(nombre: string, email: string, resetLink: string): strin
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Restablecer Contrasena — Catalogo UNAM/FAD</title>
+  <title>Restablecer Contraseña — Catálogo UNAM/FAD</title>
 </head>
 <body style="margin:0;padding:0;background:#F4F6F9;font-family:'Segoe UI',Arial,sans-serif;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
@@ -76,10 +74,10 @@ function buildResetHtml(nombre: string, email: string, resetLink: string): strin
             <td style="background:#013B75;padding:32px 40px;text-align:center;">
               <h1 style="color:#ffffff;margin:0;font-size:22px;font-weight:700;
                          letter-spacing:0.5px;">
-                Catalogo de Obra Serigrafica
+                Catálogo de Obra Serigráfica
               </h1>
               <p style="color:rgba(255,255,255,0.75);margin:6px 0 0;font-size:13px;">
-                UNAM / Facultad de Artes y Diseno
+                UNAM / Facultad de Artes y Diseño
               </p>
             </td>
           </tr>
@@ -105,15 +103,15 @@ function buildResetHtml(nombre: string, email: string, resetLink: string): strin
             <td style="padding:24px 40px 40px;">
               <h2 style="color:#013B75;margin:0 0 16px;font-size:18px;
                          text-align:center;">
-                Restablecer contrasena
+                Restablecer contraseña
               </h2>
               <p style="color:#374151;margin:0 0 12px;line-height:1.6;">
                 Hola, <strong>${displayName}</strong>:
               </p>
               <p style="color:#374151;margin:0 0 24px;line-height:1.6;">
-                El administrador del Catalogo ha generado un enlace para que
-                restablezca su contrasena de acceso al panel administrativo.
-                Haz clic en el boton a continuacion:
+                El administrador del Catálogo ha generado un enlace para que
+                restablezca su contraseña de acceso al panel administrativo.
+                Haz clic en el botón a continuación:
               </p>
 
               <!-- CTA -->
@@ -125,14 +123,14 @@ function buildResetHtml(nombre: string, email: string, resetLink: string): strin
                        style="display:inline-block;padding:14px 32px;color:#ffffff;
                               text-decoration:none;font-size:15px;font-weight:600;
                               letter-spacing:0.3px;">
-                      Restablecer mi contrasena &rarr;
+                      Restablecer mi contraseña &rarr;
                     </a>
                   </td>
                 </tr>
               </table>
 
               <p style="color:#6B7280;font-size:13px;margin:0 0 8px;">
-                Si el boton no funciona, copia y pega este enlace en tu navegador:
+                Si el botón no funciona, copia y pega este enlace en tu navegador:
               </p>
               <p style="color:#013B75;font-size:12px;word-break:break-all;
                         margin:0 0 24px;">
@@ -145,15 +143,15 @@ function buildResetHtml(nombre: string, email: string, resetLink: string): strin
               <div style="background:#FEF3C7;border:1px solid #FDE68A;
                           border-radius:6px;padding:12px 16px;margin-bottom:16px;">
                 <p style="color:#92400E;font-size:13px;margin:0;line-height:1.5;">
-                  &#9888;&#65039; Este enlace es de <strong>un solo uso</strong>
+                  ⚠️ Este enlace es de <strong>un solo uso</strong>
                   y expira en <strong>24 horas</strong>.
                 </p>
               </div>
 
               <p style="color:#9CA3AF;font-size:12px;margin:0;line-height:1.5;">
                 Si no solicitaste este cambio, puedes ignorar este email.
-                Tu contrasena actual permanece sin cambios. Para soporte,
-                contacta al administrador del catalogo.
+                Tu contraseña actual permanece sin cambios. Para soporte,
+                contacta al administrador del catálogo.
               </p>
             </td>
           </tr>
@@ -163,8 +161,8 @@ function buildResetHtml(nombre: string, email: string, resetLink: string): strin
             <td style="background:#F9FAFB;padding:20px 40px;text-align:center;
                        border-top:1px solid #E5E7EB;">
               <p style="color:#9CA3AF;font-size:11px;margin:0;">
-                &copy; UNAM / Facultad de Artes y Diseno &mdash;
-                Catalogo de Obra Serigrafica
+                © UNAM / Facultad de Artes y Diseño —
+                Catálogo de Obra Serigráfica
               </p>
             </td>
           </tr>
@@ -184,7 +182,7 @@ serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS_HEADERS });
   if (req.method !== 'POST') {
     return fail(
-      { success: false, error: 'Metodo no permitido. Usa POST.', code: 'METHOD_NOT_ALLOWED' },
+      { success: false, error: 'Método no permitido. Usa POST.', code: 'METHOD_NOT_ALLOWED' },
       405
     );
   }
@@ -195,12 +193,16 @@ serve(async (req: Request) => {
     try {
       body = await req.json();
     } catch {
-      return fail({ success: false, error: 'Body invalido. Se esperaba JSON.' });
+      return fail({ success: false, error: 'Body inválido. Se esperaba JSON.' });
     }
 
     const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return fail({ success: false, error: 'Email invalido o faltante.', code: 'INVALID_EMAIL' });
+      return fail({
+        success: false,
+        error:   'Email inválido o faltante.',
+        code:    'INVALID_EMAIL',
+      });
     }
 
     console.log(`[reset-user-password] Solicitud para: ${email}`);
@@ -214,7 +216,7 @@ serve(async (req: Request) => {
       );
     }
 
-    const callerToken = authHeader.replace('Bearer ', '').trim();
+    const callerToken    = authHeader.replace('Bearer ', '').trim();
     const supabaseCaller = createClient(
       Deno.env.get('SUPABASE_URL')      ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
@@ -227,30 +229,22 @@ serve(async (req: Request) => {
     const { data: { user: callerUser }, error: callerError } = await supabaseCaller.auth.getUser();
     if (callerError || !callerUser) {
       return fail(
-        { success: false, error: 'Token invalido o sesion expirada.', code: 'UNAUTHORIZED' },
+        { success: false, error: 'Token inválido o sesión expirada.', code: 'UNAUTHORIZED' },
         401
       );
     }
 
     console.log(`[reset-user-password] Caller verificado: ${callerUser.email}`);
 
-    // ── 3. Credenciales SMTP Brevo ─────────────────────────────────────────────
-    const smtpHost = Deno.env.get('BREVO_SMTP_HOST') ?? '';
-    const smtpPort = parseInt(Deno.env.get('BREVO_SMTP_PORT') ?? '587');
-    const smtpUser = Deno.env.get('BREVO_SMTP_USER') ?? '';
-    const smtpPass = Deno.env.get('BREVO_SMTP_PASS') ?? '';
-
-    console.log(`[reset-user-password] SMTP config — host:"${smtpHost}" port:${smtpPort} user:"${smtpUser}" pass_set:${!!smtpPass}`);
-
-    if (!smtpHost || !smtpUser || !smtpPass) {
-      console.error('[reset-user-password] Credenciales SMTP Brevo no configuradas');
+    // ── 3. Leer BREVO_API_KEY ──────────────────────────────────────────────────
+    const brevoApiKey = Deno.env.get('BREVO_API_KEY') ?? '';
+    if (!brevoApiKey) {
+      console.error('[reset-user-password] BREVO_API_KEY no configurada');
       return fail(
-        { success: false, error: 'Servicio de email no configurado.', code: 'CONFIG_ERROR' },
+        { success: false, error: 'Servicio de email no configurado (BREVO_API_KEY).', code: 'CONFIG_ERROR' },
         500
       );
     }
-
-    const siteUrl = Deno.env.get('SITE_URL') ?? 'http://localhost:8000/app/admin/index.html';
 
     // ── 4. Cliente admin (service_role) ───────────────────────────────────────
     const supabaseAdmin = createClient(
@@ -258,6 +252,8 @@ serve(async (req: Request) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
       { auth: { autoRefreshToken: false, persistSession: false } }
     );
+
+    const siteUrl = Deno.env.get('SITE_URL') ?? 'https://kfvjansfmhamkrnbxmgp.supabase.co';
 
     // ── 5. Buscar nombre del usuario en usuarios_admin ─────────────────────────
     const { data: usuarioData } = await supabaseAdmin
@@ -288,66 +284,49 @@ serve(async (req: Request) => {
     const resetLink = (linkData as { properties?: { action_link?: string } })
       ?.properties?.action_link ?? siteUrl;
 
-    console.log(`[reset-user-password] Recovery link generado OK. Conectando SMTP...`);
+    console.log(`[reset-user-password] Recovery link generado. Llamando Brevo API para: ${email}`);
 
-    // ── 7. Enviar email via SMTP Brevo ─────────────────────────────────────────
-    const htmlBody    = buildResetHtml(nombre, email, resetLink);
-    const transporter = nodemailer.createTransport({
-      host:    smtpHost,
-      port:    smtpPort,
-      secure:  false,        // STARTTLS en puerto 587
-      auth:    { user: smtpUser, pass: smtpPass },
-      debug:   true,         // log SMTP conversation completa
-      logger:  true,         // habilitar logs internos de nodemailer
-      connectionTimeout: 15000,
-      greetingTimeout:   10000,
-      socketTimeout:     30000,
+    // ── 7. Enviar via Brevo HTTP API v3 ────────────────────────────────────────
+    const htmlContent = buildResetHtml(nombre, email, resetLink);
+
+    const brevoRes = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method:  'POST',
+      headers: {
+        'api-key':      brevoApiKey,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        sender:      { name: 'Catálogo UNAM/FAD', email: 'af249a001@smtp-brevo.com' },
+        to:          [{ email }],
+        subject:     'Restablece tu contraseña — Catálogo de Obra Serigráfica UNAM',
+        htmlContent,
+      }),
     });
 
-    // Verificar conectividad antes de enviar
-    console.log('[reset-user-password] Verificando conexión SMTP...');
-    try {
-      await transporter.verify();
-      console.log('[reset-user-password] ✓ Conexión SMTP verificada correctamente');
-    } catch (verifyErr) {
-      const msg = verifyErr instanceof Error ? verifyErr.message : String(verifyErr);
-      console.error('[reset-user-password] ✗ Fallo en verify SMTP:', msg);
+    const brevoBody = await brevoRes.json().catch(() => ({})) as Record<string, unknown>;
+
+    console.log(`[reset-user-password] Brevo API status: ${brevoRes.status}`);
+    console.log(`[reset-user-password] Brevo API response:`, JSON.stringify(brevoBody));
+
+    if (!brevoRes.ok) {
+      console.error('[reset-user-password] Brevo API error:', brevoBody);
       return fail(
-        { success: false, error: `SMTP verify falló: ${msg}`, code: 'SMTP_VERIFY_ERROR' },
+        {
+          success: false,
+          error:   (brevoBody.message as string) ?? `Brevo respondió ${brevoRes.status}`,
+          code:    'BREVO_ERROR',
+        },
         500
       );
     }
 
-    let sendInfo: Record<string, unknown>;
-    try {
-      sendInfo = await transporter.sendMail({
-        from:    `Catalogo UNAM/FAD <${smtpUser}>`,
-        to:      email,
-        subject: 'Restablece tu contrasena — Catalogo de Obra Serigrafica UNAM',
-        html:    htmlBody,
-      });
-    } catch (smtpErr) {
-      const msg = smtpErr instanceof Error ? smtpErr.message : String(smtpErr);
-      console.error('[reset-user-password] ✗ SMTP sendMail error:', msg);
-      return fail(
-        { success: false, error: `Error SMTP: ${msg}`, code: 'SMTP_ERROR' },
-        500
-      );
-    }
-
-    // Log completo de la respuesta del servidor SMTP
-    console.log('[reset-user-password] ✓ sendMail completado');
-    console.log('[reset-user-password]   messageId :', sendInfo.messageId);
-    console.log('[reset-user-password]   response  :', sendInfo.response);
-    console.log('[reset-user-password]   accepted  :', JSON.stringify(sendInfo.accepted));
-    console.log('[reset-user-password]   rejected  :', JSON.stringify(sendInfo.rejected));
-    console.log('[reset-user-password]   pending   :', JSON.stringify(sendInfo.pending));
-    console.log(`[reset-user-password] ✓ Email de reset enviado a: ${email}`);
+    const messageId = (brevoBody.messageId as string) ?? '';
+    console.log(`[reset-user-password] ✓ Email enviado. messageId: ${messageId}`);
 
     return ok({
       success:   true,
       message:   `Se ha enviado un enlace de restablecimiento a ${email}.`,
-      messageId: sendInfo.messageId,
+      messageId,
     });
 
   } catch (err) {
