@@ -1606,5 +1606,89 @@
     </div>
   </div>
 
+  <!-- ========================
+       MODAL: ESTABLECER CONTRASEÑA (recovery — primer acceso)
+       OBLIGATORIO: sin botón de cerrar, sin cierre al hacer clic fuera,
+       sin cierre con Escape. El usuario DEBE establecer su contraseña
+       antes de poder usar el dashboard.
+       ======================== -->
+  <div id="setPasswordModal" class="modal-overlay modal-overlay--mandatory" style="display:none;"
+       role="dialog" aria-modal="true" aria-labelledby="setPasswordModalTitle">
+    <div class="modal-dialog modal-dialog--set-password">
+
+      <div class="modal-header">
+        <h3 id="setPasswordModalTitle" class="set-pwd-header-title">
+          <i data-lucide="key-round" style="width:20px;height:20px;flex-shrink:0;" aria-hidden="true"></i>
+          Establece tu contraseña
+        </h3>
+        <!-- Sin .modal-close — modal obligatorio, no se puede cerrar sin completar -->
+      </div>
+
+      <div class="modal-body">
+
+        <!-- Banner explicativo -->
+        <div class="set-pwd-banner" role="note">
+          <i data-lucide="shield-check" style="width:22px;height:22px;flex-shrink:0;" aria-hidden="true"></i>
+          <p>Por seguridad, establece una contraseña personal antes de continuar.
+             La necesitarás para iniciar sesión con tu email en el futuro.</p>
+        </div>
+
+        <form id="setPasswordForm" novalidate>
+
+          <div class="form-group">
+            <label for="setPasswordNew">Nueva contraseña <span class="required" aria-hidden="true">*</span></label>
+            <div class="password-toggle-wrapper">
+              <input
+                type="password"
+                id="setPasswordNew"
+                name="setPasswordNew"
+                placeholder="Mínimo 8 caracteres"
+                minlength="8"
+                autocomplete="new-password"
+                required
+              />
+              <button type="button" class="password-toggle-btn"
+                      aria-label="Mostrar contraseña" aria-pressed="false">
+                <i data-lucide="eye" style="width:16px;height:16px;" aria-hidden="true"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom:0;">
+            <label for="setPasswordConfirm">Confirmar contraseña <span class="required" aria-hidden="true">*</span></label>
+            <div class="password-toggle-wrapper">
+              <input
+                type="password"
+                id="setPasswordConfirm"
+                name="setPasswordConfirm"
+                placeholder="Repite la contraseña"
+                minlength="8"
+                autocomplete="new-password"
+                required
+              />
+              <button type="button" class="password-toggle-btn"
+                      aria-label="Mostrar contraseña" aria-pressed="false">
+                <i data-lucide="eye" style="width:16px;height:16px;" aria-hidden="true"></i>
+              </button>
+            </div>
+          </div>
+
+          <div id="setPasswordError" class="error-message"
+               style="display:none; margin-top:var(--spacing-lg,1rem); margin-bottom:0;"
+               role="alert" aria-live="polite"></div>
+
+        </form>
+      </div>
+
+      <div class="modal-footer">
+        <button type="submit" form="setPasswordForm" class="btn btn-primary" id="setPasswordBtn">
+          <i data-lucide="save" style="width:15px;height:15px;" aria-hidden="true"></i>
+          Guardar contraseña
+        </button>
+      </div>
+
+    </div>
+  </div>
+
 </body>
 </html>

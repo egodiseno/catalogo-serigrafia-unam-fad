@@ -100,14 +100,9 @@ document.addEventListener('DOMContentLoaded', async () => {
           }
           localStorage.setItem('usuarioActual', JSON.stringify(window.usuarioActual));
 
-          showDashboard(userEmail2);
-          // Sugerir al usuario que actualice su contraseña
-          setTimeout(() => {
-            window.ErrorHandler?.showToast(
-              'Bienvenido/a. Recuerda actualizar tu contraseña en Configuración → Perfil.',
-              'info'
-            );
-          }, 800);
+          // Mostrar modal obligatorio de "Establece tu contraseña" (FEAT recovery)
+          // El modal llama a showDashboard() cuando el usuario guarda exitosamente.
+          showSetPasswordModal(userEmail2);
         }
       } catch (recErr) {
         console.error('[auth] Recovery setSession excepción:', recErr);
@@ -579,5 +574,132 @@ document.addEventListener('DOMContentLoaded', async () => {
       return 'Este factor ya está registrado.';
     return msg;
   }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // Modal obligatorio: Establecer contraseña (recovery — primer acceso)
+  // ══════════════════════════════════════════════════════════════════════════
+
+  /**
+   * Muestra el modal obligatorio de primera contraseña.
+   * Llama primero a showDashboard() para que el fondo sea el dashboard dimmed.
+   */
+  function showSetPasswordModal(email) {
+    showDashboard(email);   // configura el dashboard como fondo
+
+    const modal  = document.getElementById('setPasswordModal');
+    const form   = document.getElementById('setPasswordForm');
+    const errEl  = document.getElementById('setPasswordError');
+
+    if (!modal) { console.warn('[auth] #setPasswordModal no encontrado en el DOM'); return; }
+
+    form?.reset();
+    if (errEl) { errEl.textContent = ''; errEl.style.display = 'none'; }
+
+    modal.style.display = 'flex';
+    setTimeout(() => document.getElementById('setPasswordNew')?.focus(), 80);
+    window.IconRegistry?.init();
+  }
+
+  function _closeSetPasswordModal() {
+    const modal = document.getElementById('setPasswordModal');
+    if (modal) modal.style.display = 'none';
+  }
+
+  /**
+   * Conecta el toggle mostrar/ocultar contraseña a un input dentro de
+   * su .password-toggle-wrapper. Llama una sola vez por input.
+   */
+  function _setupSetPwdToggle(inputId) {
+    const input = document.getElementById(inputId);
+    if (!input || input.dataset.setPwdToggleDone) return;
+    input.dataset.setPwdToggleDone = '1';
+
+    const btn = input.closest('.password-toggle-wrapper')
+                     ?.querySelector('.password-toggle-btn');
+    if (!btn) return;
+
+    btn.addEventListener('click', () => {
+      const visible = input.type === 'text';
+      input.type    = visible ? 'password' : 'text';
+      btn.innerHTML = visible
+        ? '<i data-lucide="eye"     style="width:16px;height:16px;" aria-hidden="true"></i>'
+        : '<i data-lucide="eye-off" style="width:16px;height:16px;" aria-hidden="true"></i>';
+      window.IconRegistry?.init();
+      btn.setAttribute('aria-label',   visible ? 'Mostrar contraseña' : 'Ocultar contraseña');
+      btn.setAttribute('aria-pressed', String(!visible));
+    });
+  }
+
+  /** Inicializa todos los listeners del modal de primera contraseña. */
+  function initSetPasswordModal() {
+    const form = document.getElementById('setPasswordForm');
+    if (!form) return;
+
+    // Password toggles
+    _setupSetPwdToggle('setPasswordNew');
+    _setupSetPwdToggle('setPasswordConfirm');
+
+    // Prevenir cierre con Escape mientras el modal esté visible
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape') return;
+      const modal = document.getElementById('setPasswordModal');
+      if (modal && modal.style.display !== 'none') e.preventDefault();
+    });
+
+    // Submit
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const newPwd     = document.getElementById('setPasswordNew')?.value    ?? '';
+      const confirmPwd = document.getElementById('setPasswordConfirm')?.value ?? '';
+      const errEl      = document.getElementById('setPasswordError');
+
+      if (errEl) { errEl.textContent = ''; errEl.style.display = 'none'; }
+
+      // ── Validaciones ────────────────────────────────────────────────────────
+      if (newPwd.length < 8) {
+        if (errEl) { errEl.textContent = 'La contraseña debe tener al menos 8 caracteres.'; errEl.style.display = 'block'; }
+        document.getElementById('setPasswordNew')?.focus();
+        return;
+      }
+      if (newPwd !== confirmPwd) {
+        if (errEl) { errEl.textContent = 'Las contraseñas no coinciden. Verifica ambos campos.'; errEl.style.display = 'block'; }
+        document.getElementById('setPasswordConfirm')?.focus();
+        return;
+      }
+
+      const btn = document.getElementById('setPasswordBtn');
+      if (btn) { btn.disabled = true; btn.textContent = 'Guardando…'; }
+
+      try {
+        // ── Guardar contraseña vía Supabase Auth ────────────────────────────
+        const { error } = await client.auth.updateUser({ password: newPwd });
+
+        if (error) {
+          if (errEl) { errEl.textContent = `Error al guardar: ${error.message}`; errEl.style.display = 'block'; }
+          console.error('[auth] setPasswordModal updateUser:', error);
+          return;
+        }
+
+        // ✅ Éxito — cerrar modal y mostrar dashboard
+        _closeSetPasswordModal();
+        window.ErrorHandler?.showToast('Contraseña establecida correctamente. ¡Bienvenido/a!', 'success');
+        console.log('[auth] ✅ Contraseña establecida por el usuario');
+
+      } catch (err) {
+        if (errEl) { errEl.textContent = 'Error de conexión. Intenta de nuevo.'; errEl.style.display = 'block'; }
+        console.error('[auth] setPasswordModal error:', err);
+      } finally {
+        if (btn) {
+          btn.disabled  = false;
+          btn.innerHTML = '<i data-lucide="save" style="width:15px;height:15px;" aria-hidden="true"></i> Guardar contraseña';
+          window.IconRegistry?.init();
+        }
+      }
+    });
+  }
+
+  // Inicializar el modal una vez que el DOM esté listo
+  initSetPasswordModal();
 
 });
