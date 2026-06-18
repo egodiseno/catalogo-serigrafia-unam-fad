@@ -32,6 +32,7 @@
 
 import { serve }        from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import nodemailer       from 'npm:nodemailer@6';
 
 // ── CORS ──────────────────────────────────────────────────────────────────────
 const CORS_HEADERS: Record<string, string> = {
@@ -232,10 +233,14 @@ serve(async (req: Request) => {
 
     console.log(`[reset-user-password] Caller verificado: ${callerUser.email}`);
 
-    // ── 3. Verificar RESEND_API_KEY ────────────────────────────────────────────
-    const resendKey = Deno.env.get('RESEND_API_KEY') ?? '';
-    if (!resendKey) {
-      console.error('[reset-user-password] RESEND_API_KEY no configurado');
+    // ── 3. Credenciales SMTP Brevo ─────────────────────────────────────────────
+    const smtpHost = Deno.env.get('BREVO_SMTP_HOST') ?? '';
+    const smtpPort = parseInt(Deno.env.get('BREVO_SMTP_PORT') ?? '587');
+    const smtpUser = Deno.env.get('BREVO_SMTP_USER') ?? '';
+    const smtpPass = Deno.env.get('BREVO_SMTP_PASS') ?? '';
+
+    if (!smtpHost || !smtpUser || !smtpPass) {
+      console.error('[reset-user-password] Credenciales SMTP Brevo no configuradas');
       return fail(
         { success: false, error: 'Servicio de email no configurado.', code: 'CONFIG_ERROR' },
         500
@@ -280,32 +285,29 @@ serve(async (req: Request) => {
     const resetLink = (linkData as { properties?: { action_link?: string } })
       ?.properties?.action_link ?? siteUrl;
 
-    console.log(`[reset-user-password] Recovery link generado. Enviando via Resend a: ${email}`);
+    console.log(`[reset-user-password] Recovery link generado. Enviando via SMTP Brevo a: ${email}`);
 
-    // ── 7. Enviar email via Resend ─────────────────────────────────────────────
-    const htmlBody = buildResetHtml(nombre, email, resetLink);
-
-    const resendRes = await fetch('https://api.resend.com/emails', {
-      method:  'POST',
-      headers: {
-        'Authorization': `Bearer ${resendKey}`,
-        'Content-Type':  'application/json',
-      },
-      body: JSON.stringify({
-        from:    'Catalogo UNAM/FAD <onboarding@resend.dev>',
-        to:      [email],
-        subject: 'Restablece tu contrasena — Catalogo de Obra Serigrafica UNAM',
-        html:    htmlBody,
-      }),
+    // ── 7. Enviar email via SMTP Brevo ─────────────────────────────────────────
+    const htmlBody    = buildResetHtml(nombre, email, resetLink);
+    const transporter = nodemailer.createTransport({
+      host:   smtpHost,
+      port:   smtpPort,
+      secure: false,   // STARTTLS en puerto 587
+      auth:   { user: smtpUser, pass: smtpPass },
     });
 
-    console.log(`[reset-user-password] Resend HTTP status: ${resendRes.status}`);
-
-    if (!resendRes.ok) {
-      const resendErr = await resendRes.text();
-      console.error('[reset-user-password] Resend error body:', resendErr);
+    try {
+      await transporter.sendMail({
+        from:    'Catalogo UNAM/FAD <noreply@catalogo-serigrafia.unam.mx>',
+        to:      email,
+        subject: 'Restablece tu contrasena — Catalogo de Obra Serigrafica UNAM',
+        html:    htmlBody,
+      });
+    } catch (smtpErr) {
+      const msg = smtpErr instanceof Error ? smtpErr.message : String(smtpErr);
+      console.error('[reset-user-password] SMTP error:', msg);
       return fail(
-        { success: false, error: `Error Resend: ${resendErr}`, code: 'RESEND_ERROR' },
+        { success: false, error: `Error SMTP: ${msg}`, code: 'SMTP_ERROR' },
         500
       );
     }

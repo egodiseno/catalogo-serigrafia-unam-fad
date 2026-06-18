@@ -29,6 +29,7 @@
 
 import { serve }        from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import nodemailer       from 'npm:nodemailer@6';
 
 // ── CORS ─────────────────────────────────────────────────────────────────────
 const CORS_HEADERS: Record<string, string> = {
@@ -196,14 +197,20 @@ serve(async (req: Request) => {
       { auth: { autoRefreshToken: false, persistSession: false } }
     );
 
-    const siteUrl   = Deno.env.get('SITE_URL')      ?? 'http://localhost:8000/app/admin/index.html';
-    const resendKey = Deno.env.get('RESEND_API_KEY') ?? '';
+    const siteUrl  = Deno.env.get('SITE_URL') ?? 'http://localhost:8000/app/admin/index.html';
 
-    if (!resendKey) {
-      console.error('[send-welcome-email] RESEND_API_KEY no configurado');
+    // ── Credenciales SMTP Brevo ────────────────────────────────────────────────
+    const smtpHost = Deno.env.get('BREVO_SMTP_HOST') ?? '';
+    const smtpPort = parseInt(Deno.env.get('BREVO_SMTP_PORT') ?? '587');
+    const smtpUser = Deno.env.get('BREVO_SMTP_USER') ?? '';
+    const smtpPass = Deno.env.get('BREVO_SMTP_PASS') ?? '';
+
+    if (!smtpHost || !smtpUser || !smtpPass) {
+      console.error('[send-welcome-email] Credenciales SMTP Brevo no configuradas');
       return fail({ success: false, error: 'Servicio de email no configurado.', code: 'CONFIG_ERROR' }, 500);
     }
 
+    // ── Generar recovery link ──────────────────────────────────────────────────
     console.log(`[send-welcome-email] Generando recovery link para: ${email}`);
     const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
       type:    'recovery',
@@ -219,34 +226,31 @@ serve(async (req: Request) => {
     const setupLink = (linkData as { properties?: { action_link?: string } })
       ?.properties?.action_link ?? siteUrl;
 
-    console.log(`[send-welcome-email] Recovery link generado. Enviando via Resend a: ${email}`);
-
-    const htmlBody = buildWelcomeHtml(nombre, email, rol, setupLink, siteUrl);
-
-    const resendRes = await fetch('https://api.resend.com/emails', {
-      method:  'POST',
-      headers: {
-        'Authorization': `Bearer ${resendKey}`,
-        'Content-Type':  'application/json',
-      },
-      body: JSON.stringify({
-        from:    'Catalogo UNAM/FAD <onboarding@resend.dev>',
-        to:      [email],
-        subject: 'Bienvenido al Panel Admin — Catalogo de Obra Serigrafica UNAM',
-        html:    htmlBody,
-      }),
+    // ── Enviar via SMTP Brevo ──────────────────────────────────────────────────
+    console.log(`[send-welcome-email] Enviando via SMTP Brevo a: ${email}`);
+    const htmlBody    = buildWelcomeHtml(nombre, email, rol, setupLink, siteUrl);
+    const transporter = nodemailer.createTransport({
+      host:   smtpHost,
+      port:   smtpPort,
+      secure: false,   // STARTTLS en puerto 587
+      auth:   { user: smtpUser, pass: smtpPass },
     });
 
-    console.log(`[send-welcome-email] Resend HTTP status: ${resendRes.status}`);
-
-    if (!resendRes.ok) {
-      const resendErr = await resendRes.text();
-      console.error('[send-welcome-email] Resend error body:', resendErr);
-      return fail({ success: false, error: `Error Resend: ${resendErr}`, code: 'RESEND_ERROR' }, 500);
+    try {
+      await transporter.sendMail({
+        from:    'Catalogo UNAM/FAD <noreply@catalogo-serigrafia.unam.mx>',
+        to:      email,
+        subject: 'Bienvenido al Panel Admin — Catalogo de Obra Serigrafica UNAM',
+        html:    htmlBody,
+      });
+    } catch (smtpErr) {
+      const msg = smtpErr instanceof Error ? smtpErr.message : String(smtpErr);
+      console.error('[send-welcome-email] SMTP error:', msg);
+      return fail({ success: false, error: `Error SMTP: ${msg}`, code: 'SMTP_ERROR' }, 500);
     }
 
-    console.log(`[send-welcome-email] ✓ Welcome email enviado a ${email} (rol: ${rol})`);
-    return ok({ success: true, method: 'resend' });
+    console.log(`[send-welcome-email] ✓ Welcome email (Brevo SMTP) enviado a ${email} (rol: ${rol})`);
+    return ok({ success: true, method: 'brevo' });
 
   } catch (e) {
     const message = e instanceof Error ? e.message : 'Error interno del servidor.';
