@@ -331,21 +331,28 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   // ── LOGOUT ─────────────────────────────────────────────────────────────────
-  if (logoutBtn) {
-    logoutBtn.addEventListener('click', async () => {
-      mfaFlowActive = false;
-      mfaFactorId   = null;
-      // Registrar logout antes de limpiar (el logger lee window.usuarioActual)
-      window.auditLogger?.logout(window.usuarioActual?.email);
-      // Limpiar datos del usuario
-      window.usuarioActual = null;
-      localStorage.removeItem('usuarioActual');
-      window.dashboardManager?.limpiar?.();
-      await window.supabaseConfig.logout();
-      loginForm.reset();
-      showLogin();
-    });
-  }
+  // Delegación de eventos en document en lugar de listener directo en logoutBtn.
+  // Razón: el handler async DOMContentLoaded tiene varios await ANTES de llegar
+  // aquí (línea 119 + 142). En el flujo de editor, showDashboard() → inicializar-
+  // Permisos() → renderSidebarByRole() se ejecuta durante esa ventana async, lo
+  // que puede causar que la referencia a logoutBtn quede desconectada del DOM
+  // activo. Con delegación en document el listener siempre funciona sin importar
+  // re-renders ni timing de carga de módulos por rol.
+  document.addEventListener('click', async (e) => {
+    // closest() cubre el caso en que el clic cae sobre el ícono hijo del botón
+    if (!e.target.closest('#logoutBtn')) return;
+    mfaFlowActive = false;
+    mfaFactorId   = null;
+    // Registrar logout antes de limpiar (el logger lee window.usuarioActual)
+    window.auditLogger?.logout(window.usuarioActual?.email);
+    // Limpiar datos del usuario
+    window.usuarioActual = null;
+    localStorage.removeItem('usuarioActual');
+    window.dashboardManager?.limpiar?.();
+    await window.supabaseConfig.logout();
+    loginForm?.reset();
+    showLogin();
+  });
 
   // ── CAMBIOS DE SESIÓN (tab cruzado, recovery, expiración) ─────────────────
   window.supabaseConfig.onAuthStateChange((event, session) => {
