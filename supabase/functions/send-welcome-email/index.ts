@@ -196,12 +196,14 @@ serve(async (req: Request) => {
       { auth: { autoRefreshToken: false, persistSession: false } }
     );
 
-    const siteUrl   = Deno.env.get('SITE_URL') ?? 'http://localhost:8000/app/admin/index.html';
-    const resendKey = Deno.env.get('RESEND_API_KEY');
+    const siteUrl   = Deno.env.get('SITE_URL')      ?? 'http://localhost:8000/app/admin/index.html';
+    const resendKey = Deno.env.get('RESEND_API_KEY') ?? '';
 
-    console.log(`[send-welcome-email] Config — siteUrl: ${siteUrl}, método: ${resendKey ? 'resend' : 'supabase'}`);
+    if (!resendKey) {
+      console.error('[send-welcome-email] RESEND_API_KEY no configurado');
+      return fail({ success: false, error: 'Servicio de email no configurado.', code: 'CONFIG_ERROR' }, 500);
+    }
 
-    // Generar recovery link (sirve como link de "setup inicial de contraseña")
     console.log(`[send-welcome-email] Generando recovery link para: ${email}`);
     const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
       type:    'recovery',
@@ -217,43 +219,34 @@ serve(async (req: Request) => {
     const setupLink = (linkData as { properties?: { action_link?: string } })
       ?.properties?.action_link ?? siteUrl;
 
-    console.log(`[send-welcome-email] Recovery link generado — usando fallback: ${!( linkData as { properties?: { action_link?: string } })?.properties?.action_link}`);
+    console.log(`[send-welcome-email] Recovery link generado. Enviando via Resend a: ${email}`);
 
-    // ── Opción A: Resend (email HTML personalizado) ───────────────────────────
-    if (resendKey) {
-      console.log(`[send-welcome-email] Enviando via Resend a: ${email}`);
-      const htmlBody = buildWelcomeHtml(nombre, email, rol, setupLink, siteUrl);
+    const htmlBody = buildWelcomeHtml(nombre, email, rol, setupLink, siteUrl);
 
-      const resendRes = await fetch('https://api.resend.com/emails', {
-        method:  'POST',
-        headers: {
-          'Authorization': `Bearer ${resendKey}`,
-          'Content-Type':  'application/json',
-        },
-        body: JSON.stringify({
-          from:    'Catálogo UNAM <admin@unam.catalogo.mx>',
-          to:      [email],
-          subject: '🎨 Bienvenido al Panel Admin — Catálogo de Obra Serigráfica UNAM',
-          html:    htmlBody,
-        }),
-      });
+    const resendRes = await fetch('https://api.resend.com/emails', {
+      method:  'POST',
+      headers: {
+        'Authorization': `Bearer ${resendKey}`,
+        'Content-Type':  'application/json',
+      },
+      body: JSON.stringify({
+        from:    'Catalogo UNAM/FAD <onboarding@resend.dev>',
+        to:      [email],
+        subject: 'Bienvenido al Panel Admin — Catalogo de Obra Serigrafica UNAM',
+        html:    htmlBody,
+      }),
+    });
 
-      console.log(`[send-welcome-email] Resend HTTP status: ${resendRes.status}`);
+    console.log(`[send-welcome-email] Resend HTTP status: ${resendRes.status}`);
 
-      if (!resendRes.ok) {
-        const resendErr = await resendRes.text();
-        console.error('[send-welcome-email] Resend error body:', resendErr);
-        return fail({ success: false, error: `Error Resend: ${resendErr}`, code: 'RESEND_ERROR' }, 500);
-      }
-
-      console.log(`[send-welcome-email] ✓ Welcome email (Resend) enviado a ${email} (rol: ${rol})`);
-      return ok({ success: true, method: 'resend' });
+    if (!resendRes.ok) {
+      const resendErr = await resendRes.text();
+      console.error('[send-welcome-email] Resend error body:', resendErr);
+      return fail({ success: false, error: `Error Resend: ${resendErr}`, code: 'RESEND_ERROR' }, 500);
     }
 
-    // ── Opción B: Supabase genera y envía el email de recovery automáticamente ─
-    // generateLink() ya disparó el envío del email de "Reset Password" de Supabase.
-    console.log(`[send-welcome-email] ✓ Recovery email (Supabase nativo) enviado a ${email} (rol: ${rol})`);
-    return ok({ success: true, method: 'supabase' });
+    console.log(`[send-welcome-email] ✓ Welcome email enviado a ${email} (rol: ${rol})`);
+    return ok({ success: true, method: 'resend' });
 
   } catch (e) {
     const message = e instanceof Error ? e.message : 'Error interno del servidor.';
