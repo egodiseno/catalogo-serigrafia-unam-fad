@@ -240,9 +240,8 @@ const RegistrosPendientes = (() => {
       const accessToken = sessionData?.session?.access_token;
       if (!accessToken) throw new Error('Sesión expirada. Por favor, inicia sesión nuevamente.');
 
-      const SUPABASE_URL = window.supabaseConfig?.url     ?? 'https://kfvjansfmhamkrnbxmgp.supabase.co';
-      const ANON_KEY     = window.supabaseConfig?.anonKey ?? '';
-      const FN_URL       = `${SUPABASE_URL}/functions/v1/validate-registro`;
+      const FN_URL   = 'https://kfvjansfmhamkrnbxmgp.supabase.co/functions/v1/validate-registro';
+      const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmdmphbnNmbWhhbWtybmJ4bWdwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4MzU3MzgsImV4cCI6MjA5NTQxMTczOH0.yesPqr7JhxniQxMa_fVPvwhBg2o98J2UB67G7u7fFsE';
 
       console.log('[RegistrosPendientes] Llamando validate-registro para id:', id);
 
@@ -341,9 +340,8 @@ const RegistrosPendientes = (() => {
       const accessToken = sessionData?.session?.access_token;
       if (!accessToken) throw new Error('Sesión expirada. Por favor, inicia sesión nuevamente.');
 
-      const SUPABASE_URL = window.supabaseConfig?.url     ?? 'https://kfvjansfmhamkrnbxmgp.supabase.co';
-      const ANON_KEY     = window.supabaseConfig?.anonKey ?? '';
-      const FN_URL       = `${SUPABASE_URL}/functions/v1/reject-registro`;
+      const FN_URL   = 'https://kfvjansfmhamkrnbxmgp.supabase.co/functions/v1/reject-registro';
+      const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmdmphbnNmbWhhbWtybmJ4bWdwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4MzU3MzgsImV4cCI6MjA5NTQxMTczOH0.yesPqr7JhxniQxMa_fVPvwhBg2o98J2UB67G7u7fFsE';
 
       console.log('[RegistrosPendientes] Llamando reject-registro para id:', id);
 
