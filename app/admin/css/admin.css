@@ -4458,9 +4458,10 @@ input[type="file"]:hover {
     padding-top: var(--spacing-md, 0.75rem);
   }
 
-  /* Rol / Estado (4ª y 5ª): texto secundario */
+  /* Número de Cuenta (4ª), Rol (5ª) y Estado (6ª): texto secundario en cards */
   table.usuarios-table td:nth-child(4),
-  table.usuarios-table td:nth-child(5) {
+  table.usuarios-table td:nth-child(5),
+  table.usuarios-table td:nth-child(6) {
     color:     var(--color-text-muted, #6B7280);
     font-size: var(--text-xs, 0.8125rem);
   }
@@ -4645,6 +4646,17 @@ input[type="file"]:hover {
 
 .usuarios-table th:nth-child(3) {
   width: 150px;
+}
+
+/* Número de Cuenta — columna nueva, 4ª th */
+.usuarios-table th.th-cuenta,
+.usuarios-table th:nth-child(4) {
+  width: 130px;
+}
+
+/* Celda de número de cuenta en el body */
+.usuarios-table td.td-cuenta {
+  white-space: nowrap;
 }
 
 .select-user,

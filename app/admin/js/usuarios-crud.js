@@ -44,14 +44,14 @@ const UsuariosCRUD = (() => {
     const tbody = document.getElementById('usuariosList');
     if (!tbody) return;
 
-    tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Cargando…</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Cargando…</td></tr>';
     selectedIds.clear();
     _updateBatchButton();
 
     try {
       const { data, error } = await client
         .from('usuarios_admin')
-        .select('id, email, nombre, rol, estado')
+        .select('id, email, nombre, numero_cuenta, rol, estado')
         .order('email', { ascending: true });
 
       if (error) throw error;
@@ -61,7 +61,7 @@ const UsuariosCRUD = (() => {
 
     } catch (err) {
       console.error('[UsuariosCRUD] loadUsuarios:', err);
-      tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Error al cargar usuarios.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Error al cargar usuarios.</td></tr>';
       window.ErrorHandler?.showToast('Error al cargar usuarios', 'error');
     }
   }
@@ -125,7 +125,7 @@ const UsuariosCRUD = (() => {
 
     if (page.length === 0) {
       const noData = usuariosData.length === 0;
-      tbody.innerHTML = `<tr><td colspan="6" class="empty-state">
+      tbody.innerHTML = `<tr><td colspan="7" class="empty-state">
         ${noData
           ? 'Sin usuarios. <a href="#" class="cta-link" onclick="window.UsuariosCRUD?.openCreateModal(); return false">Invitar primero →</a>'
           : 'Sin resultados para los filtros actuales.'}
@@ -189,6 +189,9 @@ const UsuariosCRUD = (() => {
           <span>${escapeHtml(u.email)}</span>
         </td>
         <td>${nombreText}</td>
+        <td class="td-cuenta">
+          ${u.numero_cuenta ? `<code class="cuenta-code">${escapeHtml(String(u.numero_cuenta))}</code>` : '<span class="text-muted">—</span>'}
+        </td>
         <td><span class="badge badge-${escapeHtml(u.rol)}">${escapeHtml(u.rol)}</span></td>
         <td>
           <span class="badge ${u.estado ? 'badge-publicado' : 'badge-archivado'}">
@@ -436,13 +439,14 @@ const UsuariosCRUD = (() => {
       return;
     }
 
-    const headers = ['email', 'nombre', 'rol', 'estado', 'id'];
+    const headers = ['email', 'nombre', 'numero_cuenta', 'rol', 'estado', 'id'];
     const rows    = filteredData.map(u => [
-      u.email   ?? '',
+      u.email          ?? '',
       (u.nombre ?? '').replace(/^-$/, ''),  // limpiar guión suelto
-      u.rol     ?? '',
+      u.numero_cuenta  ?? '',
+      u.rol            ?? '',
       u.estado  ? 'activo' : 'inactivo',
-      u.id      ?? '',
+      u.id             ?? '',
     ]);
 
     const csv = [headers, ...rows]
