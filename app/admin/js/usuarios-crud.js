@@ -339,9 +339,8 @@ const UsuariosCRUD = (() => {
     const accessToken = sessionData?.session?.access_token;
     if (!accessToken) throw new Error('Sesión expirada. Por favor, inicia sesión nuevamente.');
 
-    const SUPABASE_URL = window.supabaseConfig?.url     ?? 'https://kfvjansfmhamkrnbxmgp.supabase.co';
-    const ANON_KEY     = window.supabaseConfig?.anonKey ?? '';
-    const FUNCTION_URL = `${SUPABASE_URL}/functions/v1/delete-users-batch`;
+    const FUNCTION_URL = 'https://kfvjansfmhamkrnbxmgp.supabase.co/functions/v1/delete-users-batch';
+    const ANON_KEY     = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmdmphbnNmbWhhbWtybmJ4bWdwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4MzU3MzgsImV4cCI6MjA5NTQxMTczOH0.yesPqr7JhxniQxMa_fVPvwhBg2o98J2UB67G7u7fFsE';
 
     let response;
     try {
@@ -571,9 +570,8 @@ const UsuariosCRUD = (() => {
           const accessToken = sessionData?.session?.access_token;
           if (!accessToken) throw new Error('Sesión expirada. Por favor, inicia sesión nuevamente.');
 
-          const SUPABASE_URL = window.supabaseConfig?.url     ?? 'https://kfvjansfmhamkrnbxmgp.supabase.co';
-          const ANON_KEY     = window.supabaseConfig?.anonKey ?? '';
-          const FUNCTION_URL = `${SUPABASE_URL}/functions/v1/create-admin-user`;
+          const FUNCTION_URL = 'https://kfvjansfmhamkrnbxmgp.supabase.co/functions/v1/create-admin-user';
+          const ANON_KEY     = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmdmphbnNmbWhhbWtybmJ4bWdwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4MzU3MzgsImV4cCI6MjA5NTQxMTczOH0.yesPqr7JhxniQxMa_fVPvwhBg2o98J2UB67G7u7fFsE';
 
           let response;
           try {
@@ -709,9 +707,8 @@ const UsuariosCRUD = (() => {
       const accessToken = sessionData?.session?.access_token;
       if (!accessToken) throw new Error('Sesión expirada. Por favor, inicia sesión nuevamente.');
 
-      const SUPABASE_URL = window.supabaseConfig?.url     ?? 'https://kfvjansfmhamkrnbxmgp.supabase.co';
-      const ANON_KEY     = window.supabaseConfig?.anonKey ?? '';
-      const FUNCTION_URL = `${SUPABASE_URL}/functions/v1/reset-user-password`;
+      const FUNCTION_URL = 'https://kfvjansfmhamkrnbxmgp.supabase.co/functions/v1/reset-user-password';
+      const ANON_KEY     = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmdmphbnNmbWhhbWtybmJ4bWdwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4MzU3MzgsImV4cCI6MjA5NTQxMTczOH0.yesPqr7JhxniQxMa_fVPvwhBg2o98J2UB67G7u7fFsE';
 
       let response;
       try {
