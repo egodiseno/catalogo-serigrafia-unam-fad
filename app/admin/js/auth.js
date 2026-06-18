@@ -45,9 +45,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   console.log('🔐 auth.js cargado');
 
   // ── Estado de flujo ────────────────────────────────────────────────────────
-  let inRecoveryFlow = false;   // true mientras se restablece contraseña
-  let mfaFlowActive  = false;   // true mientras se completa MFA tras login
-  let mfaFactorId    = null;    // id del factor TOTP activo
+  let inRecoveryFlow  = false;  // true mientras se restablece contraseña
+  let mfaFlowActive   = false;  // true mientras se completa MFA tras login
+  let mfaFactorId     = null;   // id del factor TOTP activo
+  let loginFlowActive = false;  // true mientras el formulario de login maneja el sign-in
+  //   ↑ Evita que el evento SIGNED_IN (disparado dentro de loginWithEmail) llame
+  //     showDashboard con datos stale de localStorage antes de que el handler
+  //     del formulario haya obtenido el rol correcto desde usuarios_admin.
 
   // ── Detectar flujo de recovery ANTES de getSession() ──────────────────────
   // Supabase redirige desde email con #access_token=...&type=recovery
@@ -163,6 +167,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const submitBtn = loginForm.querySelector('button[type="submit"]');
     submitBtn.disabled    = true;
     submitBtn.textContent = 'Ingresando…';
+    loginFlowActive = true;   // ← bloquear SIGNED_IN durante este await
 
     try {
       const result = await window.supabaseConfig.loginWithEmail(email, password);
@@ -205,6 +210,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       showError('Error de conexión. Verifica tu red.');
       console.error('[auth] login error:', err);
     } finally {
+      loginFlowActive       = false; // ← restaurar antes de salir (éxito o error)
       submitBtn.disabled    = false;
       submitBtn.textContent = 'Ingresar';
     }
@@ -361,8 +367,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     } else if (event === 'SIGNED_IN' && session?.user) {
       // SIGNED_IN se dispara en login normal y también tras MFA/updateUser.
-      // Los flujos activos (recovery, mfa) manejan su propia UI — ignorar.
-      if (!inRecoveryFlow && !mfaFlowActive) {
+      // Los flujos activos (recovery, mfa, loginForm) manejan su propia UI — ignorar.
+      // loginFlowActive evita la race condition: el evento se dispara DENTRO de
+      // loginWithEmail() antes de que el handler haya cargado el rol desde DB.
+      if (!inRecoveryFlow && !mfaFlowActive && !loginFlowActive) {
         showDashboard(session.user.email);
       }
 

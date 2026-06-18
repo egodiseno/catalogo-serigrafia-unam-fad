@@ -30,8 +30,10 @@ document.addEventListener('DOMContentLoaded', () => {
   // Se sincroniza con los data-show-for-roles del HTML pero aquí es authoritative
   // para la lógica de redirección automática cuando se cambia de rol.
   const sectionVisibility = {
-    'dashboard':             ['admin', 'super_editor', 'editor'],
-    'obras':                 ['admin', 'super_editor', 'editor'],
+    // dashboard y obras: solo admin/super_editor
+    // (editor solo tiene acceso a su portafolio propio — permisos.js: dashboard.ver=false)
+    'dashboard':             ['admin', 'super_editor'],
+    'obras':                 ['admin', 'super_editor'],
     'tecnicas':              ['admin', 'super_editor'],
     'tags':                  ['admin', 'super_editor'],
     'usuarios':              ['admin'],
@@ -39,7 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
     'logs':                  ['admin'],
     'configuracion':         ['admin'],
     'control-registro':      ['admin', 'super_editor'],
-    'mi-perfil':             ['admin', 'super_editor', 'editor'],  // siempre visible (no en nav principal)
+    'mi-perfil':             ['admin', 'super_editor', 'editor'],  // siempre visible
     'mi-portafolio':         ['editor'],
   };
 
@@ -133,13 +135,16 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Si la sección guardada ya no es visible para este rol, redirigir
-    const currentSection = sessionStorage.getItem('currentSection') || 'dashboard';
+    const currentSection    = sessionStorage.getItem('currentSection') || 'dashboard';
     const allowedForCurrent = sectionVisibility[currentSection];
     if (allowedForCurrent && !allowedForCurrent.includes(rol)) {
-      // Buscar la primera sección permitida para este rol
-      const fallback = Object.keys(sectionVisibility).find(s =>
+      // Buscar la primera sección "principal" (no meta-secciones) permitida para este rol.
+      // Si no hay ninguna (rol editor), usar 'mi-portafolio' o 'dashboard' como último recurso.
+      const mainSection = Object.keys(sectionVisibility).find(s =>
         sectionVisibility[s].includes(rol) && !['mi-perfil', 'mi-portafolio'].includes(s)
-      ) || 'dashboard';
+      );
+      const fallback = mainSection
+        ?? (sectionVisibility['mi-portafolio']?.includes(rol) ? 'mi-portafolio' : 'dashboard');
       console.log(`[Nav] "${currentSection}" no disponible para "${rol}" → redirigiendo a "${fallback}"`);
       showSection(fallback);
     }
