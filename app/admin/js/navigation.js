@@ -23,6 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
     'configuracion':       { title: 'Catálogo de Obra Serigráfica', subtitle: 'Configuración' },
     'registros-pendientes':{ title: 'Catálogo de Obra Serigráfica', subtitle: 'Registros pendientes de validación' },
     'control-registro':    { title: 'Catálogo de Obra Serigráfica', subtitle: 'Control de registro de alumnos' },
+    'historial-alumnos':   { title: 'Catálogo de Obra Serigráfica', subtitle: 'Historial de alumnos' },
   };
 
   // ── Matriz de visibilidad por rol ─────────────────────────────────────────
@@ -38,6 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
     'tags':                  ['admin', 'super_editor'],
     'usuarios':              ['admin'],
     'registros-pendientes':  ['admin'],
+    'historial-alumnos':     ['admin'],
     'logs':                  ['admin'],
     'configuracion':         ['admin'],
     'control-registro':      ['admin', 'super_editor'],
@@ -114,6 +116,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (sectionId === 'control-registro') {
       window.controlRegistroManager?.inicializar();
+    }
+    if (sectionId === 'historial-alumnos') {
+      window.HistorialAlumnos?.inicializar();
     }
 
     // Guardar en sessionStorage (para mantener sección si recarga)

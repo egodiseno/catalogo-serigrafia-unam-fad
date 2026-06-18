@@ -265,6 +265,10 @@
           <i data-lucide="toggle-right" style="width:18px; height:18px;" aria-hidden="true"></i>
           <span class="nav-label">Control Registro</span>
         </button>
+        <button class="nav-item" data-section="historial-alumnos" data-show-for-roles="admin">
+          <i data-lucide="archive" style="width:18px; height:18px;" aria-hidden="true"></i>
+          <span class="nav-label">Historial Alumnos</span>
+        </button>
         <button class="nav-item" data-section="logs" data-show-for-roles="admin">
           <i data-lucide="activity" style="width:18px; height:18px;" aria-hidden="true"></i>
           <span class="nav-label">Logs</span>
@@ -630,6 +634,82 @@
           </div>
 
         </section>
+
+        <!-- ========== HISTORIAL ALUMNOS SECTION ========== -->
+        <section id="historialAlumnosSection" class="section">
+
+          <!-- Cabecera -->
+          <div class="section-header">
+            <div>
+              <h2>Historial de Alumnos</h2>
+              <p>Todos los registros de solicitudes de acceso al catálogo</p>
+            </div>
+            <div class="section-header-actions">
+              <button class="btn btn-secondary" id="haBtnExportar">
+                <i data-lucide="download" style="width:16px;height:16px;" aria-hidden="true"></i>
+                Exportar CSV
+              </button>
+            </div>
+          </div>
+
+          <!-- Toolbar: búsqueda + filtros -->
+          <div class="usuarios-toolbar">
+            <div class="usuarios-toolbar__search">
+              <div class="search-field">
+                <i data-lucide="search" class="search-field__icon"
+                   style="width:15px;height:15px;" aria-hidden="true"></i>
+                <input type="text" id="haSearchInput"
+                       class="search-field__input"
+                       placeholder="Buscar por nombre, núm. de cuenta o email…"
+                       autocomplete="off">
+              </div>
+            </div>
+            <div class="usuarios-toolbar__filters">
+              <select id="haFilterEstado" class="select-input select-input--sm"
+                      aria-label="Filtrar por estado">
+                <option value="">Todos los estados</option>
+                <option value="pendiente_validacion">Pendiente</option>
+                <option value="validado">Validado</option>
+                <option value="rechazado">Rechazado</option>
+              </select>
+              <button type="button" class="btn btn-ghost btn-sm" id="haBtnLimpiar">
+                <i data-lucide="x" style="width:13px;height:13px;" aria-hidden="true"></i>
+                Limpiar
+              </button>
+            </div>
+          </div>
+
+          <!-- Tabla -->
+          <div class="table-wrapper">
+            <table class="historial-table" id="historialAlumnosTable">
+              <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th class="th-cuenta">Núm. de Cuenta</th>
+                  <th>Email</th>
+                  <th>Teléfono</th>
+                  <th>Estado</th>
+                  <th>Fecha de Registro</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="historialAlumnosList">
+                <tr>
+                  <td colspan="7" class="empty-state">Cargando historial…</td>
+                </tr>
+              </tbody>
+            </table>
+          </div><!-- /.table-wrapper -->
+
+          <!-- Footer: contador -->
+          <div class="usuarios-table-footer">
+            <div class="usuarios-footer__left">
+              <span id="historialCounter" class="table-counter">—</span>
+            </div>
+          </div>
+
+        </section>
+
         <!-- ========== LOGS SECTION ========== -->
         <section id="logsSection" class="section">
           <div class="section-header">
@@ -1435,6 +1515,7 @@
     </div>
   </div>
 
+  <script src="js/historial-alumnos.js" defer></script>
   <script src="js/registros-pendientes.js" defer></script>
   <script src="js/control-registro.js" defer></script>
   <script src="js/init.js" defer></script>
