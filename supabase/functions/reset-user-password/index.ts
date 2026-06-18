@@ -1,7 +1,7 @@
 /**
  * Edge Function: reset-user-password
  * ──────────────────────────────────────────────────────────────────────────────
- * Genera un recovery link para un usuario existente y lo envía por Resend.
+ * Genera un recovery link para un usuario existente y lo envía por Brevo SMTP.
  * Llamado desde el panel admin para resetear la contraseña de un alumno/editor.
  *
  * Endpoint: POST /functions/v1/reset-user-password
@@ -15,18 +15,19 @@
  *   { email: string }
  *
  * Respuesta exitosa (200):
- *   { success: true, message: string }
+ *   { success: true, message: string, messageId: string }
  *
  * Respuesta de error:
  *   { success: false, error: string, code: string }
  *
  * Códigos de error:
- *   INVALID_EMAIL   — email inválido o faltante
- *   UNAUTHORIZED    — token inválido o ausente
- *   CONFIG_ERROR    — RESEND_API_KEY no configurado
- *   LINK_ERROR      — Supabase no pudo generar el recovery link
- *   RESEND_ERROR    — Resend rechazó el envío
- *   INTERNAL_ERROR  — error no capturado
+ *   INVALID_EMAIL       — email inválido o faltante
+ *   UNAUTHORIZED        — token inválido o ausente
+ *   CONFIG_ERROR        — credenciales SMTP no configuradas
+ *   LINK_ERROR          — Supabase no pudo generar el recovery link
+ *   SMTP_VERIFY_ERROR   — no se pudo conectar al servidor SMTP
+ *   SMTP_ERROR          — fallo al enviar el mensaje
+ *   INTERNAL_ERROR      — error no capturado
  * ──────────────────────────────────────────────────────────────────────────────
  */
 
@@ -239,6 +240,8 @@ serve(async (req: Request) => {
     const smtpUser = Deno.env.get('BREVO_SMTP_USER') ?? '';
     const smtpPass = Deno.env.get('BREVO_SMTP_PASS') ?? '';
 
+    console.log(`[reset-user-password] SMTP config — host:"${smtpHost}" port:${smtpPort} user:"${smtpUser}" pass_set:${!!smtpPass}`);
+
     if (!smtpHost || !smtpUser || !smtpPass) {
       console.error('[reset-user-password] Credenciales SMTP Brevo no configuradas');
       return fail(
@@ -285,37 +288,66 @@ serve(async (req: Request) => {
     const resetLink = (linkData as { properties?: { action_link?: string } })
       ?.properties?.action_link ?? siteUrl;
 
-    console.log(`[reset-user-password] Recovery link generado. Enviando via SMTP Brevo a: ${email}`);
+    console.log(`[reset-user-password] Recovery link generado OK. Conectando SMTP...`);
 
     // ── 7. Enviar email via SMTP Brevo ─────────────────────────────────────────
     const htmlBody    = buildResetHtml(nombre, email, resetLink);
     const transporter = nodemailer.createTransport({
-      host:   smtpHost,
-      port:   smtpPort,
-      secure: false,   // STARTTLS en puerto 587
-      auth:   { user: smtpUser, pass: smtpPass },
+      host:    smtpHost,
+      port:    smtpPort,
+      secure:  false,        // STARTTLS en puerto 587
+      auth:    { user: smtpUser, pass: smtpPass },
+      debug:   true,         // log SMTP conversation completa
+      logger:  true,         // habilitar logs internos de nodemailer
+      connectionTimeout: 15000,
+      greetingTimeout:   10000,
+      socketTimeout:     30000,
     });
 
+    // Verificar conectividad antes de enviar
+    console.log('[reset-user-password] Verificando conexión SMTP...');
     try {
-      await transporter.sendMail({
-        from:    'Catalogo UNAM/FAD <af249a001@smtp-brevo.com>',
+      await transporter.verify();
+      console.log('[reset-user-password] ✓ Conexión SMTP verificada correctamente');
+    } catch (verifyErr) {
+      const msg = verifyErr instanceof Error ? verifyErr.message : String(verifyErr);
+      console.error('[reset-user-password] ✗ Fallo en verify SMTP:', msg);
+      return fail(
+        { success: false, error: `SMTP verify falló: ${msg}`, code: 'SMTP_VERIFY_ERROR' },
+        500
+      );
+    }
+
+    let sendInfo: Record<string, unknown>;
+    try {
+      sendInfo = await transporter.sendMail({
+        from:    `Catalogo UNAM/FAD <${smtpUser}>`,
         to:      email,
         subject: 'Restablece tu contrasena — Catalogo de Obra Serigrafica UNAM',
         html:    htmlBody,
       });
     } catch (smtpErr) {
       const msg = smtpErr instanceof Error ? smtpErr.message : String(smtpErr);
-      console.error('[reset-user-password] SMTP error:', msg);
+      console.error('[reset-user-password] ✗ SMTP sendMail error:', msg);
       return fail(
         { success: false, error: `Error SMTP: ${msg}`, code: 'SMTP_ERROR' },
         500
       );
     }
 
+    // Log completo de la respuesta del servidor SMTP
+    console.log('[reset-user-password] ✓ sendMail completado');
+    console.log('[reset-user-password]   messageId :', sendInfo.messageId);
+    console.log('[reset-user-password]   response  :', sendInfo.response);
+    console.log('[reset-user-password]   accepted  :', JSON.stringify(sendInfo.accepted));
+    console.log('[reset-user-password]   rejected  :', JSON.stringify(sendInfo.rejected));
+    console.log('[reset-user-password]   pending   :', JSON.stringify(sendInfo.pending));
     console.log(`[reset-user-password] ✓ Email de reset enviado a: ${email}`);
+
     return ok({
-      success: true,
-      message: `Se ha enviado un enlace de restablecimiento a ${email}.`,
+      success:   true,
+      message:   `Se ha enviado un enlace de restablecimiento a ${email}.`,
+      messageId: sendInfo.messageId,
     });
 
   } catch (err) {

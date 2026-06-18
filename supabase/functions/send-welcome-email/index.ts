@@ -7,8 +7,7 @@
  * usuario establezca su propia contraseña en el primer acceso. Supabase
  * entrega el email mediante su sistema interno.
  *
- * Si se configura RESEND_API_KEY, usa Resend para un email HTML personalizado.
- * Si no, usa la API admin de Supabase (generateLink → email automático).
+ * Usa Brevo SMTP via nodemailer con logging diagnóstico completo.
  *
  * Endpoint: POST /functions/v1/send-welcome-email
  *
@@ -20,7 +19,7 @@
  *   apikey: <supabase_anon_key>
  *
  * Respuesta exitosa (200):
- *   { success: true, method: 'resend' | 'supabase' }
+ *   { success: true, method: 'brevo', messageId: string }
  *
  * Respuesta de error:
  *   { success: false, error: string, code?: string }
@@ -50,7 +49,7 @@ function fail(body: object, status = 400): Response {
 }
 
 // ── HTML del email de bienvenida ──────────────────────────────────────────────
-function buildWelcomeHtml(nombre: string, email: string, rol: string, setupLink: string, siteUrl: string): string {
+function buildWelcomeHtml(nombre: string, email: string, rol: string, setupLink: string, _siteUrl: string): string {
   const displayName = nombre || email.split('@')[0];
   return `
 <!DOCTYPE html>
@@ -190,6 +189,8 @@ serve(async (req: Request) => {
       return fail({ success: false, error: 'Token inválido o sesión expirada.' }, 401);
     }
 
+    console.log(`[send-welcome-email] Caller verificado: ${callerUser.email}`);
+
     // Admin client
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL')     ?? '',
@@ -197,13 +198,15 @@ serve(async (req: Request) => {
       { auth: { autoRefreshToken: false, persistSession: false } }
     );
 
-    const siteUrl  = Deno.env.get('SITE_URL') ?? 'http://localhost:8000/app/admin/index.html';
+    const siteUrl = Deno.env.get('SITE_URL') ?? 'http://localhost:8000/app/admin/index.html';
 
     // ── Credenciales SMTP Brevo ────────────────────────────────────────────────
     const smtpHost = Deno.env.get('BREVO_SMTP_HOST') ?? '';
     const smtpPort = parseInt(Deno.env.get('BREVO_SMTP_PORT') ?? '587');
     const smtpUser = Deno.env.get('BREVO_SMTP_USER') ?? '';
     const smtpPass = Deno.env.get('BREVO_SMTP_PASS') ?? '';
+
+    console.log(`[send-welcome-email] SMTP config — host:"${smtpHost}" port:${smtpPort} user:"${smtpUser}" pass_set:${!!smtpPass}`);
 
     if (!smtpHost || !smtpUser || !smtpPass) {
       console.error('[send-welcome-email] Credenciales SMTP Brevo no configuradas');
@@ -226,31 +229,61 @@ serve(async (req: Request) => {
     const setupLink = (linkData as { properties?: { action_link?: string } })
       ?.properties?.action_link ?? siteUrl;
 
+    console.log(`[send-welcome-email] Recovery link generado OK. Enviando via SMTP Brevo a: ${email}`);
+
     // ── Enviar via SMTP Brevo ──────────────────────────────────────────────────
-    console.log(`[send-welcome-email] Enviando via SMTP Brevo a: ${email}`);
     const htmlBody    = buildWelcomeHtml(nombre, email, rol, setupLink, siteUrl);
     const transporter = nodemailer.createTransport({
-      host:   smtpHost,
-      port:   smtpPort,
-      secure: false,   // STARTTLS en puerto 587
-      auth:   { user: smtpUser, pass: smtpPass },
+      host:    smtpHost,
+      port:    smtpPort,
+      secure:  false,        // STARTTLS en puerto 587
+      auth:    { user: smtpUser, pass: smtpPass },
+      debug:   true,         // log SMTP conversation completa
+      logger:  true,         // habilitar logs internos de nodemailer
+      connectionTimeout: 15000,
+      greetingTimeout:   10000,
+      socketTimeout:     30000,
     });
 
+    // Verificar conectividad antes de enviar
+    console.log('[send-welcome-email] Verificando conexión SMTP...');
     try {
-      await transporter.sendMail({
-        from:    'Catalogo UNAM/FAD <af249a001@smtp-brevo.com>',
+      await transporter.verify();
+      console.log('[send-welcome-email] ✓ Conexión SMTP verificada correctamente');
+    } catch (verifyErr) {
+      const msg = verifyErr instanceof Error ? verifyErr.message : String(verifyErr);
+      console.error('[send-welcome-email] ✗ Fallo en verify SMTP:', msg);
+      return fail({ success: false, error: `SMTP verify falló: ${msg}`, code: 'SMTP_VERIFY_ERROR' }, 500);
+    }
+
+    let sendInfo: Record<string, unknown>;
+    try {
+      sendInfo = await transporter.sendMail({
+        from:    `Catalogo UNAM/FAD <${smtpUser}>`,
         to:      email,
         subject: 'Bienvenido al Panel Admin — Catalogo de Obra Serigrafica UNAM',
         html:    htmlBody,
       });
     } catch (smtpErr) {
       const msg = smtpErr instanceof Error ? smtpErr.message : String(smtpErr);
-      console.error('[send-welcome-email] SMTP error:', msg);
+      console.error('[send-welcome-email] ✗ SMTP sendMail error:', msg);
       return fail({ success: false, error: `Error SMTP: ${msg}`, code: 'SMTP_ERROR' }, 500);
     }
 
-    console.log(`[send-welcome-email] ✓ Welcome email (Brevo SMTP) enviado a ${email} (rol: ${rol})`);
-    return ok({ success: true, method: 'brevo' });
+    // Log completo de la respuesta del servidor SMTP
+    console.log('[send-welcome-email] ✓ sendMail completado');
+    console.log('[send-welcome-email]   messageId :', sendInfo.messageId);
+    console.log('[send-welcome-email]   response  :', sendInfo.response);
+    console.log('[send-welcome-email]   accepted  :', JSON.stringify(sendInfo.accepted));
+    console.log('[send-welcome-email]   rejected  :', JSON.stringify(sendInfo.rejected));
+    console.log('[send-welcome-email]   pending   :', JSON.stringify(sendInfo.pending));
+    console.log(`[send-welcome-email] ✓ Welcome email enviado a ${email} (rol: ${rol})`);
+
+    return ok({
+      success:   true,
+      method:    'brevo',
+      messageId: sendInfo.messageId,
+    });
 
   } catch (e) {
     const message = e instanceof Error ? e.message : 'Error interno del servidor.';

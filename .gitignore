@@ -15,10 +15,16 @@ build/
 .next/
 out/
 
-# Variables sensibles
+# Variables sensibles y credenciales (NUNCA deben ir a git)
 .env
 .env.local
 .env.*.local
+*.txt.key
+resendapi.txt
+*api*.txt
+*smtp*.txt
+*credentials*.txt
+*secrets*.txt
 node_modules/
 .DS_Store
 
