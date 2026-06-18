@@ -1,8 +1,10 @@
 [build]
   publish = "app"
 
-# ── SPA redirect: /app/admin/* → index.html (maneja rutas y hash tokens) ──────
+# ── SPA redirect: /admin/* → index.html (maneja rutas y hash tokens) ──────────
+# Netlify sirve "app/" como raíz, por lo que la URL pública es /admin/
+# (sin el prefijo /app/ que existe en el filesystem local)
 [[redirects]]
-  from   = "/app/admin/*"
-  to     = "/app/admin/index.html"
+  from   = "/admin/*"
+  to     = "/admin/index.html"
   status = 200

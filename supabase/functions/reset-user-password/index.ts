@@ -253,7 +253,7 @@ serve(async (req: Request) => {
       { auth: { autoRefreshToken: false, persistSession: false } }
     );
 
-    const siteUrl = Deno.env.get('SITE_URL') ?? 'https://catalogo-serigrafia-unam-fad.netlify.app/app/admin/';
+    const siteUrl = Deno.env.get('SITE_URL') ?? 'https://catalogo-serigrafia-unam-fad.netlify.app/admin/';
 
     // ── 5. Buscar nombre del usuario en usuarios_admin ─────────────────────────
     const { data: usuarioData } = await supabaseAdmin
