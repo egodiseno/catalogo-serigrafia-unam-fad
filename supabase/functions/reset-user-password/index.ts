@@ -298,7 +298,7 @@ serve(async (req: Request) => {
 
     try {
       await transporter.sendMail({
-        from:    'Catalogo UNAM/FAD <noreply@catalogo-serigrafia.unam.mx>',
+        from:    'Catalogo UNAM/FAD <af249a001@smtp-brevo.com>',
         to:      email,
         subject: 'Restablece tu contrasena — Catalogo de Obra Serigrafica UNAM',
         html:    htmlBody,
