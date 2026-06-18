@@ -56,8 +56,66 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // ── Estado inicial ─────────────────────────────────────────────────────────
   if (inRecoveryFlow) {
-    // Token de recovery en la URL — el evento PASSWORD_RECOVERY llegará en breve
-    showLogin();
+    // Token de recovery en la URL — procesar explícitamente con setSession()
+    // (no esperar el evento PASSWORD_RECOVERY que puede llegar tarde o perderse)
+    const accessToken  = _hashParams.get('access_token')  ?? '';
+    const refreshToken = _hashParams.get('refresh_token') ?? '';
+
+    if (accessToken) {
+      console.log('[auth] Recovery token detectado — estableciendo sesión…');
+      try {
+        const { data: sessionData, error: sessionError } = await client.auth.setSession({
+          access_token:  accessToken,
+          refresh_token: refreshToken,
+        });
+
+        // Limpiar el hash de la URL (sin tokens visibles, sin recargar)
+        history.replaceState(null, '', window.location.pathname + window.location.search);
+
+        if (sessionError || !sessionData?.session?.user) {
+          console.error('[auth] setSession error:', sessionError);
+          showLogin();
+          showError('El enlace de recuperación es inválido o ya expiró. Solicita uno nuevo al administrador.');
+        } else {
+          console.log('[auth] ✅ Sesión establecida correctamente');
+          inRecoveryFlow = false;
+
+          const userEmail2 = sessionData.session.user.email;
+
+          // Cargar rol desde usuarios_admin
+          try {
+            const { data: rolData } = await window.supabase_client
+              .from('usuarios_admin')
+              .select('rol')
+              .eq('email', userEmail2)
+              .single();
+
+            window.usuarioActual = { email: userEmail2, rol: rolData?.rol || 'editor' };
+          } catch {
+            window.usuarioActual = { email: userEmail2, rol: 'editor' };
+          }
+          localStorage.setItem('usuarioActual', JSON.stringify(window.usuarioActual));
+
+          showDashboard(userEmail2);
+          // Sugerir al usuario que actualice su contraseña
+          setTimeout(() => {
+            window.ErrorHandler?.showToast(
+              'Bienvenido/a. Recuerda actualizar tu contraseña en Configuración → Perfil.',
+              'info'
+            );
+          }, 800);
+        }
+      } catch (recErr) {
+        console.error('[auth] Recovery setSession excepción:', recErr);
+        history.replaceState(null, '', window.location.pathname + window.location.search);
+        showLogin();
+        showError('Error al procesar el enlace. Intenta de nuevo o contacta al administrador.');
+      }
+    } else {
+      // Hash con type=recovery pero sin access_token — mostrar login normal
+      console.warn('[auth] type=recovery en hash pero sin access_token');
+      showLogin();
+    }
   } else {
     const session = await window.supabaseConfig.getSession();
     if (session?.user) {
@@ -292,9 +350,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   window.supabaseConfig.onAuthStateChange((event, session) => {
 
     if (event === 'PASSWORD_RECOVERY') {
-      inRecoveryFlow = true;
-      console.log('🔑 auth.js: PASSWORD_RECOVERY detectado');
-      showRecovery();
+      // Si ya procesamos el hash con setSession() arriba, inRecoveryFlow ya es false
+      // y el usuario está en el dashboard — no redirigir de vuelta al form de recovery.
+      if (inRecoveryFlow) {
+        console.log('🔑 auth.js: PASSWORD_RECOVERY evento (flujo no procesado antes)');
+        showRecovery();
+      } else {
+        console.log('🔑 auth.js: PASSWORD_RECOVERY evento ignorado (ya procesado via setSession)');
+      }
 
     } else if (event === 'SIGNED_IN' && session?.user) {
       // SIGNED_IN se dispara en login normal y también tras MFA/updateUser.
