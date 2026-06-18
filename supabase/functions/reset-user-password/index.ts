@@ -296,7 +296,7 @@ serve(async (req: Request) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        sender:      { name: 'Catálogo UNAM/FAD', email: 'af249a001@smtp-brevo.com' },
+        sender:      { name: 'Catálogo UNAM/FAD', email: 'egodiseno@gmail.com' },
         to:          [{ email }],
         subject:     'Restablece tu contraseña — Catálogo de Obra Serigráfica UNAM',
         htmlContent,
