@@ -284,6 +284,12 @@ const RegistrosPendientes = (() => {
       }
 
       console.log('[RegistrosPendientes] Registro validado:', id);
+      // ── Audit: log validación — btn tiene data-nombre y data-email ──────────
+      window.auditLogger?.registrar('validar', 'registro_alumno', {
+        objeto_id:    id,
+        objeto_nombre: btn.dataset.nombre ?? '',
+        detalles: { email: btn.dataset.email ?? '' },
+      });
       window.ErrorHandler?.showToast(
         'Registro validado. El alumno recibirá un email de bienvenida.',
         'success'
@@ -384,6 +390,14 @@ const RegistrosPendientes = (() => {
       }
 
       console.log('[RegistrosPendientes] Registro rechazado:', id);
+      // ── Audit: log rechazo — lookup en _registros ANTES de cargar() ─────────
+      // _registros todavía tiene la fila (cargar() la elimina al refrescar)
+      const _regRechazado = _registros.find(r => r.id === id);
+      window.auditLogger?.registrar('rechazar', 'registro_alumno', {
+        objeto_id:    id,
+        objeto_nombre: _regRechazado?.nombre ?? id,
+        detalles: { email: _regRechazado?.email ?? '', notas: notas || null },
+      });
       _cerrarModalRechazar();
       window.ErrorHandler?.showToast('Registro rechazado correctamente.', 'success');
       await cargar();

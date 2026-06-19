@@ -439,6 +439,11 @@ const UsuariosCRUD = (() => {
           const emails = toDelete.map(u => u.email);
           const result = await _callDeleteBatch(emails);
           selectedIds.clear();
+          // ── Audit: log batch delete (un registro que lista todos los eliminados) ──
+          window.auditLogger?.registrar('borrar', 'usuario', {
+            objeto_nombre: `lote: ${emails.length} usuario${emails.length !== 1 ? 's' : ''}`,
+            detalles: { emails_eliminados: emails, total: result.deleted_count ?? emails.length },
+          });
           window.ErrorHandler?.showToast(
             result.message ?? `${n} usuario${n !== 1 ? 's eliminados' : ' eliminado'}`,
             'success'
@@ -783,6 +788,8 @@ const UsuariosCRUD = (() => {
 
       if (!response.ok || !result.success) throw new Error(result.error ?? `Error ${response.status}.`);
 
+      // ── Audit: log reset password ──────────────────────────────────────────
+      window.auditLogger?.registrar('resetear', 'usuario', { objeto_nombre: email });
       window.ErrorHandler?.showToast(`Link de restablecimiento enviado a ${email}`, 'success', 'mail-check');
     } catch (err) {
       console.error('[UsuariosCRUD] _doReset:', err);
