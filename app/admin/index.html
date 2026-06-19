@@ -421,23 +421,29 @@
           <!-- Indicador de filtro por rol (visible solo para EDITOR) -->
           <div id="filterIndicator" class="filter-role-indicator" style="display:none;" aria-live="polite"></div>
 
-          <div class="filter-bar">
-            <input
-              type="text"
-              id="searchObras"
-              placeholder="Buscar por título..."
-              class="search-input"
-            />
-            <select id="filterEstado" class="select-input">
-              <option value="">Todos los estados</option>
-              <option value="Borrador">Borrador</option>
-              <option value="Publicado">Publicado</option>
-              <option value="En Revisión">En Revisión</option>
-              <option value="Archivado">Archivado</option>
-            </select>
-            <select id="filterTecnica" class="select-input">
-              <option value="">— Todas las técnicas —</option>
-            </select>
+          <div class="logs-filters">
+            <div class="logs-filter-group" style="flex:1;min-width:200px;">
+              <label for="searchObras">Buscar</label>
+              <input type="text" id="searchObras"
+                     placeholder="Buscar por título…"
+                     class="search-input" />
+            </div>
+            <div class="logs-filter-group">
+              <label for="filterEstado">Estado</label>
+              <select id="filterEstado" class="select-input">
+                <option value="">Todos los estados</option>
+                <option value="Borrador">Borrador</option>
+                <option value="Publicado">Publicado</option>
+                <option value="En Revisión">En Revisión</option>
+                <option value="Archivado">Archivado</option>
+              </select>
+            </div>
+            <div class="logs-filter-group">
+              <label for="filterTecnica">Técnica</label>
+              <select id="filterTecnica" class="select-input">
+                <option value="">— Todas las técnicas —</option>
+              </select>
+            </div>
           </div>
 
           <div class="table-wrapper">
@@ -542,8 +548,9 @@
           </div>
 
           <!-- Toolbar: búsqueda + filtros -->
-          <div class="usuarios-toolbar">
-            <div class="usuarios-toolbar__search">
+          <div class="logs-filters">
+            <div class="logs-filter-group" style="flex:1;min-width:200px;">
+              <label for="inputBuscarUsuario">Buscar</label>
               <div class="search-field">
                 <i data-lucide="search" class="search-field__icon"
                    style="width:15px;height:15px;" aria-hidden="true"></i>
@@ -553,21 +560,27 @@
                        autocomplete="off">
               </div>
             </div>
-            <div class="usuarios-toolbar__filters">
-              <select id="filterRol" class="select-input select-input--sm"
+            <div class="logs-filter-group">
+              <label for="filterRol">Rol</label>
+              <select id="filterRol" class="select-input"
                       aria-label="Filtrar por rol">
                 <option value="">Todos los roles</option>
                 <option value="admin">Admin</option>
                 <option value="super_editor">Super Editor</option>
                 <option value="editor">Editor</option>
               </select>
-              <select id="filterEstado" class="select-input select-input--sm"
+            </div>
+            <div class="logs-filter-group">
+              <label for="filterEstado">Estado</label>
+              <select id="filterEstado" class="select-input"
                       aria-label="Filtrar por estado">
                 <option value="">Todos los estados</option>
                 <option value="activo">Activo</option>
                 <option value="inactivo">Inactivo</option>
               </select>
-              <button type="button" class="btn btn-ghost btn-sm" id="btnLimpiarFiltros">
+            </div>
+            <div class="logs-filter-actions">
+              <button type="button" class="btn btn-secondary btn-sm" id="btnLimpiarFiltros">
                 <i data-lucide="x" style="width:13px;height:13px;" aria-hidden="true"></i>
                 Limpiar
               </button>
@@ -653,8 +666,9 @@
           </div>
 
           <!-- Toolbar: búsqueda + filtros -->
-          <div class="usuarios-toolbar">
-            <div class="usuarios-toolbar__search">
+          <div class="logs-filters">
+            <div class="logs-filter-group" style="flex:1;min-width:200px;">
+              <label for="haSearchInput">Buscar</label>
               <div class="search-field">
                 <i data-lucide="search" class="search-field__icon"
                    style="width:15px;height:15px;" aria-hidden="true"></i>
@@ -664,15 +678,18 @@
                        autocomplete="off">
               </div>
             </div>
-            <div class="usuarios-toolbar__filters">
-              <select id="haFilterEstado" class="select-input select-input--sm"
+            <div class="logs-filter-group">
+              <label for="haFilterEstado">Estado</label>
+              <select id="haFilterEstado" class="select-input"
                       aria-label="Filtrar por estado">
                 <option value="">Todos los estados</option>
                 <option value="pendiente_validacion">Pendiente</option>
                 <option value="validado">Validado</option>
                 <option value="rechazado">Rechazado</option>
               </select>
-              <button type="button" class="btn btn-ghost btn-sm" id="haBtnLimpiar">
+            </div>
+            <div class="logs-filter-actions">
+              <button type="button" class="btn btn-secondary btn-sm" id="haBtnLimpiar">
                 <i data-lucide="x" style="width:13px;height:13px;" aria-hidden="true"></i>
                 Limpiar
               </button>
