@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const dashboardPage = document.getElementById('dashboardPage');
   const loginForm     = document.getElementById('loginForm');
   const loginError    = document.getElementById('loginError');
-  const logoutBtn     = document.getElementById('logoutBtn');
+  // #logoutBtn: el listener usa delegación en document (ver más abajo) — sin referencia directa
   const userEmail     = document.getElementById('userEmail');
   const emailInput    = document.getElementById('email');
   const passwordInput = document.getElementById('password');
@@ -341,17 +341,25 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.addEventListener('click', async (e) => {
     // closest() cubre el caso en que el clic cae sobre el ícono hijo del botón
     if (!e.target.closest('#logoutBtn')) return;
-    mfaFlowActive = false;
-    mfaFactorId   = null;
-    // Registrar logout antes de limpiar (el logger lee window.usuarioActual)
-    window.auditLogger?.logout(window.usuarioActual?.email);
-    // Limpiar datos del usuario
-    window.usuarioActual = null;
-    localStorage.removeItem('usuarioActual');
-    window.dashboardManager?.limpiar?.();
-    await window.supabaseConfig.logout();
-    loginForm?.reset();
-    showLogin();
+    console.log('[auth] Logout iniciado — rol:', window.usuarioActual?.rol);
+    try {
+      mfaFlowActive = false;
+      mfaFactorId   = null;
+      // Registrar logout antes de limpiar (el logger lee window.usuarioActual)
+      window.auditLogger?.logout(window.usuarioActual?.email);
+      // Limpiar datos del usuario
+      window.usuarioActual = null;
+      localStorage.removeItem('usuarioActual');
+      window.dashboardManager?.limpiar?.();
+      await window.supabaseConfig.logout();
+      loginForm?.reset();
+      showLogin();
+      console.log('[auth] Logout completado — formulario de login visible');
+    } catch (err) {
+      console.error('[auth] Error en logout:', err);
+      // Aunque el signOut falle, forzar la vista de login para no dejar al usuario atrapado
+      showLogin();
+    }
   });
 
   // ── CAMBIOS DE SESIÓN (tab cruzado, recovery, expiración) ─────────────────
