@@ -263,7 +263,10 @@ function inicializarPermisos() {
   }
 
   // ── Aplicar matriz de visibilidad centralizada (navigation.js) ─────────────
-  window.Navigation?.applyNavVisibility(rol);
+  // Doble ?. necesario: el primer ?. protege si window.Navigation es nullish;
+  // el segundo ?. protege si applyNavVisibility aún no es función (timing
+  // entre DOMContentLoaded de auth.js y navigation.js con scripts defer).
+  window.Navigation?.applyNavVisibility?.(rol);
 }
 
 // ── Exponer globalmente ────────────────────────────────────
