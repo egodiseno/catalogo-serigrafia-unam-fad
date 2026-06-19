@@ -112,12 +112,12 @@ class PortafolioManager {
     const tbody = document.getElementById('portafolioTbody');
     if (!tbody) return;
 
-    tbody.innerHTML = '<tr><td colspan="5" class="loading-cell">Cargando obras…</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" class="loading-cell">Cargando obras…</td></tr>';
 
     try {
       let query = this.client
         .from('obras')
-        .select('id, titulo, tecnica_id, tecnicas(nombre), estado, created_at')
+        .select('id, titulo, año, tecnica_id, tecnicas(nombre), imagenes(url_storage, principal), obra_tags(tags(id, nombre)), estado, created_at')
         .order('created_at', { ascending: false });
 
       // Filtrar solo propias si hay nombre de artista; si no, sin filtro
@@ -140,8 +140,23 @@ class PortafolioManager {
 
     } catch (err) {
       console.error('[PortafolioManager] cargarObras:', err);
-      tbody.innerHTML = '<tr><td colspan="5" class="empty-cell">Error al cargar obras.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="8" class="empty-cell">Error al cargar obras.</td></tr>';
     }
+  }
+
+  // ── Helpers de escape (mismos que obras-list.js) ──────
+  _escHtml(str) {
+    if (!str) return '—';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  _escAttr(str) {
+    if (!str) return '';
+    return String(str).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
 
   _renderTablaObras(obras) {
@@ -149,7 +164,7 @@ class PortafolioManager {
     if (!tbody) return;
 
     if (!obras.length) {
-      tbody.innerHTML = '<tr><td colspan="5" class="empty-cell">No hay obras registradas.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="8" class="empty-cell">No hay obras registradas aún.</td></tr>';
       return;
     }
 
@@ -160,31 +175,56 @@ class PortafolioManager {
         'En Revisión': 'badge-revision',
         'Archivado':   'badge-archivado',
       };
-      const cls   = map[est] || 'badge-borrador';
-      const label = est || '—';
-      return `<span class="badge ${cls}">${label}</span>`;
+      const cls = map[est] || 'badge-borrador';
+      return `<span class="badge ${cls}">${est || '—'}</span>`;
     };
 
-    tbody.innerHTML = obras.map(o => `
-      <tr>
-        <td data-label="Título">${o.titulo ?? '—'}</td>
-        <td data-label="Técnica">${o.tecnicas?.nombre ?? '—'}</td>
-        <td data-label="Estado">${estadoBadge(o.estado)}</td>
-        <td data-label="Fecha">${o.created_at ? new Date(o.created_at).toLocaleDateString('es-MX') : '—'}</td>
-        <td data-label="Acciones">
-          <button class="btn btn-ghost btn-xs portafolio-edit-btn" data-id="${o.id}" title="Editar obra">
-            <i data-lucide="pencil" style="width:14px;height:14px;" aria-hidden="true"></i>
-          </button>
-        </td>
-      </tr>`).join('');
+    tbody.innerHTML = obras.map(o => {
+      // Miniatura — imagen principal; si no, la primera disponible
+      const imgUrl = o.imagenes?.find(i => i.principal)?.url_storage
+                  ?? o.imagenes?.[0]?.url_storage;
+      const thumb = imgUrl
+        ? `<img src="${this._escAttr(imgUrl)}" alt="thumb" class="obra-thumb"
+               data-src="${this._escAttr(imgUrl)}" title="Ver imagen">`
+        : '<span class="no-thumb">—</span>';
+
+      // Tags N:M via obra_tags
+      const tagNames = (o.obra_tags ?? [])
+        .map(ot => ot.tags?.nombre)
+        .filter(Boolean);
+      const tagsHtml = tagNames.length
+        ? tagNames.map(n => `<span class="tag-badge">${this._escHtml(n)}</span>`).join('')
+        : '<span class="text-muted">—</span>';
+
+      return `
+        <tr data-id="${o.id}">
+          <td class="td-thumb" data-label="Imagen">${thumb}</td>
+          <td data-label="Título">${this._escHtml(o.titulo)}</td>
+          <td data-label="Año">${o.año ?? '—'}</td>
+          <td data-label="Técnica">${this._escHtml(o.tecnicas?.nombre)}</td>
+          <td class="tags-cell" data-label="Tags">${tagsHtml}</td>
+          <td data-label="Estado">${estadoBadge(o.estado)}</td>
+          <td data-label="Fecha">${o.created_at ? new Date(o.created_at).toLocaleDateString('es-MX') : '—'}</td>
+          <td data-label="Acciones">
+            <button class="btn btn-ghost btn-xs portafolio-edit-btn" data-id="${o.id}" title="Editar obra">
+              <i data-lucide="pencil" style="width:14px;height:14px;" aria-hidden="true"></i>
+            </button>
+          </td>
+        </tr>`;
+    }).join('');
 
     window.IconRegistry?.init();
 
-    // Abrir modal de edición sin abandonar Mi Portafolio
+    // Miniatura → modal de vista previa (mismo patrón que obras-list.js)
+    tbody.querySelectorAll('.obra-thumb').forEach(img => {
+      img.addEventListener('click', () =>
+        window.ModalManager?.openImagePreview(img.dataset.src)
+      );
+    });
+
+    // Abrir modal de edición
     tbody.querySelectorAll('.portafolio-edit-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        window.obrasForm?.open(btn.dataset.id);
-      });
+      btn.addEventListener('click', () => window.obrasForm?.open(btn.dataset.id));
     });
   }
 
