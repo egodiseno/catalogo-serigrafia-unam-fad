@@ -90,23 +90,23 @@ const RegistrosPendientes = (() => {
 
     const rows = registros.map(r => `
       <tr data-reg-id="${escHtml(r.id)}">
-        <td class="td-cuenta"><code class="cuenta-code">${escHtml(r.numero_cuenta)}</code></td>
-        <td class="td-nombre">${escHtml(r.nombre)}</td>
-        <td class="td-email">
+        <td class="td-cuenta" data-label="Núm. Cuenta"><code class="cuenta-code">${escHtml(r.numero_cuenta)}</code></td>
+        <td class="td-nombre" data-label="Nombre">${escHtml(r.nombre)}</td>
+        <td class="td-email" data-label="Email">
           <a href="mailto:${escHtml(r.email)}" class="email-link">${escHtml(r.email)}</a>
         </td>
-        <td class="td-telefono">
+        <td class="td-telefono" data-label="Teléfono">
           ${r.telefono
             ? escHtml(r.telefono)
             : '<span class="text-muted">—</span>'}
         </td>
-        <td class="td-whatsapp" style="text-align:center;">
+        <td class="td-whatsapp" data-label="WhatsApp" style="text-align:center;">
           ${r.tiene_whatsapp
             ? '<span class="badge badge-registros-wa"><i data-lucide="message-circle" style="width:12px;height:12px;" aria-hidden="true"></i> Sí</span>'
             : '<span class="text-muted">No</span>'}
         </td>
-        <td class="td-fecha">${formatFecha(r.fecha_registro)}</td>
-        <td class="td-acciones registros-acciones">
+        <td class="td-fecha" data-label="Registrado">${formatFecha(r.fecha_registro)}</td>
+        <td class="td-acciones registros-acciones" data-label="Acciones">
           <button class="btn btn-sm btn-primary btn-validar"
                   data-id="${escHtml(r.id)}"
                   data-nombre="${escHtml(r.nombre)}"

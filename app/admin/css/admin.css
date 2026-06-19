@@ -5683,6 +5683,64 @@ input[type="file"]:hover {
   }
 }
 
+/* ── Historial Alumnos: tabla → tarjetas (≤ 1023 px) ─────────────── */
+@media (max-width: 1023px) {
+  .historial-table { display: block; border: none; }
+
+  .historial-table thead { display: none; }
+
+  .historial-table tbody {
+    display:        flex;
+    flex-direction: column;
+    gap:            var(--spacing-md, 0.75rem);
+  }
+
+  .historial-table tbody tr {
+    display:        flex;
+    flex-direction: column;
+    border:         1px solid var(--color-border, #e2e8f0);
+    border-radius:  var(--radius-md, 8px);
+    background:     var(--color-surface);
+    overflow:       hidden;
+    box-shadow:     var(--shadow-sm);
+  }
+
+  .historial-table td {
+    display:         flex;
+    justify-content: space-between;
+    align-items:     center;
+    padding:         var(--spacing-sm, 0.5rem) var(--spacing-md, 0.75rem);
+    border-bottom:   1px solid var(--color-border, #e2e8f0);
+    white-space:     normal;
+  }
+
+  .historial-table td:last-child { border-bottom: none; }
+
+  .historial-table td::before {
+    content:      attr(data-label);
+    font-weight:  600;
+    font-size:    var(--text-xs, 0.8125rem);
+    color:        var(--color-text-muted);
+    margin-right: var(--spacing-md, 0.75rem);
+    white-space:  nowrap;
+    flex-shrink:  0;
+  }
+
+  /* Celda de acciones: etiqueta a la izquierda, botón a la derecha */
+  .historial-table .actions-cell {
+    justify-content: flex-end;
+    gap: var(--spacing-sm, 0.5rem);
+  }
+  .historial-table .actions-cell::before { margin-right: auto; }
+  .historial-table .actions-cell .action-buttons {
+    display: flex;
+    gap:     var(--spacing-sm, 0.5rem);
+  }
+
+  /* El table-wrapper no añade scroll horizontal en modo tarjetas */
+  .table-wrapper:has(.historial-table) { overflow-x: visible; }
+}
+
 
 /* ═══════════════════════════════════════════════════════════════════
    MI PERFIL — Responsive
@@ -7008,6 +7066,66 @@ input[type="file"]:hover {
   .registros-table .td-fecha {
     display: none;
   }
+}
+
+/* ── Registros Pendientes: tabla → tarjetas (≤ 1023 px) ──────────── */
+@media (max-width: 1023px) {
+  .registros-table { display: block; border: none; }
+
+  .registros-table thead { display: none; }
+
+  .registros-table tbody {
+    display:        flex;
+    flex-direction: column;
+    gap:            var(--spacing-md, 0.75rem);
+  }
+
+  .registros-table tbody tr {
+    display:        flex;
+    flex-direction: column;
+    border:         1px solid var(--color-border, #E5E7EB);
+    border-radius:  var(--radius-md, 8px);
+    background:     var(--color-surface);
+    overflow:       hidden;
+    box-shadow:     var(--shadow-sm);
+  }
+
+  .registros-table td {
+    display:         flex;
+    justify-content: space-between;
+    align-items:     center;
+    padding:         var(--spacing-sm, 0.5rem) var(--spacing-md, 0.75rem);
+    border-bottom:   1px solid var(--color-border, #E5E7EB);
+    white-space:     normal;
+  }
+
+  .registros-table td:last-child { border-bottom: none; }
+
+  .registros-table td::before {
+    content:      attr(data-label);
+    font-weight:  600;
+    font-size:    var(--text-xs, 0.8125rem);
+    color:        var(--color-text-muted);
+    margin-right: var(--spacing-md, 0.75rem);
+    white-space:  nowrap;
+    flex-shrink:  0;
+  }
+
+  /* Restaurar celdas que se ocultan en la vista de tabla estrecha */
+  .registros-table .td-telefono,
+  .registros-table .td-whatsapp,
+  .registros-table .td-fecha { display: flex; }
+
+  /* Celda de acciones: etiqueta a la izquierda, botones a la derecha */
+  .registros-table .td-acciones {
+    justify-content: flex-end;
+    gap:             var(--spacing-sm, 0.5rem);
+    flex-wrap:       wrap;
+  }
+  .registros-table .td-acciones::before { margin-right: auto; }
+
+  /* El table-wrapper no añade scroll horizontal en modo tarjetas */
+  .table-wrapper:has(.registros-table) { overflow-x: visible; }
 }
 
 

@@ -60,21 +60,21 @@ const HistorialAlumnos = (() => {
   function _buildRow(r) {
     return `
       <tr data-ha-id="${escHtml(r.id)}">
-        <td class="td-nombre">${escHtml(r.nombre ?? '—')}</td>
-        <td class="td-cuenta">
+        <td class="td-nombre" data-label="Nombre">${escHtml(r.nombre ?? '—')}</td>
+        <td class="td-cuenta" data-label="Núm. Cuenta">
           ${r.numero_cuenta
             ? `<code class="cuenta-code">${escHtml(String(r.numero_cuenta))}</code>`
             : '<span class="text-muted">—</span>'}
         </td>
-        <td class="td-email">
+        <td class="td-email" data-label="Email">
           <a href="mailto:${escHtml(r.email)}" class="email-link">${escHtml(r.email)}</a>
         </td>
-        <td class="td-telefono">
+        <td class="td-telefono" data-label="Teléfono">
           ${r.telefono ? escHtml(r.telefono) : '<span class="text-muted">—</span>'}
         </td>
-        <td class="td-estado">${estadoBadge(r.estado)}</td>
-        <td class="td-fecha">${formatFecha(r.fecha_registro)}</td>
-        <td class="actions-cell">
+        <td class="td-estado" data-label="Estado">${estadoBadge(r.estado)}</td>
+        <td class="td-fecha" data-label="Fecha Registro">${formatFecha(r.fecha_registro)}</td>
+        <td class="actions-cell" data-label="Acciones">
           <div class="action-buttons">
             <button class="btn btn-sm btn-danger btn--icon-only btn-ha-eliminar"
                     data-ha-id="${escHtml(r.id)}"
