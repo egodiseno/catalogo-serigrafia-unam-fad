@@ -44,6 +44,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   console.log('🔐 auth.js cargado');
 
+  // ── Toggle mostrar / ocultar contraseña en el formulario de LOGIN ──────────
+  // Reutiliza _setupSetPwdToggle (definida más abajo; hoisted al inicio del handler)
+  _setupSetPwdToggle('password');
+
   // ── Estado de flujo ────────────────────────────────────────────────────────
   let inRecoveryFlow  = false;  // true mientras se restablece contraseña
   let mfaFlowActive   = false;  // true mientras se completa MFA tras login
