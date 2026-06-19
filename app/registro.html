@@ -743,6 +743,28 @@
     const $tel      = document.getElementById('reg-tel');
     const $wapp     = document.getElementById('reg-whatsapp');
 
+    /* ── Fecha local YYYY-MM-DD (hora del navegador del alumno) ─ */
+    // NOTA DE SINCRONIZACIÓN: esta función y la del backend (Edge Function
+    // save-registro-alumno) implementan la misma lógica. Si se cambia aquí,
+    // actualizar también el backend, y viceversa.
+    function _hoyISO() {
+      const d  = new Date();
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      return `${d.getFullYear()}-${mm}-${dd}`;
+    }
+
+    // Devuelve true si el registro está REALMENTE abierto:
+    // registro_activo = true  Y  fecha actual dentro de [inicio, fin] inclusive.
+    // Ambas condiciones son necesarias; cualquiera puede cerrar el período.
+    function _estaAbierto(data) {
+      if (!data?.registro_activo) return false;
+      const hoy = _hoyISO();
+      if (data.fecha_inicio && hoy < data.fecha_inicio) return false;
+      if (data.fecha_fin    && hoy > data.fecha_fin)    return false;
+      return true;
+    }
+
     /* ── Formato de fecha ──────────────────────────────────── */
     function fmtFecha(isoDate) {
       if (!isoDate) return '';
@@ -779,7 +801,8 @@
 
         $cargando.style.display = 'none';
 
-        if (data?.registro_activo) {
+        // Condición combinada: toggle ON + fecha actual dentro del rango
+        if (_estaAbierto(data)) {
           // Mostrar pantalla de registro
           $abierta.classList.add('visible');
           if (data.fecha_inicio && data.fecha_fin) {
@@ -789,7 +812,7 @@
             $abiertaTxt.textContent = 'período abierto';
           }
         } else {
-          // Mostrar pantalla cerrada
+          // Mostrar pantalla cerrada (toggle apagado o fecha fuera de rango)
           $cerrada.classList.add('visible');
           if (data?.fecha_inicio && data?.fecha_fin) {
             $cerradaTxt.textContent =

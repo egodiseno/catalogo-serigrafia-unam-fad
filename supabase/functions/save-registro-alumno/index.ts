@@ -78,6 +78,55 @@ serve(async (req) => {
   );
   console.log('[8b] Cliente creado. URL:', Deno.env.get('SUPABASE_URL'));
 
+  // ── [8c] Guard de seguridad: verificar que el registro está abierto ──────────
+  // Se consulta registro_config directamente — service_role omite RLS.
+  // Condición combinada: registro_activo = true  Y  hoy dentro de [inicio, fin].
+  //
+  // NOTA DE SINCRONIZACIÓN: la misma lógica existe en registro.html (_estaAbierto).
+  // Si se cambia cualquiera de los dos, actualizar el otro.
+  //
+  // Zona horaria: el servidor usa UTC; el frontend usa la hora local del alumno.
+  // La diferencia máxima es ±12 h — aceptable para este proyecto. Si se requiere
+  // precisión al minuto en el cierre, ajustar fecha_fin con un día de margen.
+  console.log('[8c] Verificando estado del registro...');
+  const { data: config, error: configError } = await supabase
+    .from('registro_config')
+    .select('registro_activo, fecha_inicio, fecha_fin')
+    .limit(1)
+    .single();
+
+  if (configError || !config) {
+    console.error('[8c-ERR] No se pudo leer registro_config:', configError?.message);
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error:   'No se pudo verificar el estado del registro. Intenta más tarde.',
+        code:    'CONFIG_ERROR',
+      }),
+      { status: 500, headers: { ...CORS, 'Content-Type': 'application/json' } }
+    );
+  }
+
+  // Fecha de hoy en UTC (YYYY-MM-DD) — comparación string lexicográfica
+  const hoyUTC = new Date().toISOString().split('T')[0];
+  const estaAbierto =
+    !!config.registro_activo &&
+    (!config.fecha_inicio || hoyUTC >= config.fecha_inicio) &&
+    (!config.fecha_fin    || hoyUTC <= config.fecha_fin);
+
+  console.log(`[8c] registro_activo=${config.registro_activo}, fecha_inicio=${config.fecha_inicio}, fecha_fin=${config.fecha_fin}, hoyUTC=${hoyUTC}, estaAbierto=${estaAbierto}`);
+
+  if (!estaAbierto) {
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error:   'El período de registro no está activo actualmente.',
+        code:    'REGISTRO_CERRADO',
+      }),
+      { status: 403, headers: { ...CORS, 'Content-Type': 'application/json' } }
+    );
+  }
+
   console.log('[9] Insertando en registro_alumnos...');
   const { data, error } = await supabase
     .from('registro_alumnos')
