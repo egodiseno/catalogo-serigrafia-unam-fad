@@ -35,14 +35,21 @@ const StorageModule = (() => {
         return { success: false, error: 'No se seleccionó archivo' };
       }
 
-      if (!file.type.startsWith('image/')) {
-        return { success: false, error: 'Solo se aceptan imágenes' };
+      // Validar formato: solo JPG, PNG o WebP (mismo conjunto que convert-webp)
+      const ALLOWED_MIME = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+      if (!ALLOWED_MIME.includes(file.type.toLowerCase())) {
+        const ext = (file.name.split('.').pop() ?? file.type).toUpperCase();
+        return {
+          success: false,
+          error: `Formato no permitido (.${ext}). Usa JPG, PNG o WebP.`,
+        };
       }
 
       if (file.size > MAX_FILE_SIZE) {
+        const actualMB = (file.size / 1024 / 1024).toFixed(1);
         return {
           success: false,
-          error: `Archivo muy grande (máx 5MB, actual: ${(file.size / 1024 / 1024).toFixed(2)}MB)`,
+          error: `El archivo pesa ${actualMB} MB. El máximo permitido es 5 MB.`,
         };
       }
 

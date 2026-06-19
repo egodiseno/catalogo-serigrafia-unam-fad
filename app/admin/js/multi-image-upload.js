@@ -250,9 +250,10 @@ const MultiImageUpload = (() => {
     const imageList = document.getElementById('imageList');
     if (!imageList) return;
 
-    const imageFiles = Array.from(files).filter(f => f.type.startsWith('image/'));
+    const ALLOWED = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    const imageFiles = Array.from(files).filter(f => ALLOWED.includes(f.type.toLowerCase()));
     if (imageFiles.length === 0) {
-      window.ErrorHandler?.showToast('Solo se aceptan imágenes (JPG, PNG, WebP)', 'warning');
+      window.ErrorHandler?.showToast('Solo se aceptan JPG, PNG o WebP.', 'warning');
       return;
     }
 
