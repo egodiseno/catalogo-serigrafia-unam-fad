@@ -70,10 +70,36 @@
       backdrop-filter: blur(8px);
     }
 
-    .cerrada-icono {
-      font-size: 3.5rem;
-      margin-bottom: 1.25rem;
+    /* Logos en pantalla cerrada — contenedor blanco pill sobre fondo oscuro */
+    .cerrada-logos {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      background: rgba(255, 255, 255, 0.92);
+      border-radius: 999px;
+      padding: 0.7rem 1.5rem;
+      margin: 0 auto 1.5rem;
+      width: fit-content;
+      backdrop-filter: blur(4px);
+    }
+
+    .cerrada-logo--unam,
+    .cerrada-logo--fad {
       display: block;
+      height: auto;
+      flex-shrink: 0;
+    }
+
+    .cerrada-logo--unam { width: 42px; }
+    .cerrada-logo--fad  { width: 54px; }
+
+    .cerrada-logos-sep {
+      display: block;
+      width: 1px;
+      height: 22px;
+      background: rgba(1, 59, 117, 0.25);
+      flex-shrink: 0;
     }
 
     .cerrada-card h1 {
@@ -538,7 +564,15 @@
        ══════════════════════════════════════════════════════ -->
   <div id="pantalla-cerrada">
     <div class="cerrada-card">
-      <span class="cerrada-icono">🎨</span>
+      <div class="cerrada-logos" aria-hidden="true">
+        <img src="admin/assets/logos/UNAM.svg"
+             alt="UNAM"
+             class="cerrada-logo--unam">
+        <span class="cerrada-logos-sep"></span>
+        <img src="admin/assets/logos/FAD.svg"
+             alt="Facultad de Artes y Diseño"
+             class="cerrada-logo--fad">
+      </div>
       <h1>Registro Cerrado</h1>
       <p>
         El período de registro para acceder al Catálogo Digital de Obra Serigráfica
