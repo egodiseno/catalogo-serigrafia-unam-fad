@@ -487,10 +487,39 @@
 
     @keyframes spin { to { transform: rotate(360deg); } }
 
+    /* Logos institucionales (pre-header blanco) */
+    .reg-card__logos {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      padding: 1.5rem 2rem 1.25rem;
+      background: #ffffff;
+    }
+
+    .reg-logo--unam,
+    .reg-logo--fad {
+      display: block;
+      height: auto;
+      flex-shrink: 0;
+    }
+
+    .reg-logo--unam { width: 50px; }
+    .reg-logo--fad  { width: 64px; }
+
+    .reg-logos-sep {
+      display: block;
+      width: 1px;
+      height: 28px;
+      background: var(--reg-border);
+      flex-shrink: 0;
+    }
+
     /* Responsive */
     @media (max-width: 540px) {
       .reg-card__body { padding: 1.5rem 1.25rem; }
       .reg-card__header { padding: 1.5rem 1.25rem 1.25rem; }
+      .reg-card__logos { padding: 1.25rem 1.25rem 1rem; }
       .cerrada-card { padding: 2rem 1.5rem; }
     }
   </style>
@@ -532,9 +561,19 @@
   <div id="pantalla-abierta">
     <div class="reg-card">
 
+      <!-- Logos institucionales -->
+      <div class="reg-card__logos" aria-hidden="true">
+        <img src="admin/assets/logos/UNAM.svg"
+             alt="UNAM"
+             class="reg-logo--unam">
+        <span class="reg-logos-sep"></span>
+        <img src="admin/assets/logos/FAD.svg"
+             alt="Facultad de Artes y Diseño"
+             class="reg-logo--fad">
+      </div>
+
       <!-- Header -->
       <div class="reg-card__header">
-        <div class="reg-badge">UNAM / Facultad de Artes y Diseño</div>
         <h1>Registro de Alumnos</h1>
         <p>Completa tu registro para acceder al catálogo digital</p>
       </div>
@@ -617,10 +656,6 @@
           <button type="submit" id="btn-registrar" class="reg-btn-primary">
             Registrarse
           </button>
-
-          <a href="index.html" class="reg-btn-secondary">
-            ← Ver el Catálogo
-          </a>
 
           <!-- Mensaje de éxito -->
           <div id="msg-exito">
