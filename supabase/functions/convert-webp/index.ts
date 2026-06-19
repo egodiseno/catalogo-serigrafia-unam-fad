@@ -1,8 +1,8 @@
 // supabase/functions/convert-webp/index.ts
 // Edge Function: valida imágenes y convierte a WebP (Deno runtime, sin Node)
 //
-// Librería: imagemagick_deno (WASM bundleado inline — sin fetch externo)
-// Referencia oficial Supabase: https://supabase.com/docs/guides/functions/examples/image-resizing
+// Librería: @jsquash (jpeg / png / webp) — ES Modules puros, WASM bundleado inline,
+//           sin require(), sin Web Cache API — compatible con Supabase Edge Functions.
 //
 // POST multipart/form-data
 //   file      : File  — imagen (jpeg | png | webp)
@@ -11,11 +11,9 @@
 // Respuesta OK:  { success: true, filename, size, converted }
 // Respuesta ERR: { success: false, error }
 
-import {
-  ImageMagick,
-  initialize,
-  MagickFormat,
-} from 'https://deno.land/x/imagemagick_deno@0.0.27/mod.ts';
+import { decode as decodeJpeg } from 'npm:@jsquash/jpeg';
+import { decode as decodePng  } from 'npm:@jsquash/png';
+import { encode as encodeWebP } from 'npm:@jsquash/webp';
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
 const MAX_BYTES     = 50 * 1024 * 1024; // 50 MB
@@ -83,7 +81,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
     }
 
     // ── Intentar conversión a WebP ────────────────────
-    const result = await convertToWebP(bytes, file.name, obraId);
+    const result = await convertToWebP(bytes, file.name, obraId, mimeType);
 
     if (result.converted) {
       console.log(
@@ -107,64 +105,44 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
 // ─────────────────────────────────────────────────────────
 // convertToWebP
-// imagemagick_deno: WASM bundleado inline (sin fetch externo).
-// Mismo patrón usado en los ejemplos oficiales de Supabase.
-// Fallback a original si ImageMagick falla.
+// @jsquash: decode JPEG/PNG → ImageData, luego encode → WebP.
+// ES Modules puros: sin require(), sin Web Cache API.
+// Fallback al original si cualquier paso falla.
 // ─────────────────────────────────────────────────────────
 async function convertToWebP(
   input: Uint8Array,
   originalName: string,
   obraId: string | null,
+  mimeType: string,
 ): Promise<{ converted: boolean; data: Uint8Array; filename: string }> {
 
   const webpFilename = buildFilename(originalName, obraId, 'webp');
 
   try {
-    console.log('🔄 Iniciando conversión WASM (ImageMagick)…');
+    console.log('🔄 Iniciando conversión a WebP (@jsquash)…');
 
-    // ── Polyfill Web Cache API ────────────────────────────────────────
-    // imagemagick_deno llama caches.open('deno-magick') internamente para
-    // cachear el WASM entre invocaciones. Supabase Edge Functions no expone
-    // la Web Cache API, lo que causaba "Web Cache is not available in this
-    // context" y el fallback silencioso. Proveemos una implementación no-op:
-    // match() siempre retorna undefined (cache miss → carga WASM normal),
-    // put() no hace nada (no falla). El WASM ya está bundleado inline,
-    // por lo que el único impacto es el cold start marginalmente más lento.
-    try {
-      await caches.open('_probe');
-    } catch {
-      (globalThis as any).caches = {
-        open: async () => ({
-          match: async () => undefined,
-          put:   async () => {},
-        }),
-      };
-    }
-    // ─────────────────────────────────────────────────────────────────
+    // Paso 1 — Decodificar JPEG o PNG → ImageData (RGBA plano)
+    const isJpeg   = mimeType === 'image/jpeg' || mimeType === 'image/jpg';
+    const imageData = isJpeg
+      ? await decodeJpeg(input.buffer as ArrayBuffer)
+      : await decodePng(input.buffer as ArrayBuffer);
 
-    // Inicializar WASM — idempotente, seguro llamar múltiples veces
-    await initialize();
+    // Paso 2 — Codificar ImageData → WebP (calidad 80)
+    const webpBuffer = await encodeWebP(imageData, { quality: 80 });
+    const webpBytes  = new Uint8Array(webpBuffer);
 
-    let webpBytes: Uint8Array | null = null;
-
-    ImageMagick.read(input, (img) => {
-      img.write((data) => {
-        webpBytes = new Uint8Array(data);
-      }, MagickFormat.WebP);
-    });
-
-    if (!webpBytes || (webpBytes as Uint8Array).byteLength === 0) {
-      throw new Error('ImageMagick devolvió bytes vacíos');
+    if (webpBytes.byteLength === 0) {
+      throw new Error('@jsquash devolvió bytes vacíos');
     }
 
     return { converted: true, data: webpBytes, filename: webpFilename };
 
-  } catch (magickErr) {
-    // ImageMagick falló — retornar imagen original con nombre seguro
-    const reason = magickErr instanceof Error ? magickErr.message : String(magickErr);
-    console.warn('⚠️ ImageMagick falló:', reason);
+  } catch (convErr) {
+    // Conversión fallida — retornar imagen original con nombre seguro
+    const reason = convErr instanceof Error ? convErr.message : String(convErr);
+    console.warn('⚠️ Conversión fallida:', reason);
 
-    const ext             = originalName.split('.').pop()?.toLowerCase() ?? 'jpg';
+    const ext              = originalName.split('.').pop()?.toLowerCase() ?? 'jpg';
     const fallbackFilename = buildFilename(originalName, obraId, ext);
     return { converted: false, data: input, filename: fallbackFilename };
   }
