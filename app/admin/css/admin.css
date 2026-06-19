@@ -4826,44 +4826,53 @@ input[type="file"]:hover {
   }
 
   /* Tabla → cards */
-  .logs-table { display: block; border: none; }
+  /* min-width: 0 anula el 'table { min-width: 500px }' de este mismo breakpoint */
+  .logs-table { display: block; border: none; min-width: 0; width: 100%; }
 
   .logs-table thead { display: none; }
 
   .logs-table tbody { display: flex; flex-direction: column; gap: var(--spacing-md, 0.75rem); }
 
   .logs-table tbody tr {
-    display:       flex;
+    display:        flex;
     flex-direction: column;
-    border:        1px solid var(--color-border);
-    border-radius: var(--radius-md, 8px);
-    background:    var(--color-surface);
-    overflow:      hidden;
-    box-shadow:    var(--shadow-sm);
+    border:         1px solid var(--color-border);
+    border-radius:  var(--radius-md, 8px);
+    background:     var(--color-surface);
+    overflow:       hidden;
+    box-shadow:     var(--shadow-sm);
   }
 
   .logs-table td {
-    display:       flex;
+    display:         flex;
     justify-content: space-between;
-    align-items:   center;
-    padding:       var(--spacing-sm, 0.5rem) var(--spacing-md, 0.75rem);
-    border-bottom: 1px solid var(--color-border);
+    align-items:     flex-start;   /* top-align label cuando el valor hace wrap */
+    padding:         var(--spacing-sm, 0.5rem) var(--spacing-md, 0.75rem);
+    border-bottom:   1px solid var(--color-border);
+    min-width:       0;            /* permite que el flex-item no desborde */
+    overflow-wrap:   break-word;   /* emails y textos largos hacen wrap */
+    word-break:      break-word;
   }
 
   .logs-table td:last-child { border-bottom: none; }
 
   .logs-table td::before {
-    content:     attr(data-label);
-    font-weight: 600;
-    font-size:   var(--text-xs, 0.8125rem);
-    color:       var(--color-text-muted);
+    content:      attr(data-label);
+    font-weight:  600;
+    font-size:    var(--text-xs, 0.8125rem);
+    color:        var(--color-text-muted);
     margin-right: var(--spacing-md, 0.75rem);
-    white-space: nowrap;
+    white-space:  nowrap;
+    flex-shrink:  0;   /* la etiqueta nunca se comprime */
   }
 
-  /* El table-wrapper no añade scroll horizontal en modo cards */
+  /* El table-wrapper no añade scroll horizontal en modo cards:
+     cancelar overflow-x, el negative-margin trick y el ancho calculado */
   .table-wrapper:has(.logs-table) {
     overflow-x: visible;
+    margin:     0;
+    padding:    0;
+    width:      100%;
   }
 }
 
@@ -5685,7 +5694,8 @@ input[type="file"]:hover {
 
 /* ── Historial Alumnos: tabla → tarjetas (≤ 1023 px) ─────────────── */
 @media (max-width: 1023px) {
-  .historial-table { display: block; border: none; }
+  /* min-width: 0 anula el 'table { min-width: 500px }' de este mismo breakpoint */
+  .historial-table { display: block; border: none; min-width: 0; width: 100%; }
 
   .historial-table thead { display: none; }
 
@@ -5708,10 +5718,12 @@ input[type="file"]:hover {
   .historial-table td {
     display:         flex;
     justify-content: space-between;
-    align-items:     center;
+    align-items:     flex-start;   /* top-align label cuando el valor hace wrap */
     padding:         var(--spacing-sm, 0.5rem) var(--spacing-md, 0.75rem);
     border-bottom:   1px solid var(--color-border, #e2e8f0);
-    white-space:     normal;
+    min-width:       0;            /* permite que el flex-item no desborde */
+    overflow-wrap:   break-word;   /* emails y textos largos hacen wrap */
+    word-break:      break-word;
   }
 
   .historial-table td:last-child { border-bottom: none; }
@@ -5723,13 +5735,14 @@ input[type="file"]:hover {
     color:        var(--color-text-muted);
     margin-right: var(--spacing-md, 0.75rem);
     white-space:  nowrap;
-    flex-shrink:  0;
+    flex-shrink:  0;   /* la etiqueta nunca se comprime */
   }
 
   /* Celda de acciones: etiqueta a la izquierda, botón a la derecha */
   .historial-table .actions-cell {
     justify-content: flex-end;
     gap: var(--spacing-sm, 0.5rem);
+    align-items: center;
   }
   .historial-table .actions-cell::before { margin-right: auto; }
   .historial-table .actions-cell .action-buttons {
@@ -5737,8 +5750,14 @@ input[type="file"]:hover {
     gap:     var(--spacing-sm, 0.5rem);
   }
 
-  /* El table-wrapper no añade scroll horizontal en modo tarjetas */
-  .table-wrapper:has(.historial-table) { overflow-x: visible; }
+  /* El table-wrapper no añade scroll horizontal en modo tarjetas:
+     cancelar overflow-x, el negative-margin trick y el ancho calculado */
+  .table-wrapper:has(.historial-table) {
+    overflow-x: visible;
+    margin:     0;
+    padding:    0;
+    width:      100%;
+  }
 }
 
 
@@ -7070,7 +7089,8 @@ input[type="file"]:hover {
 
 /* ── Registros Pendientes: tabla → tarjetas (≤ 1023 px) ──────────── */
 @media (max-width: 1023px) {
-  .registros-table { display: block; border: none; }
+  /* min-width: 0 anula el 'table { min-width: 500px }' de este mismo breakpoint */
+  .registros-table { display: block; border: none; min-width: 0; width: 100%; }
 
   .registros-table thead { display: none; }
 
@@ -7093,10 +7113,12 @@ input[type="file"]:hover {
   .registros-table td {
     display:         flex;
     justify-content: space-between;
-    align-items:     center;
+    align-items:     flex-start;   /* top-align label cuando el valor hace wrap */
     padding:         var(--spacing-sm, 0.5rem) var(--spacing-md, 0.75rem);
     border-bottom:   1px solid var(--color-border, #E5E7EB);
-    white-space:     normal;
+    min-width:       0;            /* permite que el flex-item no desborde */
+    overflow-wrap:   break-word;   /* emails y textos largos hacen wrap */
+    word-break:      break-word;
   }
 
   .registros-table td:last-child { border-bottom: none; }
@@ -7108,7 +7130,7 @@ input[type="file"]:hover {
     color:        var(--color-text-muted);
     margin-right: var(--spacing-md, 0.75rem);
     white-space:  nowrap;
-    flex-shrink:  0;
+    flex-shrink:  0;   /* la etiqueta nunca se comprime */
   }
 
   /* Restaurar celdas que se ocultan en la vista de tabla estrecha */
@@ -7121,11 +7143,18 @@ input[type="file"]:hover {
     justify-content: flex-end;
     gap:             var(--spacing-sm, 0.5rem);
     flex-wrap:       wrap;
+    align-items:     center;
   }
   .registros-table .td-acciones::before { margin-right: auto; }
 
-  /* El table-wrapper no añade scroll horizontal en modo tarjetas */
-  .table-wrapper:has(.registros-table) { overflow-x: visible; }
+  /* El table-wrapper no añade scroll horizontal en modo tarjetas:
+     cancelar overflow-x, el negative-margin trick y el ancho calculado */
+  .table-wrapper:has(.registros-table) {
+    overflow-x: visible;
+    margin:     0;
+    padding:    0;
+    width:      100%;
+  }
 }
 
 
