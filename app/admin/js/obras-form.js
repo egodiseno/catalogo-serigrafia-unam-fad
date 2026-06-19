@@ -26,6 +26,18 @@ document.addEventListener('DOMContentLoaded', () => {
   const fEstado      = document.getElementById('fEstado');
   const fTecnica     = document.getElementById('fTecnica');
   const fDescripcion = document.getElementById('fDescripcion');
+  const descCharCount = document.getElementById('descCharCount');
+
+  // ── Contador de caracteres — Descripción ─────────────────────────
+  const DESC_MAX  = 600;
+  const DESC_WARN = 50;   // últimos 50 chars → advertencia visual
+
+  function _updateDescCount() {
+    if (!descCharCount || !fDescripcion) return;
+    const n = fDescripcion.value.length;
+    descCharCount.textContent = `${n} / ${DESC_MAX}`;
+    descCharCount.classList.toggle('at-limit', n >= DESC_MAX - DESC_WARN);
+  }
 
   // ── Inline técnica (ISSUE-02) ─────────────────────────
   const btnNuevaTecnicaInline   = document.getElementById('btnNuevaTecnicaInline');
@@ -171,6 +183,7 @@ document.addEventListener('DOMContentLoaded', () => {
       fEstado.value      = data.estado      ?? 'Borrador';
       fTecnica.value     = data.tecnica_id  ?? '';
       fDescripcion.value = data.descripcion ?? '';
+      _updateDescCount();
 
       // Poblar tags seleccionados (ISSUE-03)
       window.TagsInObra?.reset();
@@ -293,6 +306,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (año !== null && (año < 1800 || año > 2100)) {
       showAlert('El año debe estar entre 1800 y 2100.', 'error');
       fAno.focus();
+      return;
+    }
+
+    // ── Validar longitud de descripción ──────────────────
+    const descLen = fDescripcion.value.trim().length;
+    if (descLen > DESC_MAX) {
+      showAlert(`La descripción excede el límite de ${DESC_MAX} caracteres (${descLen} usados).`, 'error');
+      fDescripcion.focus();
       return;
     }
 
@@ -484,6 +505,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     window.MultiImageUpload?.reset();
     window.TagsInObra?.reset();
+    _updateDescCount();
     hideAlert();
     hideInlineTecnica();
     // Cerrar formulario inline de tags si estaba abierto
@@ -515,6 +537,7 @@ document.addEventListener('DOMContentLoaded', () => {
   closeBtn  && closeBtn.addEventListener('click',  close);
   cancelBtn && cancelBtn.addEventListener('click', close);
   saveBtn   && saveBtn.addEventListener('click',   saveObra);
+  fDescripcion && fDescripcion.addEventListener('input', _updateDescCount);
 
   // No cerrar al clicar fuera: el modal de obra tiene muchos campos
   // y un click accidental destruiría el trabajo del usuario.

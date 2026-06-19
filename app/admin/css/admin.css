@@ -1910,6 +1910,17 @@ input[type="file"]:hover {
   margin: var(--spacing-xs) 0 0;
 }
 
+/* ── Contador de caracteres — campo Descripción ──────────────────────── */
+.desc-char-count {
+  display:    block;
+  text-align: right;
+}
+
+.desc-char-count.at-limit {
+  color:       var(--color-warning, #b45309);
+  font-weight: 600;
+}
+
 .imagen-preview {
   display: flex;
   align-items: center;

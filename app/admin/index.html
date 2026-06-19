@@ -1430,9 +1430,11 @@
           </div>
 
           <div class="form-group">
-            <label for="fDescripcion">Descripción</label>
+            <label for="fDescripcion">Descripción <span class="field-hint">(máx. 600 caracteres)</span></label>
             <textarea id="fDescripcion" name="descripcion" rows="4"
+                      maxlength="600"
                       placeholder="Breve descripción de la obra…"></textarea>
+            <span class="field-hint desc-char-count" id="descCharCount" aria-live="polite">0 / 600</span>
           </div>
 
           <!-- Multi-image upload -->
