@@ -176,12 +176,19 @@ const UsuariosCRUD = (() => {
       ? escapeHtml(nombre)
       : '<span class="text-muted">—</span>';
 
+    // super_editor no puede gestionar usuarios con rol admin o super_editor
+    const callerRol    = window.getRolActual?.() ?? 'editor';
+    const isRestricted = callerRol === 'super_editor' &&
+                         (u.rol === 'admin' || u.rol === 'super_editor');
+    const restrictedTitle = 'Solo puedes gestionar usuarios con rol Editor';
+
     return `
       <tr data-row-id="${u.id}">
         <td class="td-checkbox">
           <input type="checkbox" class="select-user"
                  data-user-id="${u.id}"
                  data-email="${escapeHtml(u.email)}"
+                 ${isRestricted ? 'disabled aria-disabled="true"' : ''}
                  aria-label="Seleccionar ${escapeHtml(u.email)}">
         </td>
         <td>
@@ -202,20 +209,34 @@ const UsuariosCRUD = (() => {
         </td>
         <td class="actions-cell">
           <div class="action-buttons">
-            <button class="btn btn-sm btn-secondary"
-                    data-edit-id="${u.id}" title="Editar usuario">
-              <i data-lucide="pen" style="width:14px;height:14px;" aria-hidden="true"></i> Editar
-            </button>
-            <button class="btn btn-sm btn-secondary"
-                    data-reset-email="${escapeHtml(u.email)}" title="Resetear contraseña">
-              <i data-lucide="key-round" style="width:14px;height:14px;" aria-hidden="true"></i> Resetear
-            </button>
-            <button class="btn btn-sm btn-danger btn--icon-only"
-                    data-del-id="${u.id}"
-                    data-del-email="${escapeHtml(u.email)}"
-                    data-permiso="usuarios.borrar" title="Eliminar usuario">
-              <i data-lucide="trash-2" style="width:14px;height:14px;" aria-hidden="true"></i>
-            </button>
+            ${isRestricted
+              ? `<button class="btn btn-sm btn-secondary" disabled aria-disabled="true"
+                         title="${restrictedTitle}">
+                   <i data-lucide="pen" style="width:14px;height:14px;" aria-hidden="true"></i> Editar
+                 </button>
+                 <button class="btn btn-sm btn-secondary" disabled aria-disabled="true"
+                         title="${restrictedTitle}">
+                   <i data-lucide="key-round" style="width:14px;height:14px;" aria-hidden="true"></i> Resetear
+                 </button>
+                 <button class="btn btn-sm btn-danger btn--icon-only" disabled aria-disabled="true"
+                         title="${restrictedTitle}">
+                   <i data-lucide="trash-2" style="width:14px;height:14px;" aria-hidden="true"></i>
+                 </button>`
+              : `<button class="btn btn-sm btn-secondary"
+                         data-edit-id="${u.id}" title="Editar usuario">
+                   <i data-lucide="pen" style="width:14px;height:14px;" aria-hidden="true"></i> Editar
+                 </button>
+                 <button class="btn btn-sm btn-secondary"
+                         data-reset-email="${escapeHtml(u.email)}" title="Resetear contraseña">
+                   <i data-lucide="key-round" style="width:14px;height:14px;" aria-hidden="true"></i> Resetear
+                 </button>
+                 <button class="btn btn-sm btn-danger btn--icon-only"
+                         data-del-id="${u.id}"
+                         data-del-email="${escapeHtml(u.email)}"
+                         data-permiso="usuarios.borrar" title="Eliminar usuario">
+                   <i data-lucide="trash-2" style="width:14px;height:14px;" aria-hidden="true"></i>
+                 </button>`
+            }
           </div>
         </td>
       </tr>
@@ -393,9 +414,9 @@ const UsuariosCRUD = (() => {
       window.ErrorHandler?.showToast('No puedes borrar tu propia cuenta', 'error');
       return;
     }
-    // Guard: super_editor no puede borrar admins
-    if (rolActual === 'super_editor' && toDelete.find(u => u.rol === 'admin')) {
-      window.ErrorHandler?.showToast('No puedes eliminar cuentas de administrador.', 'error');
+    // Guard: super_editor solo puede borrar usuarios con rol 'editor'
+    if (rolActual === 'super_editor' && toDelete.find(u => u.rol === 'admin' || u.rol === 'super_editor')) {
+      window.ErrorHandler?.showToast('Solo puedes gestionar usuarios con rol Editor.', 'error');
       return;
     }
     // Guard: no eliminar el último admin
@@ -485,8 +506,24 @@ const UsuariosCRUD = (() => {
       return;
     }
 
+    // Guard: super_editor solo puede editar usuarios con rol 'editor'
+    const callerRol = window.getRolActual?.() ?? 'editor';
+    if (callerRol === 'super_editor' && (u.rol === 'admin' || u.rol === 'super_editor')) {
+      window.ErrorHandler?.showToast('Solo puedes gestionar usuarios con rol Editor.', 'error');
+      return;
+    }
+
     // Limpiar guión suelto antes de mostrar
     const nombreActual = (u.nombre ?? '') === '-' ? '' : (u.nombre ?? '');
+
+    // super_editor solo puede asignar rol 'editor'
+    const rolOptions = callerRol === 'super_editor'
+      ? [{ value: 'editor', label: 'Editor' }]
+      : [
+          { value: 'admin',        label: 'Admin'        },
+          { value: 'super_editor', label: 'Super Editor' },
+          { value: 'editor',       label: 'Editor'       },
+        ];
 
     window.ModalManager.open({
       title: `Editar: ${u.email}`,
@@ -504,11 +541,7 @@ const UsuariosCRUD = (() => {
           type:         'select',
           required:     true,
           defaultValue: u.rol,
-          options: [
-            { value: 'admin',        label: 'Admin'        },
-            { value: 'super_editor', label: 'Super Editor' },
-            { value: 'editor',       label: 'Editor'       },
-          ],
+          options:      rolOptions,
         },
         {
           name:         'estado',
@@ -550,6 +583,16 @@ const UsuariosCRUD = (() => {
       return;
     }
 
+    // super_editor solo puede crear usuarios con rol 'editor'
+    const callerRol = window.getRolActual?.() ?? 'editor';
+    const createRolOptions = callerRol === 'super_editor'
+      ? [{ value: 'editor', label: 'Editor' }]
+      : [
+          { value: 'admin',        label: 'Administrador' },
+          { value: 'super_editor', label: 'Super Editor'  },
+          { value: 'editor',       label: 'Editor'        },
+        ];
+
     window.ModalManager.open({
       title: 'Nuevo Usuario Admin',
       fields: [
@@ -557,12 +600,11 @@ const UsuariosCRUD = (() => {
         { name: 'email',    label: 'Email',      type: 'email',    required: true  },
         { name: 'password', label: 'Contraseña', type: 'password', required: true  },
         {
-          name: 'rol', label: 'Rol', type: 'select', required: true,
-          options: [
-            { value: 'admin',        label: 'Administrador' },
-            { value: 'super_editor', label: 'Super Editor'  },
-            { value: 'editor',       label: 'Editor'        },
-          ],
+          name:    'rol',
+          label:   'Rol',
+          type:    'select',
+          required: true,
+          options:  createRolOptions,
         },
       ],
       onSave: async (data) => {
@@ -656,8 +698,8 @@ const UsuariosCRUD = (() => {
       window.ErrorHandler?.showToast('No puedes eliminar tu propia cuenta.', 'error');
       return;
     }
-    if (rolActual === 'super_editor' && target?.rol === 'admin') {
-      window.ErrorHandler?.showToast('No puedes eliminar cuentas de administrador.', 'error');
+    if (rolActual === 'super_editor' && (target?.rol === 'admin' || target?.rol === 'super_editor')) {
+      window.ErrorHandler?.showToast('Solo puedes gestionar usuarios con rol Editor.', 'error');
       return;
     }
     const admins = usuariosData.filter(u => u.rol === 'admin');
@@ -698,6 +740,16 @@ const UsuariosCRUD = (() => {
   // ══════════════════════════════════════════════════════════════
 
   async function resetPasswordUsuario(email) {
+    // Guard: super_editor solo puede resetear contraseña de usuarios con rol 'editor'
+    const callerRol = window.getRolActual?.() ?? 'editor';
+    if (callerRol === 'super_editor') {
+      const target = usuariosData.find(u => u.email === email);
+      if (target && (target.rol === 'admin' || target.rol === 'super_editor')) {
+        window.ErrorHandler?.showToast('Solo puedes gestionar usuarios con rol Editor.', 'error');
+        return;
+      }
+    }
+
     window.ModalManager.openConfirm({
       title:       'Resetear contraseña',
       message:     `Se enviará un link de restablecimiento a "${email}". El usuario deberá revisar su bandeja de entrada.`,

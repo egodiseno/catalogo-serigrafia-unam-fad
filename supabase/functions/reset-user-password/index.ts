@@ -255,6 +255,29 @@ serve(async (req: Request) => {
 
     const siteUrl = Deno.env.get('SITE_URL') ?? 'https://catalogo-serigrafia-unam-fad.netlify.app/admin/';
 
+    // ── 4b. Verificar rol del caller; super_editor solo puede resetear 'editor' ─
+    const { data: callerRow } = await supabaseAdmin
+      .from('usuarios_admin')
+      .select('rol')
+      .eq('id', callerUser.id)
+      .single();
+
+    if (callerRow?.rol === 'super_editor') {
+      const { data: targetRow } = await supabaseAdmin
+        .from('usuarios_admin')
+        .select('rol')
+        .eq('email', email)
+        .single();
+
+      if (targetRow && (targetRow.rol === 'admin' || targetRow.rol === 'super_editor')) {
+        return fail({
+          success: false,
+          error:   'Solo puedes resetear contraseñas de usuarios con rol editor.',
+          code:    'INSUFFICIENT_ROLE',
+        }, 403);
+      }
+    }
+
     // ── 5. Buscar nombre del usuario en usuarios_admin ─────────────────────────
     const { data: usuarioData } = await supabaseAdmin
       .from('usuarios_admin')

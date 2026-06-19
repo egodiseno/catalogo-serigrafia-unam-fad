@@ -115,7 +115,7 @@ serve(async (req: Request) => {
     // Cliente con service_role_key → para operaciones privilegiadas
     const supabaseAdmin = createClient(SUPABASE_URL, SERVICE_KEY);
 
-    // ── 3. Verificar que el caller es ADMIN ─────────────────────────────────
+    // ── 3. Verificar que el caller es ADMIN o SUPER_EDITOR ──────────────────
     const { data: callerRow, error: callerErr } = await supabaseAdmin
       .from('usuarios_admin')
       .select('email, rol')
@@ -126,10 +126,10 @@ serve(async (req: Request) => {
       return jsonError({ success: false, error: 'No tienes permisos para esta acción.', code: 'FORBIDDEN' }, 403);
     }
 
-    if (callerRow.rol !== 'admin') {
+    if (callerRow.rol !== 'admin' && callerRow.rol !== 'super_editor') {
       return jsonError({
         success: false,
-        error:   `Solo los administradores pueden borrar usuarios en lote. Tu rol: ${callerRow.rol}.`,
+        error:   `No tienes permisos para borrar usuarios. Tu rol: ${callerRow.rol}.`,
         code:    'INSUFFICIENT_ROLE',
       }, 403);
     }
@@ -141,6 +141,25 @@ serve(async (req: Request) => {
         error:   'No puedes eliminar tu propia cuenta.',
         code:    'SELF_DELETE',
       });
+    }
+
+    // ── 4b. Guard: super_editor solo puede borrar usuarios con rol 'editor' ──
+    if (callerRow.rol === 'super_editor') {
+      const { data: targets4b } = await supabaseAdmin
+        .from('usuarios_admin')
+        .select('email, rol')
+        .in('email', emailList);
+
+      const forbidden = (targets4b ?? []).filter(
+        (u: { email: string; rol: string }) => u.rol === 'admin' || u.rol === 'super_editor'
+      );
+      if (forbidden.length > 0) {
+        return jsonError({
+          success: false,
+          error:   'Solo puedes eliminar usuarios con rol editor.',
+          code:    'INSUFFICIENT_ROLE',
+        }, 403);
+      }
     }
 
     // ── 5. Guard: no eliminar el último admin ────────────────────────────────

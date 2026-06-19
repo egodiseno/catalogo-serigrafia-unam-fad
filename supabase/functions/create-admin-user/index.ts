@@ -165,6 +165,29 @@ serve(async (req: Request) => {
       }
     );
 
+    // 5b. Verificar rol del caller; super_editor solo puede crear rol 'editor' ─
+    const { data: callerRow, error: callerRowErr } = await supabaseAdmin
+      .from('usuarios_admin')
+      .select('rol')
+      .eq('id', callerUser.id)
+      .single();
+
+    if (callerRowErr || !callerRow) {
+      return jsonError({ success: false, error: 'No tienes permisos para crear usuarios.', code: 'FORBIDDEN' }, 403);
+    }
+
+    if (callerRow.rol !== 'admin' && callerRow.rol !== 'super_editor') {
+      return jsonError({ success: false, error: 'No tienes permisos para crear usuarios.', code: 'INSUFFICIENT_ROLE' }, 403);
+    }
+
+    if (callerRow.rol === 'super_editor' && rol !== 'editor') {
+      return jsonError({
+        success: false,
+        error:   'Solo puedes crear usuarios con rol editor.',
+        code:    'INSUFFICIENT_ROLE',
+      }, 403);
+    }
+
     // 6. Crear usuario en Supabase Auth ────────────────────────────────────
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email,
