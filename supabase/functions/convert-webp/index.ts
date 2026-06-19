@@ -122,6 +122,26 @@ async function convertToWebP(
   try {
     console.log('🔄 Iniciando conversión WASM (ImageMagick)…');
 
+    // ── Polyfill Web Cache API ────────────────────────────────────────
+    // imagemagick_deno llama caches.open('deno-magick') internamente para
+    // cachear el WASM entre invocaciones. Supabase Edge Functions no expone
+    // la Web Cache API, lo que causaba "Web Cache is not available in this
+    // context" y el fallback silencioso. Proveemos una implementación no-op:
+    // match() siempre retorna undefined (cache miss → carga WASM normal),
+    // put() no hace nada (no falla). El WASM ya está bundleado inline,
+    // por lo que el único impacto es el cold start marginalmente más lento.
+    try {
+      await caches.open('_probe');
+    } catch {
+      (globalThis as any).caches = {
+        open: async () => ({
+          match: async () => undefined,
+          put:   async () => {},
+        }),
+      };
+    }
+    // ─────────────────────────────────────────────────────────────────
+
     // Inicializar WASM — idempotente, seguro llamar múltiples veces
     await initialize();
 
