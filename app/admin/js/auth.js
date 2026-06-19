@@ -196,9 +196,22 @@ document.addEventListener('DOMContentLoaded', async () => {
           window.auditLogger?.login(email);
         }
 
+        // ── Sección de aterrizaje según rol ────────────────────────────────
+        // Login explícito: SIEMPRE aterrizar en la sección principal del rol,
+        // ignorando la última sección guardada en sessionStorage.
+        // (La recarga de sesión existente —F5 o apertura de pestaña— usa
+        //  el sessionStorage para restaurar; eso no se ve afectado aquí.)
+        const _loginSection = (window.usuarioActual?.rol === 'editor')
+          ? 'mi-portafolio'
+          : 'dashboard';
+        sessionStorage.setItem('currentSection', _loginSection);
+
         // Verificar si se necesita MFA (puede redirigir a mfaVerify/Enroll)
         const needsMFA = await checkMFARequired();
-        if (!needsMFA) showDashboard(email);
+        if (!needsMFA) {
+          showDashboard(email);
+          window.showSection?.(_loginSection);
+        }
 
       } else {
         const msg = result.error?.message || 'Credenciales incorrectas.';
