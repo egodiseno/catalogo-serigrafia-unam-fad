@@ -6641,6 +6641,8 @@ input[type="file"]:hover {
 }
 
 /* ── Avatar por fila (inline en td email) ───────────────── */
+/* Ahora es un div INTERNO del td — el td mantiene display:table-cell
+   para que border-bottom se alinee correctamente con el resto de la fila */
 .td-email-cell {
   display:     flex;
   align-items: center;

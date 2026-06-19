@@ -184,14 +184,16 @@ const UsuariosCRUD = (() => {
                  data-email="${escapeHtml(u.email)}"
                  aria-label="Seleccionar ${escapeHtml(u.email)}">
         </td>
-        <td class="td-email-cell">
-          <span class="row-avatar" style="background:${color};" aria-hidden="true">${initCh}</span>
-          <span>${escapeHtml(u.email)}</span>
+        <td>
+          <div class="td-email-cell">
+            <span class="row-avatar" style="background:${color};" aria-hidden="true">${initCh}</span>
+            <span>${escapeHtml(u.email)}</span>
+          </div>
         </td>
-        <td>${nombreText}</td>
         <td class="td-cuenta">
           ${u.numero_cuenta ? `<code class="cuenta-code">${escapeHtml(String(u.numero_cuenta))}</code>` : '<span class="text-muted">—</span>'}
         </td>
+        <td>${nombreText}</td>
         <td><span class="badge badge-${escapeHtml(u.rol)}">${escapeHtml(u.rol)}</span></td>
         <td>
           <span class="badge ${u.estado ? 'badge-publicado' : 'badge-archivado'}">
@@ -439,11 +441,11 @@ const UsuariosCRUD = (() => {
       return;
     }
 
-    const headers = ['email', 'nombre', 'numero_cuenta', 'rol', 'estado', 'id'];
+    const headers = ['email', 'numero_cuenta', 'nombre', 'rol', 'estado', 'id'];
     const rows    = filteredData.map(u => [
       u.email          ?? '',
-      (u.nombre ?? '').replace(/^-$/, ''),  // limpiar guión suelto
       u.numero_cuenta  ?? '',
+      (u.nombre ?? '').replace(/^-$/, ''),  // limpiar guión suelto
       u.rol            ?? '',
       u.estado  ? 'activo' : 'inactivo',
       u.id             ?? '',
