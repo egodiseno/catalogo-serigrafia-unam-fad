@@ -90,17 +90,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 
           const userEmail2 = sessionData.session.user.email;
 
-          // Cargar rol desde usuarios_admin
+          // Cargar rol y nombre desde usuarios_admin
           try {
             const { data: rolData } = await window.supabase_client
               .from('usuarios_admin')
-              .select('rol')
+              .select('rol, nombre')
               .eq('email', userEmail2)
               .single();
 
-            window.usuarioActual = { email: userEmail2, rol: rolData?.rol || 'editor' };
+            window.usuarioActual = { email: userEmail2, rol: rolData?.rol || 'editor', nombre: rolData?.nombre || '' };
           } catch {
-            window.usuarioActual = { email: userEmail2, rol: 'editor' };
+            window.usuarioActual = { email: userEmail2, rol: 'editor', nombre: '' };
           }
           localStorage.setItem('usuarioActual', JSON.stringify(window.usuarioActual));
 
@@ -127,17 +127,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
           const { data: _ud } = await window.supabase_client
             .from('usuarios_admin')
-            .select('rol')
+            .select('rol, nombre')
             .eq('email', session.user.email)
             .single();
 
           window.usuarioActual = {
-            email: session.user.email,
-            rol:   _ud?.rol || 'editor'
+            email:  session.user.email,
+            rol:    _ud?.rol    || 'editor',
+            nombre: _ud?.nombre || '',
           };
           localStorage.setItem('usuarioActual', JSON.stringify(window.usuarioActual));
         } catch (_e) {
-          window.usuarioActual = { email: session.user.email, rol: 'editor' };
+          window.usuarioActual = { email: session.user.email, rol: 'editor', nombre: '' };
           localStorage.setItem('usuarioActual', JSON.stringify(window.usuarioActual));
         }
       }
@@ -178,20 +179,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
           const { data: _rolData } = await window.supabase_client
             .from('usuarios_admin')
-            .select('rol')
+            .select('rol, nombre')
             .eq('email', email)
             .single();
 
           window.usuarioActual = {
-            email: email,
-            rol:   _rolData?.rol || 'editor'
+            email:  email,
+            rol:    _rolData?.rol    || 'editor',
+            nombre: _rolData?.nombre || '',
           };
           localStorage.setItem('usuarioActual', JSON.stringify(window.usuarioActual));
           console.log('👤 Usuario logueado:', window.usuarioActual);
           window.auditLogger?.login(email);
         } catch (_rolErr) {
           console.warn('[auth] No se pudo obtener rol; usando editor por defecto.', _rolErr);
-          window.usuarioActual = { email, rol: 'editor' };
+          window.usuarioActual = { email, rol: 'editor', nombre: '' };
           localStorage.setItem('usuarioActual', JSON.stringify(window.usuarioActual));
           window.auditLogger?.login(email);
         }

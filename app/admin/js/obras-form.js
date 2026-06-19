@@ -151,9 +151,14 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!data) throw new Error('Obra no encontrada');
 
       // ── VALIDACIÓN POR ROL ──────────────────────────────
-      const rolActual   = window.usuarioActual?.rol || 'editor';
-      const emailActual = window.usuarioActual?.email;
-      if (rolActual === 'editor' && data.artista !== emailActual) {
+      const rolActual    = window.usuarioActual?.rol    || 'editor';
+      const emailActual  = window.usuarioActual?.email  || '';
+      const nombreActual = (window.usuarioActual?.nombre || '').trim();
+      // Obras antiguas almacenan el email en artista; obras nuevas almacenan el nombre.
+      // El check acepta ambos para no bloquear el acceso tras la migración.
+      const esPropia = data.artista === emailActual
+                    || (nombreActual && data.artista === nombreActual);
+      if (rolActual === 'editor' && !esPropia) {
         window.toast?.error('No tienes permiso para editar esta obra.');
         console.warn(`[Seguridad] EDITOR ${emailActual} intentó editar obra de ${data.artista}`);
         return null;
