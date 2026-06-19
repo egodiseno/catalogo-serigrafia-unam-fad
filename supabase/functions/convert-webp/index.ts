@@ -135,6 +135,19 @@ async function convertToWebP(
       throw new Error('@jsquash devolvió bytes vacíos');
     }
 
+    // ── Comparar tamaños: conservar el archivo más liviano ────────────
+    if (webpBytes.byteLength >= input.byteLength) {
+      const webpKB  = (webpBytes.byteLength  / 1024).toFixed(1);
+      const origKB  = (input.byteLength      / 1024).toFixed(1);
+      console.log(
+        `ℹ️ WebP (${webpKB} KB) ≥ original (${origKB} KB) — conservando original`,
+      );
+      const ext              = originalName.split('.').pop()?.toLowerCase() ?? 'jpg';
+      const fallbackFilename = buildFilename(originalName, obraId, ext);
+      return { converted: false, data: input, filename: fallbackFilename };
+    }
+    // ─────────────────────────────────────────────────────────────────
+
     return { converted: true, data: webpBytes, filename: webpFilename };
 
   } catch (convErr) {
