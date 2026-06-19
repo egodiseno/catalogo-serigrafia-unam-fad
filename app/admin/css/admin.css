@@ -1300,6 +1300,33 @@ select {
   font-size: var(--font-size-sm);
 }
 
+/* ── Logos institucionales en card de login ───────────────────────────────── */
+.login-logos {
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  gap:             var(--spacing-md, 1rem);
+  margin-bottom:   var(--spacing-lg, 1.5rem);
+}
+
+.login-logo--unam,
+.login-logo--fad {
+  display:     block;
+  height:      auto;
+  flex-shrink: 0;
+}
+
+.login-logo--unam { width: 50px; }
+.login-logo--fad  { width: 64px; }
+
+.login-logos-sep {
+  display:    block;
+  width:      1px;
+  height:     28px;
+  background: var(--color-border, #e2e8f0);
+  flex-shrink: 0;
+}
+
 .login-form {
   margin-bottom: var(--spacing-xl);
 }
