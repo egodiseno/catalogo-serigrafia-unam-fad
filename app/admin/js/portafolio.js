@@ -117,7 +117,7 @@ class PortafolioManager {
     try {
       let query = this.client
         .from('obras')
-        .select('id, titulo, tecnica, estado, created_at')
+        .select('id, titulo, tecnica_id, tecnicas(nombre), estado, created_at')
         .order('created_at', { ascending: false });
 
       // Filtrar solo propias si hay nombre de artista; si no, sin filtro
@@ -168,7 +168,7 @@ class PortafolioManager {
     tbody.innerHTML = obras.map(o => `
       <tr>
         <td data-label="Título">${o.titulo ?? '—'}</td>
-        <td data-label="Técnica">${o.tecnica ?? '—'}</td>
+        <td data-label="Técnica">${o.tecnicas?.nombre ?? '—'}</td>
         <td data-label="Estado">${estadoBadge(o.estado)}</td>
         <td data-label="Fecha">${o.created_at ? new Date(o.created_at).toLocaleDateString('es-MX') : '—'}</td>
         <td data-label="Acciones">
