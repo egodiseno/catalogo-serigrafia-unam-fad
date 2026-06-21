@@ -1812,5 +1812,53 @@
     </div>
   </div>
 
+  <!-- ========================
+       MODAL: REABRIR OBRA PUBLICADA (portafolio editor — requiere motivo)
+       Caso 2 del flujo "Volver a borrador": obra en estado Publicado.
+       Requiere motivo obligatorio; visible_publico NO se modifica aquí.
+       ======================== -->
+  <div id="reabrirPublicadoModal" class="modal-overlay" style="display:none;"
+       role="dialog" aria-modal="true" aria-labelledby="reabrirPublicadoModalTitle">
+    <div class="modal-dialog modal-dialog--sm">
+
+      <div class="modal-header">
+        <h3 id="reabrirPublicadoModalTitle">Reabrir obra publicada</h3>
+        <button class="modal-close btn btn-ghost" id="reabrirPublicadoModalCloseBtn" aria-label="Cerrar">
+          <i data-lucide="x" style="width:16px;height:16px;" aria-hidden="true"></i>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <p style="margin-bottom:var(--spacing-md,1rem);">
+          Esta obra está publicada. Al reabrir, volverá a estado <strong>Borrador</strong>
+          para que puedas editarla. La versión publicada permanecerá visible en el catálogo
+          mientras trabajas en los cambios.
+        </p>
+        <div class="form-group">
+          <label for="reabrirMotivoInput">
+            Motivo de reapertura <span class="required" aria-hidden="true">*</span>
+          </label>
+          <textarea
+            id="reabrirMotivoInput"
+            class="form-textarea"
+            rows="4"
+            maxlength="1000"
+            placeholder="Escribe el motivo por el que deseas reabrir esta obra para editarla…"></textarea>
+          <span id="reabrirMotivoCharCount" class="field-hint" style="display:block;margin-top:4px;">
+            0 / 1000
+          </span>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="reabrirPublicadoModalCancelBtn">Cancelar</button>
+        <button type="button" class="btn btn-primary"   id="reabrirPublicadoModalConfirmBtn" disabled>
+          Reabrir para editar
+        </button>
+      </div>
+
+    </div>
+  </div>
+
 </body>
 </html>

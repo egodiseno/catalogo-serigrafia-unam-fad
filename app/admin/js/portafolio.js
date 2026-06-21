@@ -179,6 +179,33 @@ class PortafolioManager {
       return `<span class="badge ${cls}">${est || '—'}</span>`;
     };
 
+    // ── Botón de acción según estado ─────────────────────────────────────────
+    // Borrador    → lápiz editar
+    // En Revisión → "Volver a borrador" (confirmación simple)
+    // Publicado   → "Volver a borrador" (modal con motivo obligatorio)
+    // Archivado   → sin botón
+    const _accionBtn = (o) => {
+      switch (o.estado) {
+        case 'Borrador':
+          return `<button class="btn btn-ghost btn-xs portafolio-edit-btn"
+                          data-id="${o.id}" title="Editar obra">
+            <i data-lucide="pencil" style="width:14px;height:14px;" aria-hidden="true"></i>
+          </button>`;
+        case 'En Revisión':
+          return `<button class="btn btn-secondary btn-xs portafolio-reabrir-revision-btn"
+                          data-id="${o.id}" title="Retomar para editar">
+            Volver a borrador
+          </button>`;
+        case 'Publicado':
+          return `<button class="btn btn-secondary btn-xs portafolio-reabrir-publicado-btn"
+                          data-id="${o.id}" title="Reabrir para editar">
+            Volver a borrador
+          </button>`;
+        default: // Archivado u otro: sin acción disponible
+          return '';
+      }
+    };
+
     tbody.innerHTML = obras.map(o => {
       // Miniatura — imagen principal; si no, la primera disponible
       const imgUrl = o.imagenes?.find(i => i.principal)?.url_storage
@@ -205,11 +232,7 @@ class PortafolioManager {
           <td class="tags-cell" data-label="Tags">${tagsHtml}</td>
           <td data-label="Estado">${estadoBadge(o.estado)}</td>
           <td data-label="Fecha">${o.created_at ? new Date(o.created_at).toLocaleDateString('es-MX') : '—'}</td>
-          <td data-label="Acciones">
-            <button class="btn btn-ghost btn-xs portafolio-edit-btn" data-id="${o.id}" title="Editar obra">
-              <i data-lucide="pencil" style="width:14px;height:14px;" aria-hidden="true"></i>
-            </button>
-          </td>
+          <td data-label="Acciones">${_accionBtn(o)}</td>
         </tr>`;
     }).join('');
 
@@ -226,6 +249,140 @@ class PortafolioManager {
     tbody.querySelectorAll('.portafolio-edit-btn').forEach(btn => {
       btn.addEventListener('click', () => window.obrasForm?.open(btn.dataset.id));
     });
+
+    // "Volver a borrador" desde En Revisión — confirmación simple sin campos
+    tbody.querySelectorAll('.portafolio-reabrir-revision-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const obraId = btn.dataset.id;
+        window.ModalManager?.openConfirm({
+          title:       '¿Retomar esta obra?',
+          message:     'La obra volverá a estado Borrador y podrás seguir editándola.',
+          confirmText: 'Sí, retomar',
+          cancelText:  'Cancelar',
+          tipo:        'info',
+          onConfirm:   async () => {
+            try {
+              const { error } = await this.client
+                .from('obras')
+                .update({ estado: 'Borrador' })
+                .eq('id', obraId);
+              if (error) throw error;
+              window.ErrorHandler?.showToast('Obra retomada — ahora está en Borrador.', 'success');
+              await Promise.all([
+                this.cargarEstadisticas(),
+                this.cargarObras(this._filtro),
+              ]);
+            } catch (err) {
+              console.error('[PortafolioManager] reabrir revisión:', err);
+              window.ErrorHandler?.showToast('No se pudo retomar la obra.', 'error');
+            }
+          },
+        });
+      });
+    });
+
+    // "Volver a borrador" desde Publicado — modal con motivo obligatorio
+    tbody.querySelectorAll('.portafolio-reabrir-publicado-btn').forEach(btn => {
+      btn.addEventListener('click', () => this._abrirModalReopeningPublicado(btn.dataset.id));
+    });
+  }
+
+  // ══════════════════════════════════════════════════════
+  // Modal: Reabrir obra publicada (requiere motivo)
+  // ══════════════════════════════════════════════════════
+
+  /**
+   * Abre el modal #reabrirPublicadoModal para la obra indicada.
+   * El editor debe escribir un motivo (mín. 1 carácter, máx. 1000).
+   * Al confirmar: estado → 'Borrador', motivo_reapertura = texto.
+   * visible_publico NO se modifica — la obra sigue visible en el catálogo.
+   * Usa AbortController para limpiar todos los listeners al cerrar.
+   *
+   * @param {string} obraId — UUID de la obra en estado Publicado
+   */
+  _abrirModalReopeningPublicado(obraId) {
+    const modal      = document.getElementById('reabrirPublicadoModal');
+    const textarea   = document.getElementById('reabrirMotivoInput');
+    const charCount  = document.getElementById('reabrirMotivoCharCount');
+    const confirmBtn = document.getElementById('reabrirPublicadoModalConfirmBtn');
+    const cancelBtn  = document.getElementById('reabrirPublicadoModalCancelBtn');
+    const closeBtn   = document.getElementById('reabrirPublicadoModalCloseBtn');
+
+    if (!modal || !textarea || !confirmBtn) {
+      console.error('[PortafolioManager] #reabrirPublicadoModal no encontrado en el DOM');
+      return;
+    }
+
+    // ── Reset estado ──────────────────────────────────────
+    textarea.value         = '';
+    confirmBtn.disabled    = true;
+    confirmBtn.textContent = 'Reabrir para editar';
+    if (charCount) charCount.textContent = '0 / 1000';
+
+    // AbortController — limpia todos los listeners al cerrar
+    const ac     = new AbortController();
+    const signal = ac.signal;
+
+    const _close = () => {
+      modal.style.display = 'none';
+      ac.abort();
+    };
+
+    // Contador de chars (mismo patrón que control-registro.js) + habilitar confirm
+    textarea.addEventListener('input', () => {
+      const n = textarea.value.length;
+      if (charCount) charCount.textContent = `${n} / 1000`;
+      confirmBtn.disabled = n === 0;
+    }, { signal });
+
+    closeBtn?.addEventListener('click',  _close, { signal });
+    cancelBtn?.addEventListener('click', _close, { signal });
+
+    // Cerrar al hacer clic en el overlay
+    modal.addEventListener('click', e => {
+      if (e.target === modal) _close();
+    }, { signal });
+
+    // Cerrar con Escape
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') _close();
+    }, { signal });
+
+    // Confirmar — guarda estado = 'Borrador' + motivo_reapertura
+    // visible_publico queda intacto (no se incluye en el UPDATE)
+    confirmBtn.addEventListener('click', async () => {
+      const motivo = textarea.value.trim();
+      if (!motivo) return;
+
+      confirmBtn.disabled    = true;
+      confirmBtn.textContent = 'Reabriendo…';
+
+      try {
+        const { error } = await this.client
+          .from('obras')
+          .update({ estado: 'Borrador', motivo_reapertura: motivo })
+          .eq('id', obraId);
+
+        if (error) throw error;
+
+        _close();
+        window.ErrorHandler?.showToast('Obra reabierta — ahora está en Borrador.', 'success');
+        await Promise.all([
+          this.cargarEstadisticas(),
+          this.cargarObras(this._filtro),
+        ]);
+      } catch (err) {
+        console.error('[PortafolioManager] reabrir publicado:', err);
+        window.ErrorHandler?.showToast('No se pudo reabrir la obra.', 'error');
+        confirmBtn.disabled    = false;
+        confirmBtn.textContent = 'Reabrir para editar';
+      }
+    }, { signal });
+
+    // Mostrar modal
+    modal.style.display = 'flex';
+    window.IconRegistry?.init();
+    textarea.focus();
   }
 
   // ══════════════════════════════════════════════════════
