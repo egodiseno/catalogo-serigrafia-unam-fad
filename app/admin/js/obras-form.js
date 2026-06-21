@@ -266,7 +266,9 @@ document.addEventListener('DOMContentLoaded', () => {
       `).join('');
 
       // Informar al componente de subida cuántos slots nuevos quedan disponibles
+      // y si ya existe una imagen marcada como principal (evita conflictos de checkbox).
       window.MultiImageUpload?.setExistingCount(data.length);
+      window.MultiImageUpload?.setHasPrincipal(data.some(img => img.principal));
 
       // Click en thumbnail → preview grande
       container.querySelectorAll('.existing-thumb').forEach(thumb => {
@@ -394,11 +396,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const { error } = await client
         .from('obras')
-        .update({ snapshot_publicado: snap })
+        .update({ snapshot_publicado: snap, visible_publico: true })
         .eq('id', obraId);
 
       if (error) throw error;
-      console.log('[obras-form] snapshot_publicado guardado para obra:', obraId, snap);
+      console.log('[obras-form] snapshot_publicado + visible_publico guardados para obra:', obraId, snap);
     } catch (err) {
       // No bloquear el flujo principal — la obra se guardó correctamente
       console.error('[obras-form] Error al guardar snapshot_publicado:', err);
@@ -485,6 +487,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const { data, error } = await client.from('obras').insert(payload).select('id').single();
         if (error) throw error;
         obraId = data.id;
+        // Guardar el nuevo ID en el campo oculto AHORA, antes de cualquier operación
+        // posterior que pueda fallar. Si el usuario corrige un error y vuelve a guardar,
+        // el formulario hará UPDATE en lugar de un segundo INSERT.
+        fId.value = obraId;
         window.auditLogger?.crearObra(obraId, titulo);
       }
 
@@ -496,7 +502,17 @@ document.addEventListener('DOMContentLoaded', () => {
           saveBtn.textContent = `Subiendo ${imgs.length} imagen${imgs.length > 1 ? 'es' : ''}…`;
           const uploadResult = await multi.uploadAll(obraId);
           if (uploadResult.success && uploadResult.urls.length > 0) {
-            await multi.saveAllImageRecords(obraId, uploadResult.urls);
+            const saveResult = await multi.saveAllImageRecords(obraId, uploadResult.urls);
+            if (!saveResult.success) {
+              // Error al registrar en DB: mostrar mensaje específico y dejar modal abierto
+              // para que el usuario corrija sin perder la obra (ya fue insertada/actualizada).
+              const errMsg = saveResult.isPrincipalConflict
+                ? 'La imagen marcada como "Principal" ya existe para esta obra. ' +
+                  'Desmarca la casilla Principal en las imágenes nuevas y vuelve a intentarlo.'
+                : `La obra se guardó, pero falló el registro de la imagen ${saveResult.imageIndex}: ${saveResult.error}`;
+              showAlert(errMsg, 'error');
+              return; // dejar modal abierto; fId.value ya tiene obraId
+            }
           } else if (!uploadResult.success) {
             showAlert(`Obra guardada, pero las imágenes fallaron: ${uploadResult.error}`, 'error');
             setTimeout(() => { close(); document.dispatchEvent(new CustomEvent('obras:refresh')); }, 1800);

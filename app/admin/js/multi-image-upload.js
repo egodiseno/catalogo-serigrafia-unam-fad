@@ -6,6 +6,7 @@
 const MultiImageUpload = (() => {
   let images = []; // Array de imágenes seleccionadas
   let existingCount = 0; // Imágenes ya guardadas en DB (al editar obra)
+  let hasPrincipal  = false; // true si ya hay una imagen guardada marcada como principal
   const MAX_IMAGES = 4;
 
   /**
@@ -84,11 +85,11 @@ const MultiImageUpload = (() => {
               accept="image/*"
             />
             <label class="checkbox-principal">
-              <input 
-                type="checkbox" 
-                class="imagePrincipal" 
+              <input
+                type="checkbox"
+                class="imagePrincipal"
                 data-index="${index}"
-                ${index === 0 ? 'checked' : ''}
+                ${!hasPrincipal && index === 0 ? 'checked' : ''}
               />
               Principal
             </label>
@@ -144,7 +145,7 @@ const MultiImageUpload = (() => {
       });
     }
 
-    images[index] = { file: null, principal: index === 0 };
+    images[index] = { file: null, principal: !hasPrincipal && index === 0 };
     updateCounter();
   }
 
@@ -219,34 +220,69 @@ const MultiImageUpload = (() => {
   }
 
   /**
-   * Guardar todos los registros en tabla imagenes
+   * Guardar todos los registros en tabla imagenes.
+   * Comprueba el valor de retorno de cada saveImageRecord (no lanza excepción, devuelve { success }).
+   * Si alguno falla, devuelve { success: false, error, isPrincipalConflict }.
+   * isPrincipalConflict = true cuando el fallo se debe a una restricción UNIQUE sobre principal=true.
    */
   async function saveAllImageRecords(obraId, urls) {
-    try {
-      const client = window.supabase_client;
+    for (let i = 0; i < urls.length; i++) {
+      const img = urls[i];
+      const result = await window.StorageModule.saveImageRecord(obraId, img.url, img.principal);
 
-      for (const img of urls) {
-        await window.StorageModule.saveImageRecord(obraId, img.url, img.principal);
+      if (result && result.success === false) {
+        console.error(`❌ Error al guardar registro de imagen ${i + 1}/${urls.length}:`, result.error);
+
+        // Detectar conflicto de clave única sobre la columna principal
+        // (el índice parcial impide dos filas con principal=true para la misma obra)
+        const errStr = String(result.error ?? '').toLowerCase();
+        const isPrincipalConflict =
+          img.principal === true &&
+          (errStr.includes('unique') || errStr.includes('duplicate') || errStr.includes('principal'));
+
+        return {
+          success: false,
+          error:   result.error ?? 'Error desconocido al guardar la imagen',
+          isPrincipalConflict,
+          imageIndex: i + 1,
+        };
       }
-
-      console.log(`✅ ${urls.length} registros guardados en tabla imagenes`);
-      return { success: true };
-    } catch (error) {
-      console.error('❌ Error saving records:', error);
-      return { success: false, error: error.message };
     }
+
+    console.log(`✅ ${urls.length} registros guardados en tabla imagenes`);
+    return { success: true };
   }
 
   /**
    * Resetear formulario
    */
   function reset() {
-    images = [];
+    images       = [];
     existingCount = 0;
+    hasPrincipal  = false;
     const imageList = document.getElementById('imageList');
     if (imageList) imageList.innerHTML = '';
     addImageInput();
     updateCounter();
+  }
+
+  /**
+   * Informar al componente si ya existe una imagen guardada marcada como principal.
+   * Cuando val = true, ningún slot nuevo aparecerá marcado por defecto.
+   * Además, desmarca los slots nuevos que pudieran haber quedado marcados.
+   * Debe llamarse después de setExistingCount, desde obras-form tras cargar las imágenes.
+   * @param {boolean} val
+   */
+  function setHasPrincipal(val) {
+    hasPrincipal = Boolean(val);
+
+    if (hasPrincipal) {
+      // Desmarcar cualquier checkbox de slot nuevo que ya esté visible
+      document.querySelectorAll('.imagePrincipal').forEach((cb, i) => {
+        cb.checked = false;
+        if (images[i]) images[i].principal = false;
+      });
+    }
   }
 
   /**
@@ -296,7 +332,7 @@ const MultiImageUpload = (() => {
 
       if (emptyIndex >= 0) {
         // Rellenar slot vacío
-        images[emptyIndex] = { file, principal: emptyIndex === 0 };
+        images[emptyIndex] = { file, principal: !hasPrincipal && emptyIndex === 0 };
         const wrapper = imageList.children[emptyIndex];
         try { if (wrapper) await showPreview(wrapper, file); } catch (_) { /* preview opcional */ }
         added++;
@@ -304,7 +340,7 @@ const MultiImageUpload = (() => {
         // Crear slot nuevo y rellenarlo
         addImageInput();
         const newIndex = images.length - 1;
-        images[newIndex] = { file, principal: newIndex === 0 };
+        images[newIndex] = { file, principal: !hasPrincipal && newIndex === 0 };
         const wrapper = imageList.children[newIndex];
         try { if (wrapper) await showPreview(wrapper, file); } catch (_) { /* preview opcional */ }
         added++;
@@ -371,6 +407,7 @@ document.addEventListener('DOMContentLoaded', () => {
     reset,
     handleDroppedFiles,   // expuesto para testing
     setExistingCount,     // llamado desde obras-form al cargar imágenes existentes
+    setHasPrincipal,      // llamado desde obras-form cuando ya hay imagen principal guardada
   };
 })();
 
