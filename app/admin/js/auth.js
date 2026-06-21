@@ -98,9 +98,9 @@ document.addEventListener('DOMContentLoaded', async () => {
               .eq('email', userEmail2)
               .single();
 
-            window.usuarioActual = { email: userEmail2, rol: rolData?.rol || 'editor', nombre: rolData?.nombre || '' };
+            window.usuarioActual = { email: userEmail2, rol: rolData?.rol || 'editor', nombre: rolData?.nombre || '', authId: sessionData.session.user.id ?? null };
           } catch {
-            window.usuarioActual = { email: userEmail2, rol: 'editor', nombre: '' };
+            window.usuarioActual = { email: userEmail2, rol: 'editor', nombre: '', authId: sessionData.session.user.id ?? null };
           }
           localStorage.setItem('usuarioActual', JSON.stringify(window.usuarioActual));
 
@@ -135,10 +135,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             email:  session.user.email,
             rol:    _ud?.rol    || 'editor',
             nombre: _ud?.nombre || '',
+            authId: session.user.id ?? null,
           };
           localStorage.setItem('usuarioActual', JSON.stringify(window.usuarioActual));
         } catch (_e) {
-          window.usuarioActual = { email: session.user.email, rol: 'editor', nombre: '' };
+          window.usuarioActual = { email: session.user.email, rol: 'editor', nombre: '', authId: session.user.id ?? null };
           localStorage.setItem('usuarioActual', JSON.stringify(window.usuarioActual));
         }
       }
@@ -177,23 +178,27 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // ── Obtener rol del usuario desde Supabase ──────────────────────────
         try {
-          const { data: _rolData } = await window.supabase_client
-            .from('usuarios_admin')
-            .select('rol, nombre')
-            .eq('email', email)
-            .single();
+          const [{ data: _rolData }, { data: _authData }] = await Promise.all([
+            window.supabase_client
+              .from('usuarios_admin')
+              .select('rol, nombre')
+              .eq('email', email)
+              .single(),
+            client.auth.getUser(),
+          ]);
 
           window.usuarioActual = {
             email:  email,
             rol:    _rolData?.rol    || 'editor',
             nombre: _rolData?.nombre || '',
+            authId: _authData?.user?.id ?? null,
           };
           localStorage.setItem('usuarioActual', JSON.stringify(window.usuarioActual));
           console.log('👤 Usuario logueado:', window.usuarioActual);
           window.auditLogger?.login(email);
         } catch (_rolErr) {
           console.warn('[auth] No se pudo obtener rol; usando editor por defecto.', _rolErr);
-          window.usuarioActual = { email, rol: 'editor', nombre: '' };
+          window.usuarioActual = { email, rol: 'editor', nombre: '', authId: null };
           localStorage.setItem('usuarioActual', JSON.stringify(window.usuarioActual));
           window.auditLogger?.login(email);
         }

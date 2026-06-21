@@ -397,6 +397,13 @@ document.addEventListener('DOMContentLoaded', () => {
       descripcion: fDescripcion.value.trim() || null,
     };
 
+    // editor_id: solo para obras NUEVAS creadas por un editor.
+    // En UPDATE no se toca — el autor de la obra no cambia al editar.
+    if (!fId.value && rolGuardar === 'editor') {
+      const _authId = window.usuarioActual?.authId ?? null;
+      if (_authId) payload.editor_id = _authId;
+    }
+
     saveBtn.disabled    = true;
     saveBtn.textContent = 'Guardando…';
 
