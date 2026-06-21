@@ -41,7 +41,7 @@ export const api = {
       let query = supabase
         .from('obras')
         .select(OBRA_SELECT, { count: 'exact' })
-        .eq('estado', 'publicado');
+        .eq('estado', 'Publicado');
 
       if (year) {
         query = query.eq('año', parseInt(year));
@@ -84,7 +84,7 @@ export const api = {
         .from('obras')
         .select(OBRA_SELECT)
         .eq('id', id)
-        .eq('estado', 'publicado')
+        .eq('estado', 'Publicado')
         .single();
 
       if (error) {
@@ -115,7 +115,7 @@ export const api = {
         .from('obras')
         .select(OBRA_SELECT)
         .eq('slug', slug.trim())
-        .eq('estado', 'publicado')
+        .eq('estado', 'Publicado')
         .single();
 
       if (error) {
@@ -139,7 +139,7 @@ export const api = {
       const { data, error } = await supabase
         .from('obras')
         .select('año')
-        .eq('estado', 'publicado')
+        .eq('estado', 'Publicado')
         .order('año', { ascending: false });
 
       if (error) {
@@ -188,7 +188,7 @@ export const api = {
       const { data, error } = await supabase
         .from('obras')
         .select('tecnica_id')
-        .eq('estado', 'publicado');
+        .eq('estado', 'Publicado');
 
       if (error) {
         console.error('❌ Error counting by technique:', error);
