@@ -1,8 +1,11 @@
 // app/js/api-client.js
 // Cliente Supabase para catálogo público
 //
-// Estructura real de tablas (verificada 2026-06-12):
-//   obras:    id, titulo, artista, año, tecnica_id, descripcion, estado, created_at
+// Estructura real de tablas (verificada 2026-06-21):
+//   obras:    id, titulo, artista, año, tecnica_id, descripcion, estado, visible_publico, created_at
+//   visible_publico (boolean) es la única fuente de verdad para el catálogo público.
+//   estado refleja el flujo interno (Borrador / En Revisión / Publicado / Archivado)
+//   y NO se usa como filtro aquí — una obra reabierta para edición mantiene visible_publico=true.
 //   imagenes: id, obra_id, url_storage, principal (boolean), orden
 //   obra_tags: obra_id, tag_id
 //   tecnicas: id, nombre, slug, descripcion
@@ -41,7 +44,7 @@ export const api = {
       let query = supabase
         .from('obras')
         .select(OBRA_SELECT, { count: 'exact' })
-        .eq('estado', 'Publicado');
+        .eq('visible_publico', true);
 
       if (year) {
         query = query.eq('año', parseInt(year));
@@ -84,7 +87,7 @@ export const api = {
         .from('obras')
         .select(OBRA_SELECT)
         .eq('id', id)
-        .eq('estado', 'Publicado')
+        .eq('visible_publico', true)
         .single();
 
       if (error) {
@@ -115,7 +118,7 @@ export const api = {
         .from('obras')
         .select(OBRA_SELECT)
         .eq('slug', slug.trim())
-        .eq('estado', 'Publicado')
+        .eq('visible_publico', true)
         .single();
 
       if (error) {
@@ -132,14 +135,14 @@ export const api = {
   },
 
   /**
-   * Obtener años únicos de obras publicadas
+   * Obtener años únicos de obras visibles al público (visible_publico = true)
    */
   async getYears() {
     try {
       const { data, error } = await supabase
         .from('obras')
         .select('año')
-        .eq('estado', 'Publicado')
+        .eq('visible_publico', true)
         .order('año', { ascending: false });
 
       if (error) {
@@ -180,7 +183,7 @@ export const api = {
   },
 
   /**
-   * Contar obras publicadas por técnica.
+   * Contar obras visibles al público (visible_publico = true) por técnica.
    * Devuelve un objeto { [tecnica_id]: count }
    */
   async getWorkCountsByTechnique() {
@@ -188,7 +191,7 @@ export const api = {
       const { data, error } = await supabase
         .from('obras')
         .select('tecnica_id')
-        .eq('estado', 'Publicado');
+        .eq('visible_publico', true);
 
       if (error) {
         console.error('❌ Error counting by technique:', error);
