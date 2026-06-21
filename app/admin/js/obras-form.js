@@ -86,8 +86,9 @@ document.addEventListener('DOMContentLoaded', () => {
       modalTitle.textContent = 'Nueva Obra';
       saveBtn.textContent    = 'Guardar obra';
       if (existingSection) existingSection.style.display = 'none';
-      // Default para obra nueva
-      fEstado.value = rolActual === 'editor' ? 'En Revisión' : 'Borrador';
+      // Default para obra nueva: siempre Borrador — el editor elige activamente
+      // cuándo enviar a revisión, no debe quedar en "En Revisión" por default.
+      fEstado.value = 'Borrador';
     }
 
     // ── Artista: readonly para EDITOR ────────────────────
@@ -173,6 +174,18 @@ document.addEventListener('DOMContentLoaded', () => {
       if (rolActual === 'editor' && !esPropia) {
         window.toast?.error('No tienes permiso para editar esta obra.');
         console.warn(`[Seguridad] EDITOR ${emailActual} intentó editar obra de ${data.artista}`);
+        return null;
+      }
+
+      // EDITOR: solo puede editar obras propias que estén en Borrador.
+      // Si la obra está en "En Revisión", "Publicado" u otro estado, bloquear
+      // antes de mostrar el formulario — mensaje claro en lugar de fallo silencioso.
+      if (rolActual === 'editor' && esPropia && data.estado !== 'Borrador') {
+        window.ErrorHandler?.showToast(
+          `Esta obra está en "${data.estado}" y no puede editarse. Solo puedes modificar tus obras mientras estén en Borrador.`,
+          'warning'
+        );
+        console.warn(`[Seguridad] EDITOR ${emailActual} intentó editar obra propia en estado "${data.estado}"`);
         return null;
       }
 
