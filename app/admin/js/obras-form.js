@@ -352,6 +352,59 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // ── Guardar snapshot_publicado ───────────────────────
+  /**
+   * Construye y guarda el objeto snapshot_publicado en la obra indicada.
+   * Debe llamarse DESPUÉS de que las imágenes y tags ya fueron guardados en DB.
+   * No bloquea el flujo si falla — la obra ya fue guardada correctamente.
+   *
+   * @param {string} obraId      — UUID de la obra
+   * @param {object} payload     — objeto de campos guardados (titulo, artista, año, etc.)
+   * @param {Array}  tagsSelec   — array de tags seleccionados (getTags() de TagsInObra)
+   */
+  async function guardarSnapshot(obraId, payload, tagsSelec) {
+    try {
+      // Nombre de técnica desde el select del formulario
+      const tecnicaNombre = payload.tecnica_id
+        ? (fTecnica.options[fTecnica.selectedIndex]?.text ?? '')
+        : '';
+
+      // Nombres de tags seleccionados (el formato de getTags() puede variar)
+      const tagNombres = (tagsSelec ?? [])
+        .map(t => t.nombre ?? t.label ?? t.name ?? '')
+        .filter(Boolean);
+
+      // Imágenes actuales de la obra (ya guardadas, excluye pendiente_borrado)
+      const { data: imgs } = await client
+        .from('imagenes')
+        .select('url_storage, principal, pendiente_borrado')
+        .eq('obra_id', obraId);
+
+      const snap = {
+        titulo:      payload.titulo      ?? '',
+        artista:     payload.artista     ?? '',
+        año:         payload.año         ?? null,
+        tecnica:     tecnicaNombre,
+        descripcion: payload.descripcion ?? '',
+        tags:        tagNombres,
+        imagenes:    (imgs ?? [])
+          .filter(i => !i.pendiente_borrado)
+          .map(i => ({ url_storage: i.url_storage, principal: i.principal ?? false })),
+      };
+
+      const { error } = await client
+        .from('obras')
+        .update({ snapshot_publicado: snap })
+        .eq('id', obraId);
+
+      if (error) throw error;
+      console.log('[obras-form] snapshot_publicado guardado para obra:', obraId, snap);
+    } catch (err) {
+      // No bloquear el flujo principal — la obra se guardó correctamente
+      console.error('[obras-form] Error al guardar snapshot_publicado:', err);
+    }
+  }
+
   // ── Guardar obra (INSERT o UPDATE) ───────────────────
   async function saveObra() {
     hideAlert();
@@ -456,6 +509,12 @@ document.addEventListener('DOMContentLoaded', () => {
       const tags = window.TagsInObra;
       if (tags) {
         await tags.saveTags(obraId);
+      }
+
+      // ── Snapshot: guardar si el estado resultante es Publicado ──
+      // tagsSelec fue capturado antes del save para no depender del estado del componente.
+      if (payload.estado === 'Publicado') {
+        await guardarSnapshot(obraId, payload, tagsSelec);
       }
 
       // ── Toast contextual según estado y operación ─────────

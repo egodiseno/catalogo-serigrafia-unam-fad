@@ -344,7 +344,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // ── Modal de revisión de cambios ──────────────────────
   // Abre #revisarCambiosModal para obras En Revisión reaperturadas.
   // Muestra motivo_reapertura + diff entre snapshot_publicado y valores actuales.
-  // Aprobar / Rechazar son stubs en esta entrega (próxima entrega los conectará).
+  // Aprobar: publica la obra con snapshot actualizado + borra imágenes pendientes.
+  // Rechazar: restaura valores del snapshot + desmarca imágenes + guarda motivo.
   function abrirModalRevision(obraId) {
     const obra = state.obras.find(o => String(o.id) === String(obraId));
     if (!obra) return;
@@ -361,25 +362,22 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // Construir contenido del modal
-    const motivo = obra.motivo_reapertura ?? '';
-    let html = '';
+    // ── Render contenido del diff ─────────────────────────
+    const _renderDiff = () => {
+      const motivo = obra.motivo_reapertura ?? '';
+      body.innerHTML = `
+        <div class="diff-motivo">
+          <p class="diff-motivo-label">Motivo de reapertura indicado por el editor</p>
+          <blockquote class="diff-motivo-texto">${escHtml(motivo)}</blockquote>
+        </div>
+        <div class="diff-contenido">
+          <h4 class="diff-section-title">Cambios respecto a la versión publicada</h4>
+          ${generarDiff(obra)}
+        </div>`;
+      window.IconRegistry?.init();
+    };
 
-    // Sección 1: motivo de reapertura
-    html += `
-      <div class="diff-motivo">
-        <p class="diff-motivo-label">Motivo de reapertura indicado por el editor</p>
-        <blockquote class="diff-motivo-texto">${escHtml(motivo)}</blockquote>
-      </div>`;
-
-    // Sección 2: diff de campos y de imágenes
-    html += `
-      <div class="diff-contenido">
-        <h4 class="diff-section-title">Cambios respecto a la versión publicada</h4>
-        ${generarDiff(obra)}
-      </div>`;
-
-    body.innerHTML = html;
+    _renderDiff();
 
     // AbortController — limpia todos los listeners al cerrar
     const ac     = new AbortController();
@@ -395,12 +393,98 @@ document.addEventListener('DOMContentLoaded', () => {
     modal.addEventListener('click', e => { if (e.target === modal) _close(); }, { signal });
     document.addEventListener('keydown', e => { if (e.key === 'Escape') _close(); }, { signal });
 
-    // Stubs de Aprobar / Rechazar — se conectarán en la próxima entrega
-    aprobarBtn?.addEventListener('click', () => {
-      window.ErrorHandler?.showToast('La acción Aprobar se conectará en la siguiente entrega.', 'info');
+    // ── Aprobar ───────────────────────────────────────────
+    aprobarBtn?.addEventListener('click', async () => {
+      aprobarBtn.disabled    = true;
+      aprobarBtn.textContent = 'Aprobando…';
+      rechazarBtn.disabled   = true;
+      console.log('[obras-list] Iniciando aprobación — obra:', obra.id, obra.titulo);
+
+      try {
+        await ejecutarAprobacion(obra);
+        _close();
+        window.ErrorHandler?.showToast(`"${escHtml(obra.titulo)}" aprobada y publicada.`, 'success');
+        loadObras(true);
+      } catch (err) {
+        console.error('[obras-list] ejecutarAprobacion error:', err);
+        window.ErrorHandler?.showToast('No se pudo aprobar la obra. Revisa la consola.', 'error');
+        aprobarBtn.disabled    = false;
+        aprobarBtn.textContent = 'Aprobar';
+        rechazarBtn.disabled   = false;
+      }
     }, { signal });
-    rechazarBtn?.addEventListener('click', () => {
-      window.ErrorHandler?.showToast('La acción Rechazar se conectará en la siguiente entrega.', 'info');
+
+    // ── Rechazar — dos fases: mostrar campo → confirmar ──
+    // Fase 1: muestra textarea de motivo en el body (sin cerrar modal).
+    // Fase 2: con motivo válido, ejecuta el rechazo.
+    let _rechazandoActivo = false;
+
+    rechazarBtn?.addEventListener('click', async () => {
+
+      if (!_rechazandoActivo) {
+        // ── FASE 1: mostrar formulario de motivo ────────────
+        _rechazandoActivo       = true;
+        rechazarBtn.disabled    = true;
+        rechazarBtn.textContent = 'Confirmar rechazo';
+        aprobarBtn.disabled     = true;
+
+        const formDiv = document.createElement('div');
+        formDiv.className = 'diff-rechazo-form';
+        formDiv.id        = 'rechazarForm';
+        formDiv.innerHTML = `
+          <h4 class="diff-section-title diff-section-title--rechazar">Motivo de rechazo</h4>
+          <p class="diff-rechazo-hint">El editor verá este motivo al revisar la obra devuelta. Sé claro y constructivo.</p>
+          <textarea id="rechazarMotivoInput" class="form-textarea" rows="3" maxlength="1000"
+            placeholder="Describe qué debe corregir el editor antes de que la obra pueda aprobarse…"></textarea>
+          <div class="diff-rechazo-footer">
+            <span id="rechazarMotivoCharCount" class="field-hint">0 / 1000</span>
+            <button type="button" class="btn btn-ghost btn-sm" id="rechazarCancelarBtn">Cancelar rechazo</button>
+          </div>`;
+        body.appendChild(formDiv);
+        body.scrollTop = body.scrollHeight;
+
+        const textarea  = formDiv.querySelector('#rechazarMotivoInput');
+        const charCount = formDiv.querySelector('#rechazarMotivoCharCount');
+        const volverBtn = formDiv.querySelector('#rechazarCancelarBtn');
+
+        textarea.addEventListener('input', () => {
+          const n = textarea.value.length;
+          charCount.textContent = `${n} / 1000`;
+          rechazarBtn.disabled  = n === 0;
+        }, { signal });
+
+        volverBtn?.addEventListener('click', () => {
+          _rechazandoActivo       = false;
+          rechazarBtn.textContent = 'Rechazar';
+          rechazarBtn.disabled    = false;
+          aprobarBtn.disabled     = false;
+          formDiv.remove();
+        }, { signal });
+
+        textarea.focus();
+        return;
+      }
+
+      // ── FASE 2: ejecutar rechazo con el motivo escrito ──
+      const textarea = document.getElementById('rechazarMotivoInput');
+      const motivo   = textarea?.value.trim() ?? '';
+      if (!motivo) return;
+
+      rechazarBtn.disabled    = true;
+      rechazarBtn.textContent = 'Rechazando…';
+      console.log('[obras-list] Iniciando rechazo — obra:', obra.id, obra.titulo, '| motivo:', motivo);
+
+      try {
+        await ejecutarRechazo(obra, motivo);
+        _close();
+        window.ErrorHandler?.showToast(`Cambios rechazados. "${escHtml(obra.titulo)}" vuelve a la versión publicada.`, 'success');
+        loadObras(true);
+      } catch (err) {
+        console.error('[obras-list] ejecutarRechazo error:', err);
+        window.ErrorHandler?.showToast('No se pudo rechazar la obra. Revisa la consola.', 'error');
+        rechazarBtn.disabled    = false;
+        rechazarBtn.textContent = 'Confirmar rechazo';
+      }
     }, { signal });
 
     modal.style.display = 'flex';
@@ -529,6 +613,170 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     return html;
+  }
+
+  // ── Construir objeto snapshot a partir de los datos de la obra ────────────
+  // Usa los valores actuales del objeto obra (desde state.obras).
+  // Excluye imágenes marcadas como pendiente_borrado.
+  function construirSnapshot(obra) {
+    return {
+      titulo:      obra.titulo      ?? '',
+      artista:     obra.artista     ?? '',
+      año:         obra.año         ?? null,
+      tecnica:     obra.tecnicas?.nombre ?? '',
+      descripcion: obra.descripcion ?? '',
+      tags:        (obra.obra_tags ?? []).map(ot => ot.tags?.nombre).filter(Boolean),
+      imagenes:    (obra.imagenes  ?? [])
+        .filter(img => !img.pendiente_borrado)
+        .map(img => ({ url_storage: img.url_storage, principal: img.principal ?? false })),
+    };
+  }
+
+  // ── Borrar una imagen físicamente de Storage + su registro en imagenes ────
+  // Mismo patrón que deleteObraImage() en obras-form.js.
+  // Lanza error si el borrado de DB falla; solo advierte si falla Storage.
+  async function borrarImagenFisicaYDB(imgId, imgUrl) {
+    const { error: dbErr } = await client.from('imagenes').delete().eq('id', imgId);
+    if (dbErr) throw dbErr;
+
+    if (imgUrl) {
+      const storagePath = imgUrl.split('/artworks/')[1];
+      if (storagePath) {
+        const delResult = await window.StorageModule?.deleteImage(storagePath);
+        if (delResult?.success) {
+          console.log('[obras-list] Imagen eliminada de Storage:', storagePath);
+        } else {
+          console.warn('[obras-list] No se pudo eliminar de Storage (archivo huérfano):', delResult?.error);
+        }
+      }
+    }
+  }
+
+  // ── Ejecutar aprobación de obra reabierta (Parte B) ───────────────────────
+  // 1. Cambia estado → Publicado, visible_publico → true, guarda snapshot actualizado,
+  //    limpia motivo_reapertura y motivo_rechazo.
+  // 2. Borra físicamente las imágenes con pendiente_borrado = true.
+  // 3. Registra en Logs de Auditoría.
+  async function ejecutarAprobacion(obra) {
+    const snap = construirSnapshot(obra);
+
+    // Imágenes pendientes de borrado — capturar ANTES del UPDATE
+    const imgsPendientes = (obra.imagenes ?? []).filter(img => img.pendiente_borrado);
+
+    // 1. Actualizar obra
+    const { data: filas, error: updErr } = await client
+      .from('obras')
+      .update({
+        estado:             'Publicado',
+        visible_publico:    true,
+        snapshot_publicado: snap,
+        motivo_reapertura:  null,
+        motivo_rechazo:     null,
+      })
+      .eq('id', obra.id)
+      .select('id');
+
+    if (updErr) throw updErr;
+    if (!filas?.length) throw new Error('UPDATE no afectó ninguna fila — posible bloqueo RLS');
+
+    // 2. Borrar imágenes pendientes (física + DB)
+    for (const img of imgsPendientes) {
+      try {
+        await borrarImagenFisicaYDB(img.id, img.url_storage);
+      } catch (imgErr) {
+        // No detener la aprobación si falla el borrado de una imagen
+        console.warn('[obras-list] ejecutarAprobacion — error borrando imagen:', img.id, imgErr);
+      }
+    }
+
+    // 3. Audit log
+    window.auditLogger?.editarObra(obra.id, obra.titulo);
+    console.log(
+      '[obras-list] Obra aprobada:', obra.id, obra.titulo,
+      '| snapshot actualizado | imágenes borradas:', imgsPendientes.length,
+      '| usuario:', window.usuarioActual?.email
+    );
+  }
+
+  // ── Ejecutar rechazo de obra reabierta (Parte C) ──────────────────────────
+  // 1. Restaura campos de texto desde snapshot_publicado (titulo, artista, año,
+  //    tecnica_id, descripcion).
+  // 2. Restaura tags desde snapshot (borra actuales + re-inserta).
+  // 3. Desmarca imágenes pendientes_borrado (vuelven a false).
+  // 4. Cambia estado → Publicado; guarda motivo_rechazo; limpia motivo_reapertura.
+  // 5. Registra en Logs de Auditoría.
+  async function ejecutarRechazo(obra, motivo) {
+    const snap = obra.snapshot_publicado;
+    if (!snap) throw new Error('No hay snapshot disponible para restaurar');
+
+    // 1a. Lookup tecnica_id desde el nombre guardado en el snapshot
+    let tecnicaId = null;
+    if (snap.tecnica) {
+      const { data: tecData, error: tecErr } = await client
+        .from('tecnicas')
+        .select('id')
+        .eq('nombre', snap.tecnica)
+        .maybeSingle();
+      if (tecErr) throw tecErr;
+      tecnicaId = tecData?.id ?? null;
+    }
+
+    // 1b. Restaurar campos principales + cambiar estado + guardar motivo
+    const { data: filas, error: updErr } = await client
+      .from('obras')
+      .update({
+        titulo:            snap.titulo      ?? obra.titulo,
+        artista:           snap.artista     ?? obra.artista,
+        año:               snap.año         ?? obra.año,
+        descripcion:       snap.descripcion || null,
+        tecnica_id:        tecnicaId,
+        estado:            'Publicado',
+        motivo_rechazo:    motivo,
+        motivo_reapertura: null,
+        // visible_publico: NO se modifica (obra ya era pública)
+      })
+      .eq('id', obra.id)
+      .select('id');
+
+    if (updErr) throw updErr;
+    if (!filas?.length) throw new Error('UPDATE no afectó ninguna fila — posible bloqueo RLS');
+
+    // 2. Restaurar tags: eliminar actuales y re-insertar los del snapshot
+    const { error: delTagsErr } = await client
+      .from('obra_tags')
+      .delete()
+      .eq('obra_id', obra.id);
+    if (delTagsErr) throw delTagsErr;
+
+    if (snap.tags && snap.tags.length > 0) {
+      const { data: tagData, error: tagLookupErr } = await client
+        .from('tags')
+        .select('id, nombre')
+        .in('nombre', snap.tags);
+      if (tagLookupErr) throw tagLookupErr;
+
+      if (tagData && tagData.length > 0) {
+        const { error: insTagsErr } = await client
+          .from('obra_tags')
+          .insert(tagData.map(t => ({ obra_id: obra.id, tag_id: t.id })));
+        if (insTagsErr) throw insTagsErr;
+      }
+    }
+
+    // 3. Desmarcar imágenes pendientes_borrado (restaurar al estado normal)
+    await client
+      .from('imagenes')
+      .update({ pendiente_borrado: false })
+      .eq('obra_id', obra.id)
+      .eq('pendiente_borrado', true);
+
+    // 4. Audit log
+    window.auditLogger?.editarObra(obra.id, obra.titulo);
+    console.log(
+      '[obras-list] Obra rechazada:', obra.id, obra.titulo,
+      '| campos restaurados al snapshot | motivo:', motivo,
+      '| usuario:', window.usuarioActual?.email
+    );
   }
 
   // ── Búsqueda en tiempo real (debounce 300ms) ──────────

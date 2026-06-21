@@ -7568,6 +7568,30 @@ input[type="file"]:hover {
   letter-spacing: 0.04em;
 }
 
+/* ── Formulario de motivo de rechazo (aparece inline en el modal) ─── */
+.diff-rechazo-form {
+  margin-top:    1.25rem;
+  padding-top:   1.25rem;
+  border-top:    2px solid #FEE2E2;
+}
+
+.diff-section-title--rechazar {
+  color: #991B1B;
+}
+
+.diff-rechazo-hint {
+  font-size:     var(--text-sm, 0.875rem);
+  color:         var(--color-text-muted, #6B7280);
+  margin-bottom: 0.5rem;
+}
+
+.diff-rechazo-footer {
+  display:         flex;
+  justify-content: space-between;
+  align-items:     center;
+  margin-top:      0.4rem;
+}
+
 /* Banner informativo de seguridad dentro del modal */
 .set-pwd-banner {
   display:          flex;
