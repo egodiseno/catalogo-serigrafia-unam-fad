@@ -144,6 +144,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
       }
 
+      // Asegurar que authId esté en memoria — puede faltar en sesiones guardadas
+      // antes del sprint (cuando email coincide y el bloque de re-fetch se omite).
+      if (window.usuarioActual && !window.usuarioActual.authId) {
+        window.usuarioActual.authId = session.user.id ?? null;
+        localStorage.setItem('usuarioActual', JSON.stringify(window.usuarioActual));
+      }
+
       // Hay sesión activa — verificar nivel de aseguramiento MFA
       const needsMFA = await checkMFARequired();
       if (!needsMFA) showDashboard(session.user.email);
@@ -178,20 +185,21 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // ── Obtener rol del usuario desde Supabase ──────────────────────────
         try {
-          const [{ data: _rolData }, { data: _authData }] = await Promise.all([
-            window.supabase_client
-              .from('usuarios_admin')
-              .select('rol, nombre')
-              .eq('email', email)
-              .single(),
-            client.auth.getUser(),
-          ]);
+          const { data: _rolData } = await window.supabase_client
+            .from('usuarios_admin')
+            .select('rol, nombre')
+            .eq('email', email)
+            .single();
+
+          // getSession() lee la caché local — no requiere red y garantiza el user.id
+          // tras un loginWithEmail exitoso. Más fiable que getUser() (que hace fetch).
+          const { data: _sessionData } = await client.auth.getSession();
 
           window.usuarioActual = {
             email:  email,
             rol:    _rolData?.rol    || 'editor',
             nombre: _rolData?.nombre || '',
-            authId: _authData?.user?.id ?? null,
+            authId: _sessionData?.session?.user?.id ?? null,
           };
           localStorage.setItem('usuarioActual', JSON.stringify(window.usuarioActual));
           console.log('👤 Usuario logueado:', window.usuarioActual);
@@ -742,3 +750,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   initSetPasswordModal();
 
 });
+
+// ── Exportar interfaz mínima para init.js ─────────────────────────────────────
+// La inicialización real de Auth ocurre en el DOMContentLoaded handler de arriba.
+// init.js verifica window.Auth como módulo "requerido" — esta exportación la satisface.
+window.Auth = {
+  init() { /* Auth se inicializa vía DOMContentLoaded — nada que hacer aquí */ }
+};
+console.log('✅ Auth module ready');
