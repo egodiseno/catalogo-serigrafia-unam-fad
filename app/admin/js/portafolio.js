@@ -117,7 +117,7 @@ class PortafolioManager {
     try {
       let query = this.client
         .from('obras')
-        .select('id, titulo, año, tecnica_id, tecnicas(nombre), imagenes(url_storage, principal), obra_tags(tags(id, nombre)), estado, created_at')
+        .select('id, titulo, año, tecnica_id, tecnicas(nombre), imagenes(url_storage, principal), obra_tags(tags(id, nombre)), estado, motivo_rechazo, created_at')
         .order('created_at', { ascending: false });
 
       // Filtrar solo propias si hay nombre de artista; si no, sin filtro
@@ -179,6 +179,22 @@ class PortafolioManager {
       return `<span class="badge ${cls}">${est || '—'}</span>`;
     };
 
+    // ── Ícono de rechazo (rojo) — aparece cuando hay motivo_rechazo ─────────
+    // El editor hace clic para ver el motivo en un modal de solo lectura.
+    // Convive con el botón de acción de la misma fila.
+    const _rechazoBadge = (o) => {
+      if (!o.motivo_rechazo) return '';
+      return `<button class="btn btn-ghost btn-xs portafolio-rechazo-btn"
+                      data-id="${o.id}"
+                      data-motivo="${this._escAttr(o.motivo_rechazo)}"
+                      title="Ver motivo de rechazo"
+                      aria-label="Ver motivo de rechazo">
+        <i data-lucide="message-square"
+           style="width:14px;height:14px;color:var(--color-error);"
+           aria-hidden="true"></i>
+      </button>`;
+    };
+
     // ── Botón de acción según estado ─────────────────────────────────────────
     // Borrador    → lápiz editar
     // En Revisión → "Volver a borrador" (confirmación simple)
@@ -232,7 +248,7 @@ class PortafolioManager {
           <td class="tags-cell" data-label="Tags">${tagsHtml}</td>
           <td data-label="Estado">${estadoBadge(o.estado)}</td>
           <td data-label="Fecha">${o.created_at ? new Date(o.created_at).toLocaleDateString('es-MX') : '—'}</td>
-          <td data-label="Acciones">${_accionBtn(o)}</td>
+          <td data-label="Acciones">${_rechazoBadge(o)}${_accionBtn(o)}</td>
         </tr>`;
     }).join('');
 
@@ -243,6 +259,11 @@ class PortafolioManager {
       img.addEventListener('click', () =>
         window.ModalManager?.openImagePreview(img.dataset.src)
       );
+    });
+
+    // Abrir modal de rechazo (solo lectura — muestra motivo_rechazo)
+    tbody.querySelectorAll('.portafolio-rechazo-btn').forEach(btn => {
+      btn.addEventListener('click', () => this._abrirModalRechazo(btn.dataset.motivo));
     });
 
     // Abrir modal de edición
@@ -363,7 +384,7 @@ class PortafolioManager {
       try {
         const { data: filas, error } = await this.client
           .from('obras')
-          .update({ estado: 'Borrador', motivo_reapertura: motivo })
+          .update({ estado: 'Borrador', motivo_reapertura: motivo, motivo_rechazo: null })
           .eq('id', obraId)
           .select('id');
 
@@ -389,6 +410,46 @@ class PortafolioManager {
     modal.style.display = 'flex';
     window.IconRegistry?.init();
     textarea.focus();
+  }
+
+  // ══════════════════════════════════════════════════════
+  // Modal: Ver motivo de rechazo (solo lectura, para el editor)
+  // ══════════════════════════════════════════════════════
+
+  /**
+   * Abre el modal #motivoRechazoModal mostrando el texto guardado
+   * en motivo_rechazo. Solo lectura — el editor no puede editar nada aquí.
+   *
+   * @param {string} motivo — texto del motivo de rechazo
+   */
+  _abrirModalRechazo(motivo) {
+    const modal    = document.getElementById('motivoRechazoModal');
+    const texto    = document.getElementById('motivoRechazoTexto');
+    const closeBtn = document.getElementById('motivoRechazoModalCloseBtn');
+    const okBtn    = document.getElementById('motivoRechazoModalOkBtn');
+
+    if (!modal) {
+      console.error('[PortafolioManager] #motivoRechazoModal no encontrado en el DOM');
+      return;
+    }
+
+    if (texto) texto.textContent = motivo || '—';
+
+    const ac     = new AbortController();
+    const signal = ac.signal;
+
+    const _close = () => {
+      modal.style.display = 'none';
+      ac.abort();
+    };
+
+    closeBtn?.addEventListener('click', _close, { signal });
+    okBtn?.addEventListener('click',    _close, { signal });
+    modal.addEventListener('click', e => { if (e.target === modal) _close(); }, { signal });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') _close(); }, { signal });
+
+    modal.style.display = 'flex';
+    window.IconRegistry?.init();
   }
 
   // ══════════════════════════════════════════════════════

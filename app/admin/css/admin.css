@@ -7070,6 +7070,20 @@ input[type="file"]:hover {
   opacity: 1;
 }
 
+/* ── Stat card — desglose secundario (ej: "X con cambios sobre obra publicada") */
+.stat-detail {
+  font-size:   0.72rem;
+  font-weight: 500;
+  color:       #92400E;
+  margin-top:  0.3rem;
+  line-height: 1.3;
+  opacity:     0.85;
+}
+
+.stat-card--warning:hover .stat-detail {
+  opacity: 1;
+}
+
 /* ── Modal de rechazo ────────────────────────────────────────────────── */
 .rechazar-modal-alumno {
   font-size:     0.9375rem;

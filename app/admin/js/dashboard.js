@@ -48,17 +48,25 @@ document.addEventListener('DOMContentLoaded', () => {
       const pendientesQ = esAdmin
         ? client.from('obras').select('*', { count: 'exact', head: true }).eq('estado', 'En Revisión')
         : Promise.resolve({ count: 0 });
+      // Desglose: cuántas de las obras En Revisión son reaperturas (tienen motivo_reapertura)
+      const conCambiosQ = esAdmin
+        ? client.from('obras')
+            .select('*', { count: 'exact', head: true })
+            .eq('estado', 'En Revisión')
+            .not('motivo_reapertura', 'is', null)
+        : Promise.resolve({ count: 0 });
       const regPendientesQ = esAdmin
         ? client.from('registro_alumnos').select('*', { count: 'exact', head: true }).eq('estado', 'pendiente_validacion')
         : Promise.resolve({ count: 0 });
 
       const [
-        { count: obras        },
-        { count: tecnicas     },
-        { count: tags         },
-        { count: usuarios     },
-        { data: recientes     },
-        { count: pendientes   },
+        { count: obras         },
+        { count: tecnicas      },
+        { count: tags          },
+        { count: usuarios      },
+        { data: recientes      },
+        { count: pendientes    },
+        { count: conCambios    },
         { count: regPendientes },
       ] = await Promise.all([
         obrasCountQ,
@@ -67,6 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
         client.from('usuarios_admin').select('*',  { count: 'exact', head: true }),
         obrasListQ,
         pendientesQ,
+        conCambiosQ,
         regPendientesQ,
       ]);
 
@@ -80,6 +89,18 @@ document.addEventListener('DOMContentLoaded', () => {
       if (esAdmin && cardPendientes) {
         cardPendientes.style.display = '';
         if (elPendientes) elPendientes.textContent = pendientes ?? 0;
+
+        // Desglose: cuántas son reaperturas de obras ya publicadas
+        const elDetalle = document.getElementById('pendientesConCambios');
+        if (elDetalle) {
+          const n = conCambios ?? 0;
+          if (n > 0) {
+            elDetalle.textContent = `${n} con cambios sobre obra publicada`;
+            elDetalle.style.display = '';
+          } else {
+            elDetalle.style.display = 'none';
+          }
+        }
       } else if (cardPendientes) {
         cardPendientes.style.display = 'none';
       }

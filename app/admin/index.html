@@ -377,6 +377,8 @@
                  title="Ver obras pendientes de revisión">
               <div class="stat-value" id="totalPendientes">0</div>
               <div class="stat-label">Pendientes de Revisión</div>
+              <!-- Desglose: obras reaperturadas (con motivo_reapertura) — solo si > 0 -->
+              <div class="stat-detail" id="pendientesConCambios" style="display:none;"></div>
             </div>
             <!-- 3. Técnicas -->
             <div class="stat-card">
@@ -1855,6 +1857,44 @@
         <button type="button" class="btn btn-primary"   id="reabrirPublicadoModalConfirmBtn" disabled>
           Reabrir para editar
         </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========================
+       MODAL: MOTIVO DE RECHAZO (editor — solo lectura)
+       Se abre desde Mi Portafolio al hacer clic en el ícono rojo de rechazo.
+       Muestra el texto de motivo_rechazo dejado por el admin/super_editor.
+       ======================== -->
+  <div id="motivoRechazoModal" class="modal-overlay" style="display:none;"
+       role="dialog" aria-modal="true" aria-labelledby="motivoRechazoModalTitle">
+    <div class="modal-dialog modal-dialog--sm">
+
+      <div class="modal-header">
+        <h3 id="motivoRechazoModalTitle">Motivo de rechazo</h3>
+        <button class="modal-close btn btn-ghost" id="motivoRechazoModalCloseBtn" aria-label="Cerrar">
+          <i data-lucide="x" style="width:16px;height:16px;" aria-hidden="true"></i>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <p class="field-hint" style="margin-bottom:var(--spacing-sm,0.5rem);">
+          El revisor indicó el siguiente motivo para devolver los cambios:
+        </p>
+        <blockquote id="motivoRechazoTexto"
+                    style="margin:0; padding:0.75rem 1rem;
+                           background:var(--color-error-light,#FEF2F2);
+                           border-left:3px solid var(--color-error,#EF4444);
+                           border-radius:var(--radius-sm,4px);
+                           color:var(--color-text,#1F2937);
+                           white-space:pre-wrap;
+                           font-size:0.9rem;
+                           line-height:1.6;">—</blockquote>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" id="motivoRechazoModalOkBtn">Entendido</button>
       </div>
 
     </div>
