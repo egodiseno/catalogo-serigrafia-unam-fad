@@ -76,9 +76,9 @@ document.addEventListener('DOMContentLoaded', () => {
       let query = client
         .from('obras')
         .select(
-          'id, titulo, artista, año, estado, created_at,' +
+          'id, titulo, artista, año, estado, created_at, descripcion, motivo_reapertura, snapshot_publicado,' +
           'tecnicas(nombre),' +
-          'imagenes(url_storage, principal),' +
+          'imagenes(id, url_storage, principal, pendiente_borrado),' +
           'obra_tags(tags(id, nombre))',
           { count: 'exact' }
         )
@@ -158,6 +158,15 @@ document.addEventListener('DOMContentLoaded', () => {
         ? tagNames.map(n => `<span class="tag-badge">${escHtml(n)}</span>`).join('')
         : '<span class="text-muted">—</span>';
 
+      // Botón de revisión de cambios — solo para obras En Revisión reaperturadas
+      // (tienen motivo_reapertura, a diferencia de obras nuevas en primer envío)
+      const btnDiff = (obra.estado === 'En Revisión' && obra.motivo_reapertura)
+        ? `<button class="btn btn-sm btn-diff btn-diff-revision"
+                   data-id="${obra.id}" title="Ver cambios pendientes de revisión">
+            <i data-lucide="message-square" style="width:14px;height:14px;" aria-hidden="true"></i>
+          </button>`
+        : '';
+
       return `
         <tr data-id="${obra.id}">
           <td class="td-thumb">${thumb}</td>
@@ -166,9 +175,10 @@ document.addEventListener('DOMContentLoaded', () => {
           <td>${obra.año ?? '—'}</td>
           <td>${escHtml(tecnica)}</td>
           <td class="tags-cell">${tagsHtml}</td>
-          <td><span class="badge badge-${obra.estado}">${obra.estado}</span></td>
+          <td><span class="badge ${badgeCls(obra.estado)}">${obra.estado}</span></td>
           <td class="actions-cell">
             <div class="action-buttons">
+              ${btnDiff}
               <button class="btn btn-sm btn-secondary btn-edit"
                       data-id="${obra.id}" title="Editar">
                 <i data-lucide="pen" style="width:14px;height:14px;" aria-hidden="true"></i>
@@ -193,6 +203,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Click en thumbnail → modal preview (openImagePreview)
     tbody.querySelectorAll('.obra-thumb').forEach(img => {
       img.addEventListener('click', () => window.ModalManager?.openImagePreview(img.dataset.src));
+    });
+    // Botón de diff de revisión (obras En Revisión reaperturadas)
+    tbody.querySelectorAll('.btn-diff-revision').forEach(btn => {
+      btn.addEventListener('click', () => abrirModalRevision(btn.dataset.id));
     });
     // Renderizar iconos Lucide inyectados en el innerHTML dinámico
     window.IconRegistry?.init();
@@ -327,6 +341,196 @@ document.addEventListener('DOMContentLoaded', () => {
     window.obrasForm?.open(id);
   }
 
+  // ── Modal de revisión de cambios ──────────────────────
+  // Abre #revisarCambiosModal para obras En Revisión reaperturadas.
+  // Muestra motivo_reapertura + diff entre snapshot_publicado y valores actuales.
+  // Aprobar / Rechazar son stubs en esta entrega (próxima entrega los conectará).
+  function abrirModalRevision(obraId) {
+    const obra = state.obras.find(o => String(o.id) === String(obraId));
+    if (!obra) return;
+
+    const modal       = document.getElementById('revisarCambiosModal');
+    const body        = document.getElementById('revisarCambiosModalBody');
+    const closeBtn    = document.getElementById('revisarCambiosModalCloseBtn');
+    const cancelBtn   = document.getElementById('revisarCambiosModalCancelBtn');
+    const aprobarBtn  = document.getElementById('revisarCambiosModalAprobarBtn');
+    const rechazarBtn = document.getElementById('revisarCambiosModalRechazarBtn');
+
+    if (!modal || !body) {
+      console.error('[obras-list] #revisarCambiosModal no encontrado en el DOM');
+      return;
+    }
+
+    // Construir contenido del modal
+    const motivo = obra.motivo_reapertura ?? '';
+    let html = '';
+
+    // Sección 1: motivo de reapertura
+    html += `
+      <div class="diff-motivo">
+        <p class="diff-motivo-label">Motivo de reapertura indicado por el editor</p>
+        <blockquote class="diff-motivo-texto">${escHtml(motivo)}</blockquote>
+      </div>`;
+
+    // Sección 2: diff de campos y de imágenes
+    html += `
+      <div class="diff-contenido">
+        <h4 class="diff-section-title">Cambios respecto a la versión publicada</h4>
+        ${generarDiff(obra)}
+      </div>`;
+
+    body.innerHTML = html;
+
+    // AbortController — limpia todos los listeners al cerrar
+    const ac     = new AbortController();
+    const signal = ac.signal;
+
+    const _close = () => {
+      modal.style.display = 'none';
+      ac.abort();
+    };
+
+    closeBtn?.addEventListener('click',  _close, { signal });
+    cancelBtn?.addEventListener('click', _close, { signal });
+    modal.addEventListener('click', e => { if (e.target === modal) _close(); }, { signal });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') _close(); }, { signal });
+
+    // Stubs de Aprobar / Rechazar — se conectarán en la próxima entrega
+    aprobarBtn?.addEventListener('click', () => {
+      window.ErrorHandler?.showToast('La acción Aprobar se conectará en la siguiente entrega.', 'info');
+    }, { signal });
+    rechazarBtn?.addEventListener('click', () => {
+      window.ErrorHandler?.showToast('La acción Rechazar se conectará en la siguiente entrega.', 'info');
+    }, { signal });
+
+    modal.style.display = 'flex';
+    window.IconRegistry?.init();
+  }
+
+  // Genera el HTML del diff entre snapshot_publicado y los valores actuales de la obra.
+  // Solo muestra campos donde hay diferencia real.
+  // Cubre: título, año, técnica, descripción, tags, imágenes.
+  function generarDiff(obra) {
+    const snap = obra.snapshot_publicado;
+    if (!snap) {
+      return '<p class="diff-sin-cambios">No hay snapshot disponible — esta obra aún no tiene una versión publicada registrada.</p>';
+    }
+
+    const campos = [];
+
+    // Título
+    if ((snap.titulo ?? '') !== (obra.titulo ?? '')) {
+      campos.push({ label: 'Título', antes: snap.titulo || '—', despues: obra.titulo || '—' });
+    }
+
+    // Año
+    if (String(snap.año ?? '') !== String(obra.año ?? '')) {
+      campos.push({ label: 'Año', antes: snap.año ?? '—', despues: obra.año ?? '—' });
+    }
+
+    // Técnica (el snapshot guarda el nombre; la obra carga la relación tecnicas)
+    const tecActual = obra.tecnicas?.nombre ?? '';
+    const tecSnap   = snap.tecnica ?? snap.tecnica_nombre ?? '';
+    if (tecSnap !== tecActual) {
+      campos.push({ label: 'Técnica', antes: tecSnap || '—', despues: tecActual || '—' });
+    }
+
+    // Descripción
+    const descActual = (obra.descripcion ?? '').trim();
+    const descSnap   = (snap.descripcion ?? '').trim();
+    if (descSnap !== descActual) {
+      campos.push({ label: 'Descripción', antes: descSnap || '—', despues: descActual || '—', multilinea: true });
+    }
+
+    // Tags (comparar listas ordenadas de nombres)
+    const tagsActual = (obra.obra_tags ?? [])
+      .map(ot => ot.tags?.nombre).filter(Boolean).sort().join(', ');
+    const tagsSnap   = (snap.tags ?? []).slice().sort().join(', ');
+    if (tagsSnap !== tagsActual) {
+      campos.push({ label: 'Tags', antes: tagsSnap || '—', despues: tagsActual || '—' });
+    }
+
+    // ── HTML de campos de texto ───────────────────────────
+    let html = '';
+
+    if (campos.length > 0) {
+      html += '<div class="diff-campos">';
+      html += campos.map(c => `
+        <div class="diff-campo">
+          <div class="diff-campo-label">${escHtml(c.label)}</div>
+          <div class="diff-valores">
+            <div class="diff-valor diff-valor--antes">
+              <span class="diff-tag diff-tag--antes">Antes</span>
+              ${c.multilinea
+                ? `<pre class="diff-texto">${escHtml(String(c.antes))}</pre>`
+                : `<span class="diff-texto">${escHtml(String(c.antes))}</span>`}
+            </div>
+            <div class="diff-valor diff-valor--despues">
+              <span class="diff-tag diff-tag--despues">Ahora</span>
+              ${c.multilinea
+                ? `<pre class="diff-texto">${escHtml(String(c.despues))}</pre>`
+                : `<span class="diff-texto">${escHtml(String(c.despues))}</span>`}
+            </div>
+          </div>
+        </div>`).join('');
+      html += '</div>';
+    }
+
+    // ── Imágenes ──────────────────────────────────────────
+    // Nuevas: presentes en imagenes[] pero NO en el snapshot y no marcadas para borrar
+    // Para borrar: marcadas con pendiente_borrado = true
+    const snapImgUrls = (snap.imagenes ?? []).map(si =>
+      typeof si === 'string' ? si : (si.url_storage ?? si.url ?? '')
+    ).filter(Boolean);
+
+    const imgNuevas   = (obra.imagenes ?? []).filter(img =>
+      img.url_storage && !snapImgUrls.includes(img.url_storage) && !img.pendiente_borrado
+    );
+    const imgBorradas = (obra.imagenes ?? []).filter(img => img.pendiente_borrado);
+
+    if (imgNuevas.length > 0 || imgBorradas.length > 0) {
+      html += '<div class="diff-imagenes">';
+      html += '<h4 class="diff-section-title diff-section-title--imagenes">Imágenes</h4>';
+
+      if (imgNuevas.length > 0) {
+        html += `<p class="diff-img-label diff-img-label--nueva">
+                   <i data-lucide="image-plus" style="width:14px;height:14px;vertical-align:-2px;" aria-hidden="true"></i>
+                   Imágenes nuevas (${imgNuevas.length})
+                 </p>`;
+        html += '<div class="diff-img-grid">';
+        imgNuevas.forEach(img => {
+          html += `<div class="diff-img-item diff-img-item--nueva">
+            <img src="${escAttr(img.url_storage)}" alt="Nueva imagen" class="diff-img-thumb">
+            ${img.principal ? '<span class="diff-img-badge">Principal</span>' : ''}
+          </div>`;
+        });
+        html += '</div>';
+      }
+
+      if (imgBorradas.length > 0) {
+        html += `<p class="diff-img-label diff-img-label--borrar">
+                   <i data-lucide="image-off" style="width:14px;height:14px;vertical-align:-2px;" aria-hidden="true"></i>
+                   Marcadas para eliminar (${imgBorradas.length})
+                 </p>`;
+        html += '<div class="diff-img-grid">';
+        imgBorradas.forEach(img => {
+          html += `<div class="diff-img-item diff-img-item--borrar">
+            <img src="${escAttr(img.url_storage)}" alt="Imagen a eliminar" class="diff-img-thumb">
+          </div>`;
+        });
+        html += '</div>';
+      }
+
+      html += '</div>';
+    }
+
+    if (!html) {
+      html = '<p class="diff-sin-cambios">Sin cambios detectados en los campos comparados.</p>';
+    }
+
+    return html;
+  }
+
   // ── Búsqueda en tiempo real (debounce 300ms) ──────────
   let debounceTimer;
   if (searchInput) {
@@ -408,6 +612,18 @@ document.addEventListener('DOMContentLoaded', () => {
   function escAttr(str) {
     if (!str) return '';
     return String(str).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  // Mapeo explícito estado → clase CSS de badge
+  // (el texto del estado usa mayúsculas y tilde; las clases CSS usan minúsculas sin tilde)
+  function badgeCls(estado) {
+    const map = {
+      'Publicado':   'badge-publicado',
+      'Borrador':    'badge-borrador',
+      'En Revisión': 'badge-revision',
+      'Archivado':   'badge-archivado',
+    };
+    return map[estado] || 'badge-borrador';
   }
 
   // ── Escuchar eventos ──────────────────────────────────
