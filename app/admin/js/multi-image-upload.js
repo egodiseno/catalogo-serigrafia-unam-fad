@@ -5,6 +5,7 @@
 
 const MultiImageUpload = (() => {
   let images = []; // Array de imágenes seleccionadas
+  let existingCount = 0; // Imágenes ya guardadas en DB (al editar obra)
   const MAX_IMAGES = 4;
 
   /**
@@ -12,14 +13,17 @@ const MultiImageUpload = (() => {
    */
   // ── Actualizar contador e indicador visual ─────────────
   function updateCounter() {
-    const count    = images.filter(img => img.file !== null).length;
-    const counter  = document.getElementById('imageCounter');
-    const addBtn   = document.getElementById('addImageBtn');
-    const atLimit  = images.length >= MAX_IMAGES;
+    const newCount  = images.filter(img => img.file !== null).length;
+    const total     = newCount + existingCount;          // combinado: guardadas + nuevas
+    const remaining = MAX_IMAGES - existingCount;        // slots nuevos disponibles
+    const atLimit   = images.length >= remaining;        // no caben más slots nuevos
+
+    const counter = document.getElementById('imageCounter');
+    const addBtn  = document.getElementById('addImageBtn');
 
     if (counter) {
-      counter.textContent = `${count} de ${MAX_IMAGES} imágenes`;
-      counter.classList.toggle('at-limit', atLimit);
+      counter.textContent = `${total} de ${MAX_IMAGES} imágenes`;
+      counter.classList.toggle('at-limit', total >= MAX_IMAGES);
     }
     if (addBtn) {
       addBtn.disabled = atLimit;
@@ -41,7 +45,7 @@ const MultiImageUpload = (() => {
 
     if (addImageBtn) {
       addImageBtn.addEventListener('click', () => {
-        if (images.length >= MAX_IMAGES) {
+        if (images.length >= MAX_IMAGES - existingCount) {
           window.ErrorHandler?.showToast(`Máximo ${MAX_IMAGES} imágenes por obra`, 'warning');
           return;
         }
@@ -63,12 +67,15 @@ const MultiImageUpload = (() => {
    */
   function addImageInput() {
     const imageList = document.getElementById('imageList');
-    const index = images.length;
+    const remaining = MAX_IMAGES - existingCount;
+    if (images.length >= remaining) return; // guard defensivo
+    const index      = images.length;
+    const labelNum   = existingCount + index + 1; // posición real (guardadas + nuevas)
 
     const html = `
       <div class="image-input-group" data-index="${index}">
         <div class="image-input-row">
-          <label>Imagen ${index + 1}</label>
+          <label>Imagen ${labelNum}</label>
           <div class="image-input-controls">
             <input 
               type="file" 
@@ -235,9 +242,33 @@ const MultiImageUpload = (() => {
    */
   function reset() {
     images = [];
+    existingCount = 0;
     const imageList = document.getElementById('imageList');
     if (imageList) imageList.innerHTML = '';
     addImageInput();
+    updateCounter();
+  }
+
+  /**
+   * Informar al componente cuántas imágenes ya están guardadas en DB.
+   * Debe llamarse tras cargar las imágenes existentes en modo edición.
+   * Ajusta el límite de slots nuevos y el contador combinado.
+   * @param {number} n - Cantidad de imágenes guardadas para la obra actual
+   */
+  function setExistingCount(n) {
+    existingCount = Math.max(0, parseInt(n, 10) || 0);
+    const remaining = MAX_IMAGES - existingCount;
+
+    // Recortar slots nuevos si exceden el espacio disponible
+    const imageList = document.getElementById('imageList');
+    if (imageList && images.length > remaining) {
+      const wrappers = Array.from(imageList.children);
+      for (let i = wrappers.length - 1; i >= remaining; i--) {
+        wrappers[i]?.remove();
+      }
+      images.splice(remaining);
+    }
+
     updateCounter();
   }
 
@@ -257,6 +288,7 @@ const MultiImageUpload = (() => {
       return;
     }
 
+    const remaining = MAX_IMAGES - existingCount; // slots nuevos disponibles
     let added = 0;
     for (const file of imageFiles) {
       // Buscar un slot vacío existente
@@ -268,7 +300,7 @@ const MultiImageUpload = (() => {
         const wrapper = imageList.children[emptyIndex];
         try { if (wrapper) await showPreview(wrapper, file); } catch (_) { /* preview opcional */ }
         added++;
-      } else if (images.length < MAX_IMAGES) {
+      } else if (images.length < remaining) {
         // Crear slot nuevo y rellenarlo
         addImageInput();
         const newIndex = images.length - 1;
@@ -338,6 +370,7 @@ document.addEventListener('DOMContentLoaded', () => {
     saveAllImageRecords,
     reset,
     handleDroppedFiles,   // expuesto para testing
+    setExistingCount,     // llamado desde obras-form al cargar imágenes existentes
   };
 })();
 

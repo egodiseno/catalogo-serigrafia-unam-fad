@@ -229,6 +229,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (!data || data.length === 0) {
         container.innerHTML = '<p class="field-hint">Sin imágenes guardadas.</p>';
+        // Sin imágenes → el componente de subida puede aceptar hasta MAX_IMAGES
+        window.MultiImageUpload?.setExistingCount(0);
         return;
       }
 
@@ -242,12 +244,16 @@ document.addEventListener('DOMContentLoaded', () => {
           <button type="button"
                   class="btn-del-img image-item-delete"
                   data-img-id="${escAttrF(img.id)}"
+                  data-url="${escAttrF(img.url_storage)}"
                   aria-label="Eliminar imagen">
             <i data-lucide="trash-2" style="width:13px;height:13px;" aria-hidden="true"></i>
             Eliminar
           </button>
         </div>
       `).join('');
+
+      // Informar al componente de subida cuántos slots nuevos quedan disponibles
+      window.MultiImageUpload?.setExistingCount(data.length);
 
       // Click en thumbnail → preview grande
       container.querySelectorAll('.existing-thumb').forEach(thumb => {
@@ -256,9 +262,11 @@ document.addEventListener('DOMContentLoaded', () => {
         );
       });
 
-      // Eliminar imagen con confirmación
+      // Eliminar imagen con confirmación (pasa también la URL para borrar de Storage)
       container.querySelectorAll('.btn-del-img').forEach(btn => {
-        btn.addEventListener('click', () => deleteObraImage(btn.dataset.imgId, obraId));
+        btn.addEventListener('click', () =>
+          deleteObraImage(btn.dataset.imgId, obraId, btn.dataset.url)
+        );
       });
       window.IconRegistry?.init();
 
@@ -270,10 +278,14 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /**
-   * Confirma y elimina un registro de la tabla `imagenes`.
+   * Confirma y elimina un registro de la tabla `imagenes` + el archivo de Storage.
    * Recarga la lista tras borrar.
+   *
+   * @param {string} imgId    - ID del registro en tabla imagenes
+   * @param {string} obraId   - ID de la obra (para recargar la lista)
+   * @param {string} imgUrl   - URL pública del archivo en Storage (para borrado físico)
    */
-  function deleteObraImage(imgId, obraId) {
+  function deleteObraImage(imgId, obraId, imgUrl) {
     window.ModalManager?.openConfirm({
       title:       '¿Eliminar imagen?',
       message:     'La imagen se eliminará del catálogo. Esta acción no se puede deshacer.',
@@ -281,10 +293,44 @@ document.addEventListener('DOMContentLoaded', () => {
       cancelText:  'Cancelar',
       onConfirm:   async () => {
         try {
+          // 1. Borrar registro de la tabla imagenes
           const { error } = await client.from('imagenes').delete().eq('id', imgId);
           if (error) throw error;
+
+          // 2. Borrar archivo físico de Supabase Storage
+          //
+          // TODO (sprint visible_publico): cuando exista la columna `visible_publico`
+          // en la tabla `obras`, verificar su valor aquí antes de borrar.
+          //
+          //   const obra = await client.from('obras').select('visible_publico').eq('id', obraId).single();
+          //   if (obra.data?.visible_publico) {
+          //     // Obra publicada: NO borrar de inmediato — marcar pendiente de borrado
+          //     // para que el flujo de aprobación decida si se confirma o revierte.
+          //     await client.from('imagenes_pendiente_borrado').insert({ url_storage: imgUrl, obra_id: obraId });
+          //   } else {
+          //     // Obra no publicada: borrar de inmediato (ver bloque de abajo)
+          //   }
+          //
+          // Por ahora: borrar siempre de inmediato (la columna visible_publico no existe aún).
+          if (imgUrl) {
+            // El path relativo al bucket es todo lo que viene después de "/artworks/"
+            const storagePath = imgUrl.split('/artworks/')[1];
+            if (storagePath) {
+              const delResult = await window.StorageModule?.deleteImage(storagePath);
+              if (delResult?.success) {
+                console.log('🗑️ Archivo eliminado de Storage:', storagePath);
+              } else {
+                // No bloquear el flujo si el borrado de Storage falla —
+                // el registro de DB ya fue eliminado correctamente.
+                console.warn('⚠️ No se pudo eliminar de Storage (archivo huérfano):', delResult?.error);
+              }
+            } else {
+              console.warn('⚠️ No se pudo extraer path de Storage de la URL:', imgUrl);
+            }
+          }
+
           window.ErrorHandler?.showToast('Imagen eliminada', 'success');
-          loadObraImages(obraId);
+          loadObraImages(obraId); // recarga la lista y actualiza setExistingCount
         } catch (err) {
           console.error('deleteObraImage:', err);
           window.ErrorHandler?.showToast('Error al eliminar la imagen', 'error');
