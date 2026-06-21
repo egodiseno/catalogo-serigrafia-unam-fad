@@ -262,11 +262,14 @@ class PortafolioManager {
           tipo:        'info',
           onConfirm:   async () => {
             try {
-              const { error } = await this.client
+              const { data: filas, error } = await this.client
                 .from('obras')
                 .update({ estado: 'Borrador' })
-                .eq('id', obraId);
+                .eq('id', obraId)
+                .select('id');
               if (error) throw error;
+              // UPDATE silenciado por RLS → cero filas afectadas, sin error explícito
+              if (!filas?.length) throw new Error('UPDATE no afectó ninguna fila — posible bloqueo de política RLS');
               window.ErrorHandler?.showToast('Obra retomada — ahora está en Borrador.', 'success');
               await Promise.all([
                 this.cargarEstadisticas(),
@@ -358,12 +361,15 @@ class PortafolioManager {
       confirmBtn.textContent = 'Reabriendo…';
 
       try {
-        const { error } = await this.client
+        const { data: filas, error } = await this.client
           .from('obras')
           .update({ estado: 'Borrador', motivo_reapertura: motivo })
-          .eq('id', obraId);
+          .eq('id', obraId)
+          .select('id');
 
         if (error) throw error;
+        // UPDATE silenciado por RLS → cero filas afectadas, sin error explícito
+        if (!filas?.length) throw new Error('UPDATE no afectó ninguna fila — posible bloqueo de política RLS');
 
         _close();
         window.ErrorHandler?.showToast('Obra reabierta — ahora está en Borrador.', 'success');
