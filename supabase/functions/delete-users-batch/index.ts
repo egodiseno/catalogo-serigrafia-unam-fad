@@ -18,7 +18,12 @@
  *   Content-Type: application/json
  *
  * Respuesta exitosa (200):
- *   { success: true, deleted_count: 2, not_found: [], message: "..." }
+ *   { success: true, deleted_count: 2, borradores_eliminados: 1, not_found: [], message: "..." }
+ *
+ * borradores_eliminados — número de obras en estado "Borrador" eliminadas como parte
+ *   de la limpieza automática previa al borrado de los usuarios del lote.
+ *   Solo se eliminan obras propias del usuario en ese estado; cualquier obra en otro
+ *   estado (En Revisión, Publicado, Archivado) no se toca.
  *
  * Respuesta de error (4xx / 5xx):
  *   { success: false, error: string, code?: string }
@@ -211,6 +216,124 @@ serve(async (req: Request) => {
       console.warn('[delete-users-batch] Emails no encontrados en usuarios_admin:', notFound);
     }
 
+    // ── 6b. Limpiar obras en Borrador de los usuarios a eliminar ────────────
+    // DEBE ejecutarse ANTES de borrar de usuarios_admin, ya que la FK entre
+    // usuarios_admin y obras pone editor_id = NULL automáticamente al borrar
+    // el usuario, perdiendo la posibilidad de identificar las obras huérfanas.
+    //
+    // Solo se tocan obras con estado = 'Borrador'. Obras en cualquier otro
+    // estado (En Revisión, Publicado, Archivado) no se modifican — solo
+    // perderán la referencia al editor, lo cual es aceptable.
+    let borradores_eliminados = 0;
+
+    for (const target of targets as Array<{ id: string; email: string }>) {
+      // Buscar todas las obras propias del usuario en estado Borrador
+      const { data: obrasBorrador, error: obrasErr } = await supabaseAdmin
+        .from('obras')
+        .select('id')
+        .eq('editor_id', target.id)
+        .eq('estado', 'Borrador');
+
+      if (obrasErr) {
+        console.error(
+          `[delete-users-batch] Error buscando Borradores de ${target.email}:`,
+          obrasErr.message
+        );
+        continue; // No detener el lote — seguir con el siguiente usuario
+      }
+
+      if (!obrasBorrador || obrasBorrador.length === 0) {
+        console.log(`[delete-users-batch] Sin obras en Borrador para ${target.email}`);
+        continue;
+      }
+
+      console.log(
+        `[delete-users-batch] ${obrasBorrador.length} obra(s) en Borrador ` +
+        `a limpiar para ${target.email}`
+      );
+
+      for (const obra of obrasBorrador as Array<{ id: string }>) {
+        // 1. Obtener imágenes asociadas a esta obra
+        const { data: imagenes, error: imgFetchErr } = await supabaseAdmin
+          .from('imagenes')
+          .select('id, url_storage')
+          .eq('obra_id', obra.id);
+
+        if (imgFetchErr) {
+          console.error(
+            `[delete-users-batch] Error obteniendo imágenes de obra ${obra.id}:`,
+            imgFetchErr.message
+          );
+          // Continuar e intentar borrar la obra de todas formas
+        }
+
+        // 2. Eliminar cada imagen (Storage físico + registro DB)
+        for (const img of (imagenes ?? []) as Array<{ id: string; url_storage: string }>) {
+          // 2a. Borrar archivo físico del bucket 'artworks'
+          const storagePath = img.url_storage?.split('/artworks/')?.[1];
+          if (storagePath) {
+            const { error: storageErr } = await supabaseAdmin.storage
+              .from('artworks')
+              .remove([storagePath]);
+            if (storageErr) {
+              // Registrar pero no detener — puede quedar huérfano en Storage
+              console.error(
+                `[delete-users-batch] ⚠ Storage — no se pudo borrar ${storagePath}:`,
+                storageErr.message
+              );
+            } else {
+              console.log(`[delete-users-batch] ✓ Storage eliminado: ${storagePath}`);
+            }
+          } else {
+            console.warn(
+              `[delete-users-batch] ⚠ Path de Storage no extraíble — ` +
+              `imagen ${img.id}: ${img.url_storage}`
+            );
+          }
+
+          // 2b. Borrar registro de la tabla imagenes
+          const { error: imgDelErr } = await supabaseAdmin
+            .from('imagenes')
+            .delete()
+            .eq('id', img.id);
+          if (imgDelErr) {
+            console.error(
+              `[delete-users-batch] ⚠ Error eliminando registro imagenes ${img.id}:`,
+              imgDelErr.message
+            );
+            // No detener
+          }
+        }
+
+        // 3. Borrar el registro de la obra
+        const { error: obraDelErr } = await supabaseAdmin
+          .from('obras')
+          .delete()
+          .eq('id', obra.id);
+
+        if (obraDelErr) {
+          console.error(
+            `[delete-users-batch] ✗ Error eliminando obra en Borrador ${obra.id}:`,
+            obraDelErr.message
+          );
+          // No contabilizar como eliminada
+        } else {
+          borradores_eliminados++;
+          console.log(
+            `[delete-users-batch] ✓ Obra en Borrador eliminada: ${obra.id} ` +
+            `(editor: ${target.email})`
+          );
+        }
+      }
+    }
+
+    if (borradores_eliminados > 0) {
+      console.log(
+        `[delete-users-batch] Limpieza: ${borradores_eliminados} ` +
+        `obra${borradores_eliminados !== 1 ? 's en Borrador eliminadas' : ' en Borrador eliminada'}`
+      );
+    }
+
     // ── 7. DELETE FROM usuarios_admin ────────────────────────────────────────
     const { error: dbDeleteErr } = await supabaseAdmin
       .from('usuarios_admin')
@@ -249,11 +372,15 @@ serve(async (req: Request) => {
     );
 
     return jsonOk({
-      success:       true,
+      success:               true,
       deleted_count,
-      not_found:     notFound.length > 0 ? notFound     : undefined,
-      auth_errors:   auth_errors.length  > 0 ? auth_errors : undefined,
-      message:       `${deleted_count} usuario${deleted_count !== 1 ? 's eliminados' : ' eliminado'} correctamente.`,
+      borradores_eliminados,
+      not_found:     notFound.length   > 0 ? notFound    : undefined,
+      auth_errors:   auth_errors.length > 0 ? auth_errors : undefined,
+      message:       `${deleted_count} usuario${deleted_count !== 1 ? 's eliminados' : ' eliminado'} correctamente.` +
+                     (borradores_eliminados > 0
+                       ? ` ${borradores_eliminados} obra${borradores_eliminados !== 1 ? 's en Borrador eliminadas' : ' en Borrador eliminada'} (limpieza automática).`
+                       : ''),
     });
 
   } catch (err) {
