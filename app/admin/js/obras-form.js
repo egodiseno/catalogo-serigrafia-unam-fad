@@ -415,33 +415,47 @@ document.addEventListener('DOMContentLoaded', () => {
     const artista = fArtista.value.trim();
     const año     = fAno.value ? parseInt(fAno.value, 10) : null;
 
+    // ── Campos obligatorios básicos ───────────────────────
     if (!titulo)  { showAlert('El título es obligatorio.', 'error'); fTitulo.focus();  return; }
     if (!artista) { showAlert('El artista es obligatorio.', 'error'); fArtista.focus(); return; }
-    if (año !== null && (año < 1800 || año > 2100)) {
+
+    // ── Año obligatorio + rango ───────────────────────────
+    if (año === null) { showAlert('El año es obligatorio.', 'error'); fAno.focus(); return; }
+    if (año < 1800 || año > 2100) {
       showAlert('El año debe estar entre 1800 y 2100.', 'error');
       fAno.focus();
       return;
     }
 
-    // ── Validar longitud de descripción ──────────────────
+    // ── Técnica obligatoria ───────────────────────────────
+    if (!fTecnica.value) { showAlert('La técnica es obligatoria.', 'error'); fTecnica.focus(); return; }
+
+    // ── Descripción obligatoria + longitud máxima ─────────
     const descLen = fDescripcion.value.trim().length;
+    if (descLen === 0) { showAlert('La descripción es obligatoria.', 'error'); fDescripcion.focus(); return; }
     if (descLen > DESC_MAX) {
       showAlert(`La descripción excede el límite de ${DESC_MAX} caracteres (${descLen} usados).`, 'error');
       fDescripcion.focus();
       return;
     }
 
+    // ── Leer tags e imágenes (necesario para mín y máx) ──
+    const tagsSelec    = window.TagsInObra?.getTags() ?? [];
+    const nuevasImgs   = window.MultiImageUpload?.getImages()?.length ?? 0;
+    const existingImgs = document.querySelectorAll('#existingImagesList .existing-image-item').length;
+    const totalImgs    = nuevasImgs + existingImgs;
+
+    // ── Mínimos obligatorios ──────────────────────────────
+    if (tagsSelec.length === 0) { showAlert('Debes seleccionar al menos 1 tag.', 'error'); return; }
+    if (totalImgs === 0) { showAlert('Debes subir al menos 1 imagen.', 'error'); return; }
+
     // ── Validar máximo de tags ────────────────────────────
-    const tagsSelec = window.TagsInObra?.getTags() ?? [];
     if (tagsSelec.length > 3) {
       showAlert(`Máximo 3 tags por obra. Tienes ${tagsSelec.length} seleccionados.`, 'error');
       return;
     }
 
     // ── Validar máximo de imágenes (nuevas + ya guardadas) ──
-    const nuevasImgs    = window.MultiImageUpload?.getImages()?.length ?? 0;
-    const existingImgs  = document.querySelectorAll('#existingImagesList .existing-image-item').length;
-    const totalImgs     = nuevasImgs + existingImgs;
     if (totalImgs > 4) {
       showAlert(
         `Máximo 4 imágenes por obra. Tienes ${totalImgs} (${existingImgs} guardada${existingImgs !== 1 ? 's' : ''} + ${nuevasImgs} nueva${nuevasImgs !== 1 ? 's' : ''}).`,
