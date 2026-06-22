@@ -11,7 +11,7 @@ export class PublicCatalog {
     this.pageSize = 8;
     this.totalWorks = 0;
     this.isLoading = false;
-    this.isDesktop = window.innerWidth >= 1024;
+    this.isDesktop = window.innerWidth >= 1200;
     this._paginationSetup = false;
     this._infiniteScrollSetup = false;
 
@@ -618,7 +618,7 @@ export class PublicCatalog {
   }
 
   /**
-   * Setup paginación para desktop (≥ 1024px)
+   * Setup paginación para desktop (≥ 1200px)
    * Delegación de eventos en el nav [data-pagination]
    */
   setupPagination() {
@@ -709,13 +709,13 @@ export class PublicCatalog {
   }
 
   /**
-   * Detecta cruce del breakpoint 1024px y cambia entre modos sin recargar
+   * Detecta cruce del breakpoint 1200px y cambia entre modos sin recargar
    */
   setupBreakpointListener() {
     let prevDesktop = this.isDesktop;
 
     const onResize = this.debounce(() => {
-      const nowDesktop = window.innerWidth >= 1024;
+      const nowDesktop = window.innerWidth >= 1200;
       if (nowDesktop === prevDesktop) return;
 
       prevDesktop = nowDesktop;
