@@ -1396,6 +1396,7 @@
       <div class="modal-body">
         <form id="obraForm" novalidate>
           <input type="hidden" id="fId" name="id">
+          <p class="field-hint" style="margin-bottom: var(--spacing-sm, 0.5rem);"><span class="required">*</span> Todos los campos son obligatorios.</p>
 
           <div class="form-group">
             <label for="fTitulo">Título <span class="required">*</span></label>
@@ -1411,7 +1412,7 @@
 
           <div class="form-row">
             <div class="form-group">
-              <label for="fAno">Año</label>
+              <label for="fAno">Año <span class="required">*</span></label>
               <input type="number" id="fAno" name="año"
                      min="1800" max="2100" placeholder="2024">
             </div>
@@ -1427,7 +1428,7 @@
           </div>
 
           <div class="form-group">
-            <label for="fTecnica">Técnica</label>
+            <label for="fTecnica">Técnica <span class="required">*</span></label>
             <div class="inline-create-wrapper">
               <select id="fTecnica" name="tecnica_id">
                 <option value="">— Sin técnica —</option>
@@ -1442,7 +1443,7 @@
           </div>
 
           <div class="form-group">
-            <label for="fDescripcion">Descripción <span class="field-hint">(máx. 600 caracteres)</span></label>
+            <label for="fDescripcion">Descripción <span class="required">*</span> <span class="field-hint">(máx. 600 caracteres)</span></label>
             <textarea id="fDescripcion" name="descripcion" rows="4"
                       maxlength="600"
                       placeholder="Breve descripción de la obra…"></textarea>
@@ -1451,7 +1452,7 @@
 
           <!-- Multi-image upload -->
           <div class="form-group">
-            <label>Imágenes <span class="field-hint">(JPG, PNG o WebP · máx. 5 MB c/u · ideal: 1200×1600 px · máx. 4 imágenes)</span></label>
+            <label>Imágenes <span class="required">*</span> <span class="field-hint">(JPG, PNG o WebP · máx. 5 MB c/u · ideal: 1200×1600 px · máx. 4 imágenes)</span></label>
             <div id="multiImageContainer">
               <div id="imageList"></div>
               <div class="image-upload-actions">
@@ -1474,7 +1475,7 @@
 
           <!-- Tags: selector visual de pills -->
           <div class="form-group">
-            <label>Tags <span class="field-hint">(máx. 3 por obra)</span></label>
+            <label>Tags <span class="required">*</span> <span class="field-hint">(máx. 3 por obra)</span></label>
             <div id="tagPillsContainer" class="tag-pills-container"
                  role="group" aria-label="Seleccionar tags">
               <span class="field-hint">Cargando tags…</span>
