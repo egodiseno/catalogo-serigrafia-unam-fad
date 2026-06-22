@@ -1,5 +1,5 @@
 // app/js/public-catalog.js
-// Grid catálogo dinámico + filtros real-time + infinite scroll
+// Grid catálogo dinámico + filtros real-time + infinite scroll (mobile) / paginación (desktop)
 
 import { api } from './api-client.js';
 import { i18n } from './i18n.js';
@@ -8,9 +8,12 @@ export class PublicCatalog {
   constructor() {
     this.works = [];
     this.page = 1;
-    this.pageSize = 12;
+    this.pageSize = 8;
     this.totalWorks = 0;
     this.isLoading = false;
+    this.isDesktop = window.innerWidth >= 1024;
+    this._paginationSetup = false;
+    this._infiniteScrollSetup = false;
 
     this.filters = {
       year: '',
@@ -40,8 +43,15 @@ export class PublicCatalog {
       // Toggle acordeón de filtros (mobile)
       this.initFilterToggle();
 
-      // Setup infinite scroll
-      this.setupInfiniteScroll();
+      // Setup scroll infinito (mobile/tablet) o paginación (desktop)
+      if (this.isDesktop) {
+        this._paginationSetup = true;
+        this.setupPagination();
+      } else {
+        this._infiniteScrollSetup = true;
+        this.setupInfiniteScroll();
+      }
+      this.setupBreakpointListener();
 
       console.log('✅ Catálogo inicializado');
     } catch (error) {
@@ -311,8 +321,16 @@ export class PublicCatalog {
     // Actualizar contador
     this.updateCounter();
 
-    // Actualizar botón cargar más
-    this.updateLoadMoreButton();
+    // Actualizar controles de navegación según modo de viewport
+    if (this.isDesktop) {
+      const loadMoreWrap = document.querySelector('[data-loadmore-wrap]');
+      if (loadMoreWrap) loadMoreWrap.setAttribute('hidden', '');
+      this.renderPagination();
+    } else {
+      const paginationNav = document.querySelector('[data-pagination]');
+      if (paginationNav) { paginationNav.setAttribute('hidden', ''); paginationNav.innerHTML = ''; }
+      this.updateLoadMoreButton();
+    }
 
     console.log(`✅ Grid renderizado: ${this.works.length} obras`);
   }
@@ -572,6 +590,125 @@ export class PublicCatalog {
     this.page = 1;
     this.loadWorks();
     this.updateActiveFilterChips();
+  }
+
+  /**
+   * Setup paginación para desktop (≥ 1024px)
+   * Delegación de eventos en el nav [data-pagination]
+   */
+  setupPagination() {
+    const nav = document.querySelector('[data-pagination]');
+    if (!nav) return;
+
+    nav.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-page]');
+      if (!btn || btn.disabled) return;
+
+      const target = btn.getAttribute('data-page');
+      const totalPages = Math.ceil(this.totalWorks / this.pageSize);
+
+      if (target === 'prev') {
+        if (this.page > 1) { this.page--; this.loadWorks(); }
+      } else if (target === 'next') {
+        if (this.page < totalPages) { this.page++; this.loadWorks(); }
+      } else {
+        const p = parseInt(target, 10);
+        if (!isNaN(p) && p !== this.page) { this.page = p; this.loadWorks(); }
+      }
+    });
+  }
+
+  /**
+   * Renderizar controles de paginación dentro de [data-pagination]
+   */
+  renderPagination() {
+    const nav = document.querySelector('[data-pagination]');
+    if (!nav) return;
+
+    const totalPages = Math.ceil(this.totalWorks / this.pageSize);
+
+    if (totalPages <= 1) {
+      nav.setAttribute('hidden', '');
+      nav.innerHTML = '';
+      return;
+    }
+
+    nav.removeAttribute('hidden');
+
+    const pages = this.getPaginationRange(this.page, totalPages);
+    const prevDisabled = this.page === 1;
+    const nextDisabled = this.page === totalPages;
+
+    const pageBtn = (p) => {
+      const isActive = p === this.page;
+      const cls = ['pagination-btn', isActive ? 'pagination-btn--active' : ''].filter(Boolean).join(' ');
+      return `<button type="button" class="${cls}" data-page="${p}"
+        ${isActive ? 'aria-current="page" disabled' : ''}
+        aria-label="Página ${p}">${p}</button>`;
+    };
+
+    nav.innerHTML = `
+      <button type="button"
+        class="pagination-btn pagination-btn--nav${prevDisabled ? ' pagination-btn--disabled' : ''}"
+        data-page="prev" ${prevDisabled ? 'disabled' : ''}
+        aria-label="Página anterior">‹</button>
+      ${pages.map(p => p === '…'
+        ? '<span class="pagination-ellipsis">…</span>'
+        : pageBtn(p)
+      ).join('')}
+      <button type="button"
+        class="pagination-btn pagination-btn--nav${nextDisabled ? ' pagination-btn--disabled' : ''}"
+        data-page="next" ${nextDisabled ? 'disabled' : ''}
+        aria-label="Página siguiente">›</button>
+    `;
+  }
+
+  /**
+   * Calcula el rango de páginas visibles (máx. 5 números + ellipsis)
+   */
+  getPaginationRange(current, total) {
+    if (total <= 5) {
+      return Array.from({ length: total }, (_, i) => i + 1);
+    }
+
+    const left  = Math.max(2, current - 1);
+    const right = Math.min(total - 1, current + 1);
+    const range = [1];
+
+    if (left > 2)          range.push('…');
+    for (let i = left; i <= right; i++) range.push(i);
+    if (right < total - 1) range.push('…');
+    range.push(total);
+
+    return range;
+  }
+
+  /**
+   * Detecta cruce del breakpoint 1024px y cambia entre modos sin recargar
+   */
+  setupBreakpointListener() {
+    let prevDesktop = this.isDesktop;
+
+    const onResize = this.debounce(() => {
+      const nowDesktop = window.innerWidth >= 1024;
+      if (nowDesktop === prevDesktop) return;
+
+      prevDesktop = nowDesktop;
+      this.isDesktop = nowDesktop;
+
+      if (nowDesktop && !this._paginationSetup) {
+        this._paginationSetup = true;
+        this.setupPagination();
+      } else if (!nowDesktop && !this._infiniteScrollSetup) {
+        this._infiniteScrollSetup = true;
+        this.setupInfiniteScroll();
+      }
+
+      this.page = 1;
+      this.loadWorks();
+    }, 200);
+
+    window.addEventListener('resize', onResize);
   }
 
   /**
