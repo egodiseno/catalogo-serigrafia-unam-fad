@@ -274,6 +274,10 @@ export class PublicCatalog {
       if (data.length === 0 && this.page === 1) {
         this.showEmptyState();
         return;
+      } else if (data.length === 0 && this.page > 1) {
+        this.hideLoadingSpinner();
+        this.page--;
+        return;
       }
 
       this.works = data;
@@ -538,6 +542,10 @@ export class PublicCatalog {
    * Cargar más obras (infinite scroll o botón)
    */
   async loadMore() {
+    if (this.page * this.pageSize >= this.totalWorks) {
+      this.hideLoadingSpinner();
+      return;
+    }
     this.page++;
     await this.loadWorks();
     // Auto-scroll a nuevos items
