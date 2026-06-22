@@ -375,6 +375,11 @@ h1, h2, h3 {
   .nav-mobile {
     display: none;
   }
+
+  /* Filtros sticky: misma altura de header que desktop (65px) */
+  .filters {
+    top: 65px; /* padding-top 16 + logo 32 + padding-bottom 16 + border 1 = 65px */
+  }
 }
 
 /* ============================================================
@@ -445,8 +450,7 @@ h1, h2, h3 {
    ============================================================ */
 .filters {
   position: sticky;
-  top: 60px;
-  /*top: 75px;*/
+  top: 65px; /* padding-top 16 + logo 32 + padding-bottom 16 + border 1 = 65px */
   z-index: 40;
   background: rgba(255, 252, 245, 0.98);
   border-bottom: 1px solid var(--color-line);
