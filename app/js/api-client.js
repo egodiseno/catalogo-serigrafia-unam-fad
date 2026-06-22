@@ -61,7 +61,8 @@ export const api = {
 
       const { data, error, count } = await query
         .range(start, end)
-        .order('created_at', { ascending: false });
+        .order('año', { ascending: false })
+        .order('artista', { ascending: true });
 
       if (error) {
         console.error('❌ Error filtering works:', error);
