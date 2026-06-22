@@ -453,6 +453,7 @@ export class PublicCatalog {
 
       if (chips.length === 0) {
         container.setAttribute('hidden', '');
+        container.innerHTML = '';
       } else {
         container.removeAttribute('hidden');
         container.innerHTML = chips
