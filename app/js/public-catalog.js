@@ -8,10 +8,11 @@ export class PublicCatalog {
   constructor() {
     this.works = [];
     this.page = 1;
-    this.pageSize = 8;
+    this.isDesktop = window.innerWidth >= 1200;
+    this.pageSize = this.isDesktop ? 8 : 12;
     this.totalWorks = 0;
     this.isLoading = false;
-    this.isDesktop = window.innerWidth >= 1200;
+    this.appendMode = false;
     this._paginationSetup = false;
     this._infiniteScrollSetup = false;
 
@@ -281,6 +282,7 @@ export class PublicCatalog {
     this.filters.tags = selectedTags;
 
     this.page = 1;
+    this.appendMode = false;
     await this.loadWorks();
     this.updateActiveFilterChips();
   }
@@ -314,7 +316,7 @@ export class PublicCatalog {
         return;
       }
 
-      this.works = data;
+      this.works = this.appendMode ? [...this.works, ...data] : data;
       this.totalWorks = total;
       this.renderGrid();
     } catch (error) {
@@ -590,7 +592,9 @@ export class PublicCatalog {
       return;
     }
     this.page++;
+    this.appendMode = true;
     await this.loadWorks();
+    this.appendMode = false;
     // Auto-scroll a nuevos items
     window.scrollBy({ top: 400, behavior: 'smooth' });
   }
@@ -613,6 +617,7 @@ export class PublicCatalog {
     document.getElementById('searchInput').value = '';
 
     this.page = 1;
+    this.appendMode = false;
     this.loadWorks();
     this.updateActiveFilterChips();
   }
@@ -720,6 +725,8 @@ export class PublicCatalog {
 
       prevDesktop = nowDesktop;
       this.isDesktop = nowDesktop;
+      this.pageSize = nowDesktop ? 8 : 12;
+      this.appendMode = false;
 
       if (nowDesktop && !this._paginationSetup) {
         this._paginationSetup = true;
