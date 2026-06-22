@@ -49,7 +49,7 @@ class ProfileManager {
     try {
       const { data, error } = await this.client
         .from('usuarios_admin')
-        .select('email, nombre, rol, estado, created_at')
+        .select('email, nombre, numero_cuenta, rol, estado, created_at')
         .eq('email', usuario.email)
         .single();
 
@@ -100,6 +100,18 @@ class ProfileManager {
     // ── Nombre (opcional — el elemento puede no estar en la plantilla) ────
     const elNombre = document.getElementById('profileNombre');
     if (elNombre) elNombre.textContent = nombre || '—';
+
+    // ── Número de Cuenta (solo visible para editores) ─────────────────────
+    const elNumeroCuenta = document.getElementById('profileNumeroCuenta');
+    if (elNumeroCuenta) {
+      const rolActual = datos?.rol ?? window.usuarioActual?.rol ?? 'editor';
+      if (rolActual === 'admin' || rolActual === 'super_editor') {
+        const row = elNumeroCuenta.closest('.profile-row');
+        if (row) row.style.display = 'none';
+      } else {
+        elNumeroCuenta.textContent = datos?.numero_cuenta || '—';
+      }
+    }
 
     // ── Rol ───────────────────────────────────────────────────────────────
     const rolLabel = { admin: 'Administrador', super_editor: 'Super Editor', editor: 'Editor' };
