@@ -217,25 +217,41 @@ document.addEventListener('DOMContentLoaded', () => {
   // El user-info ya NO está en el header (eliminado). Solo vive en sidebar-footer.
   // #userEmail es un span oculto en el header que auth.js actualiza para sincronizar.
 
-  const userEmailEl      = document.getElementById('userEmail');
-  const userAvatarDrawer = document.getElementById('userAvatarDrawer');
-  const userEmailDrawer  = document.getElementById('userEmailDrawer');
+  const userEmailEl       = document.getElementById('userEmail');
+  const userDisplayNameEl = document.getElementById('userDisplayName');
+  const userAvatarDrawer  = document.getElementById('userAvatarDrawer');
+  const userEmailDrawer   = document.getElementById('userEmailDrawer');
 
-  // Función de sincronización — lee el span oculto y actualiza el drawer
+  // Función de sincronización — lee los spans ocultos y actualiza el drawer
   function _syncUserDrawer() {
-    const email   = userEmailEl?.textContent?.trim() || 'user@example.com';
-    const initial = email.charAt(0).toUpperCase();
-    if (userAvatarDrawer) userAvatarDrawer.textContent = initial;
-    if (userEmailDrawer)  userEmailDrawer.textContent  = email;
+    const nombre = userDisplayNameEl?.textContent?.trim() || '';
+    const email  = userEmailEl?.textContent?.trim() || 'user@example.com';
+
+    if (nombre) {
+      // Mostrar "Nombre PrimerApellido" (primeras dos palabras del nombre completo)
+      const partes  = nombre.split(/\s+/).filter(Boolean);
+      const display = partes.slice(0, 2).join(' ');
+      const initial = partes[0].charAt(0).toUpperCase();
+      if (userAvatarDrawer) userAvatarDrawer.textContent = initial;
+      if (userEmailDrawer)  userEmailDrawer.textContent  = display;
+    } else {
+      // Fallback: usar email cuando el nombre no está disponible
+      const initial = email.charAt(0).toUpperCase();
+      if (userAvatarDrawer) userAvatarDrawer.textContent = initial;
+      if (userEmailDrawer)  userEmailDrawer.textContent  = email;
+    }
   }
 
   // Inicializar con valor actual
   _syncUserDrawer();
 
-  // Observar cambios de auth.js sobre #userEmail
-  if (userEmailEl) {
+  // Observar cambios de auth.js y profile.js sobre #userEmail y #userDisplayName
+  const _observerTargets = [userEmailEl, userDisplayNameEl].filter(Boolean);
+  if (_observerTargets.length) {
     const observer = new MutationObserver(_syncUserDrawer);
-    observer.observe(userEmailEl, { childList: true, characterData: true, subtree: true });
+    _observerTargets.forEach(el =>
+      observer.observe(el, { childList: true, characterData: true, subtree: true })
+    );
   }
 
   // ── "Mi Perfil" en sidebar footer → navegar a la sección ─────────────────

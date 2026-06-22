@@ -547,6 +547,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     loginPage.style.display     = 'none';
     dashboardPage.style.display = 'flex';
     if (userEmail) userEmail.textContent = email;
+    // Sincronizar nombre en el drawer (navigation.js lo observa)
+    const _dispNameEl = document.getElementById('userDisplayName');
+    if (_dispNameEl) _dispNameEl.textContent = window.usuarioActual?.nombre || '';
     // Aplicar visibilidad de botones / secciones según el rol
     if (typeof inicializarPermisos === 'function') inicializarPermisos();
     // Recargar estadísticas con el rol del usuario actual

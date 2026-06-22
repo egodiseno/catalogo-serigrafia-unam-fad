@@ -62,6 +62,10 @@ class ProfileManager {
         window.usuarioActual.nombre = data.nombre;
       }
 
+      // Sincronizar drawer del sidebar con el nombre actualizado (navigation.js lo observa)
+      const _dispNameEl = document.getElementById('userDisplayName');
+      if (_dispNameEl) _dispNameEl.textContent = data?.nombre || '';
+
       this._renderPerfil(data);
       // Acciones rápidas: controladas por renderActionsByRole() en permisos.js
       // (botones estáticos en HTML con data-action-for-roles)
