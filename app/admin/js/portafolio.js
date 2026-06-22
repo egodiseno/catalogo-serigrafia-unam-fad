@@ -112,18 +112,20 @@ class PortafolioManager {
     const tbody = document.getElementById('portafolioTbody');
     if (!tbody) return;
 
+    // Sin nombre de artista disponible → no ejecutar fetch; mostrar estado vacío
+    if (!artista) {
+      tbody.innerHTML = '<tr><td colspan="8" class="empty-cell">No hay obras registradas aún.</td></tr>';
+      return;
+    }
+
     tbody.innerHTML = '<tr><td colspan="8" class="loading-cell">Cargando obras…</td></tr>';
 
     try {
       let query = this.client
         .from('obras')
         .select('id, titulo, año, tecnica_id, tecnicas(nombre), imagenes(url_storage, principal), obra_tags(tags(id, nombre)), estado, motivo_rechazo, created_at')
+        .eq('artista', artista)
         .order('created_at', { ascending: false });
-
-      // Filtrar solo propias si hay nombre de artista; si no, sin filtro
-      if (artista) {
-        query = query.eq('artista', artista);
-      }
 
       if (filtro) {
         query = query.ilike('titulo', `%${filtro}%`);
