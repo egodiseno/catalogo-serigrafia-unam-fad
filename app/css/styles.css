@@ -332,7 +332,7 @@ h1, h2, h3 {
   /* Acordeón sticky: flota al scroll, no desaparece */
   .filters {
     position: sticky; /* explícito para seguridad */
-    top: 49px;        /* coincide con altura del header mobile */
+    top: var(--filters-top, 49px); /* JS escribe --filters-top con offsetHeight real */
     z-index: 40;
   }
 }
@@ -376,9 +376,9 @@ h1, h2, h3 {
     display: none;
   }
 
-  /* Filtros sticky: misma altura de header que desktop (65px) */
+  /* Filtros sticky: JS escribe --filters-top con offsetHeight real del header */
   .filters {
-    top: 65px; /* padding-top 16 + logo 32 + padding-bottom 16 + border 1 = 65px */
+    top: var(--filters-top, 65px);
   }
 }
 
@@ -450,7 +450,7 @@ h1, h2, h3 {
    ============================================================ */
 .filters {
   position: sticky;
-  top: 65px; /* padding-top 16 + logo 32 + padding-bottom 16 + border 1 = 65px */
+  top: var(--filters-top, 65px); /* JS escribe --filters-top con offsetHeight real del header */
   z-index: 40;
   background: rgba(255, 252, 245, 0.98);
   border-bottom: 1px solid var(--color-line);

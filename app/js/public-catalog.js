@@ -53,10 +53,34 @@ export class PublicCatalog {
       }
       this.setupBreakpointListener();
 
+      // Sincronizar top de filtros con altura real del header
+      this.syncFiltersTop();
+
       console.log('✅ Catálogo inicializado');
     } catch (error) {
       console.error('❌ Error inicializando catálogo:', error);
     }
+  }
+
+  /**
+   * Mide la altura real del .site-header y escribe --filters-top en :root.
+   * Un ResizeObserver garantiza que se recalcule en cualquier breakpoint.
+   */
+  syncFiltersTop() {
+    const header = document.querySelector('.site-header');
+    if (!header) return;
+
+    const update = () => {
+      const h = header.offsetHeight;
+      document.documentElement.style.setProperty('--filters-top', `${h}px`);
+    };
+
+    // Medición inicial
+    update();
+
+    // Re-medir automáticamente al cambiar el tamaño del header (breakpoints, resize, etc.)
+    const ro = new ResizeObserver(update);
+    ro.observe(header);
   }
 
   /**
