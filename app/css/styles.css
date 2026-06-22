@@ -1257,6 +1257,10 @@ body.is-scrolled .filters {
   align-items: center;
 }
 
+.loading-spinner[hidden] {
+  display: none !important;
+}
+
 .load-more-wrap {
   margin-top: var(--space-3);
   text-align: center;
