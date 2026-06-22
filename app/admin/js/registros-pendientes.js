@@ -76,7 +76,7 @@ const RegistrosPendientes = (() => {
     if (n === 0) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="7" class="empty-state registros-empty-state">
+          <td colspan="5" class="empty-state registros-empty-state">
             <i data-lucide="check-circle-2"
                style="width:28px;height:28px;display:block;margin:0 auto 10px;
                       color:var(--color-success,#16a34a);"
@@ -94,16 +94,6 @@ const RegistrosPendientes = (() => {
         <td class="td-nombre" data-label="Nombre">${escHtml(r.nombre)}</td>
         <td class="td-email" data-label="Email">
           <a href="mailto:${escHtml(r.email)}" class="email-link">${escHtml(r.email)}</a>
-        </td>
-        <td class="td-telefono" data-label="Teléfono">
-          ${r.telefono
-            ? escHtml(r.telefono)
-            : '<span class="text-muted">—</span>'}
-        </td>
-        <td class="td-whatsapp" data-label="WhatsApp" style="text-align:center;">
-          ${r.tiene_whatsapp
-            ? '<span class="badge badge-registros-wa"><i data-lucide="message-circle" style="width:12px;height:12px;" aria-hidden="true"></i> Sí</span>'
-            : '<span class="text-muted">No</span>'}
         </td>
         <td class="td-fecha" data-label="Registrado">${formatFecha(r.fecha_registro)}</td>
         <td class="td-acciones registros-acciones" data-label="Acciones">
@@ -144,13 +134,13 @@ const RegistrosPendientes = (() => {
   async function cargar() {
     const tbody = $('registrosPendientesList');
     if (tbody) {
-      tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Cargando…</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="5" class="empty-state">Cargando…</td></tr>';
     }
 
     try {
       const { data, error } = await client
         .from('registro_alumnos')
-        .select('id, email, nombre, numero_cuenta, telefono, tiene_whatsapp, fecha_registro')
+        .select('id, email, nombre, numero_cuenta, fecha_registro')
         .eq('estado', 'pendiente_validacion')
         .order('fecha_registro', { ascending: true });
 
@@ -165,7 +155,7 @@ const RegistrosPendientes = (() => {
       if (tbody) {
         tbody.innerHTML = `
           <tr>
-            <td colspan="7" class="empty-state" style="color:var(--color-danger,#dc2626);">
+            <td colspan="5" class="empty-state" style="color:var(--color-danger,#dc2626);">
               Error al cargar registros: ${escHtml(err.message)}
             </td>
           </tr>`;

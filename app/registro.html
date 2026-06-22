@@ -673,24 +673,6 @@
             <span class="reg-hint" id="hint-cuenta"></span>
           </div>
 
-          <!-- Teléfono -->
-          <div class="reg-field">
-            <label for="reg-tel">
-              Teléfono <span class="opt">(opcional)</span>
-            </label>
-            <input type="tel" id="reg-tel" name="telefono"
-                   class="reg-input"
-                   placeholder="+52 55 1234 5678"
-                   autocomplete="tel">
-            <span class="reg-hint" id="hint-tel"></span>
-          </div>
-
-          <!-- WhatsApp -->
-          <label class="reg-checkbox">
-            <input type="checkbox" id="reg-whatsapp" name="tiene_whatsapp">
-            <span class="reg-checkbox-label">Tengo WhatsApp en este número</span>
-          </label>
-
           <hr class="reg-divider">
 
           <!-- Botones -->
@@ -747,8 +729,6 @@
     const $email    = document.getElementById('reg-email');
     const $nombre   = document.getElementById('reg-nombre');
     const $cuenta   = document.getElementById('reg-cuenta');
-    const $tel      = document.getElementById('reg-tel');
-    const $wapp     = document.getElementById('reg-whatsapp');
 
     /* ── Fecha local YYYY-MM-DD (hora del navegador del alumno) ─ */
     // NOTA DE SINCRONIZACIÓN: esta función y la del backend (Edge Function
@@ -919,8 +899,6 @@
       const email   = $email.value.trim().toLowerCase();
       const nombre  = $nombre.value.trim();
       const cuenta  = $cuenta.value.trim();
-      const tel     = $tel.value.trim() || null;
-      const wapp    = $wapp.checked;
 
       // Validar todos los campos
       const vEmail  = validateEmail(email);
@@ -946,7 +924,7 @@
           'apikey':        SUPABASE_ANON,
           'Authorization': 'Bearer ' + SUPABASE_ANON,
         };
-        const fetchBody = JSON.stringify({ email, nombre, numero_cuenta: cuenta, telefono: tel, tiene_whatsapp: wapp });
+        const fetchBody = JSON.stringify({ email, nombre, numero_cuenta: cuenta });
 
         console.log('[registro] Enviando POST con headers:', fetchHeaders);
         console.log('[registro] Body:', fetchBody);

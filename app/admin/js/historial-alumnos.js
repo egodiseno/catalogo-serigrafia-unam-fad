@@ -69,9 +69,6 @@ const HistorialAlumnos = (() => {
         <td class="td-email" data-label="Email">
           <a href="mailto:${escHtml(r.email)}" class="email-link">${escHtml(r.email)}</a>
         </td>
-        <td class="td-telefono" data-label="Teléfono">
-          ${r.telefono ? escHtml(r.telefono) : '<span class="text-muted">—</span>'}
-        </td>
         <td class="td-estado" data-label="Estado">${estadoBadge(r.estado)}</td>
         <td class="td-fecha" data-label="Fecha Registro">${formatFecha(r.fecha_registro)}</td>
         <td class="actions-cell" data-label="Acciones">
@@ -115,7 +112,7 @@ const HistorialAlumnos = (() => {
     if (n === 0) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="7" class="empty-state">
+          <td colspan="6" class="empty-state">
             <i data-lucide="inbox"
                style="width:28px;height:28px;display:block;margin:0 auto 10px;
                       color:var(--color-text-muted,#64748b);"
@@ -145,13 +142,13 @@ const HistorialAlumnos = (() => {
   async function cargar() {
     const tbody = $('historialAlumnosList');
     if (tbody) {
-      tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Cargando…</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Cargando…</td></tr>';
     }
 
     try {
       const { data, error } = await client
         .from('registro_alumnos')
-        .select('id, email, nombre, numero_cuenta, telefono, tiene_whatsapp, fecha_registro, estado')
+        .select('id, email, nombre, numero_cuenta, fecha_registro, estado')
         .order('fecha_registro', { ascending: false });
 
       if (error) throw error;
@@ -166,7 +163,7 @@ const HistorialAlumnos = (() => {
       if (tbody) {
         tbody.innerHTML = `
           <tr>
-            <td colspan="7" class="empty-state" style="color:var(--color-danger,#dc2626);">
+            <td colspan="6" class="empty-state" style="color:var(--color-danger,#dc2626);">
               Error al cargar el historial: ${escHtml(err.message)}
             </td>
           </tr>`;
@@ -219,12 +216,11 @@ const HistorialAlumnos = (() => {
       return;
     }
 
-    const headers = ['nombre', 'numero_cuenta', 'email', 'telefono', 'estado', 'fecha_registro', 'id'];
+    const headers = ['nombre', 'numero_cuenta', 'email', 'estado', 'fecha_registro', 'id'];
     const rows = _filtrado.map(r => [
       r.nombre         ?? '',
       r.numero_cuenta  ?? '',
       r.email          ?? '',
-      r.telefono       ?? '',
       r.estado         ?? '',
       r.fecha_registro ? new Date(r.fecha_registro).toLocaleDateString('es-MX') : '',
       r.id             ?? '',
