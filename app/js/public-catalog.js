@@ -418,6 +418,7 @@ export class PublicCatalog {
     } else {
       loadMoreWrap?.setAttribute('hidden', '');
       loadMoreBtn?.setAttribute('disabled', '');
+      this.hideLoadingSpinner();
     }
   }
 
@@ -719,8 +720,11 @@ export class PublicCatalog {
       entries => {
         if (entries[0].isIntersecting && !this.isLoading) {
           const loadMoreBtn = document.querySelector('[data-loadmore]');
-          if (loadMoreBtn && !loadMoreBtn.disabled) {
+          const hasMore = this.totalWorks > 0 && this.page * this.pageSize < this.totalWorks;
+          if (loadMoreBtn && !loadMoreBtn.disabled && hasMore) {
             this.loadMore();
+          } else {
+            this.hideLoadingSpinner();
           }
         }
       },
