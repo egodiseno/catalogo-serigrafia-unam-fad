@@ -11,6 +11,9 @@
   <meta name="msapplication-TileImage" content="admin/assets/logos/cropped-icon-270x270.png">
   <meta name="theme-color"    content="#013B75">
   <link rel="manifest"        href="manifest.json">
+  <!-- Precarga de logos críticos del header -->
+  <link rel="preload" href="admin/assets/logos/UNAM.svg" as="image" type="image/svg+xml">
+  <link rel="preload" href="admin/assets/logos/FAD.svg"  as="image" type="image/svg+xml">
   <title>Técnicas — Catálogo de Obra Serigráfica</title>
 
   <!-- Fonts -->
@@ -35,8 +38,8 @@
   <div class="container">
     <a href="index.html" class="brand" aria-label="Inicio del catálogo">
       <span class="brand__logos" aria-hidden="true">
-        <img src="admin/assets/logos/UNAM.svg" alt="" class="logo-header" />
-        <img src="admin/assets/logos/FAD.svg" alt="" class="logo-header" />
+        <img src="admin/assets/logos/UNAM.svg" alt="" class="logo-header" fetchpriority="high" />
+        <img src="admin/assets/logos/FAD.svg" alt="" class="logo-header" fetchpriority="high" />
       </span>
       <span class="brand__text">
         <span class="brand__title">Catálogo Digital</span>
