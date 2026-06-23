@@ -12,6 +12,7 @@ class ConfiguracionManager {
     this._initialized = false;
     this._tab         = 'acerca';   // 'acerca' | 'creditos'
     this._creditos    = [];         // caché local
+    this._acercaId    = null;       // id real de la fila en configuracion_acerca
   }
 
   get client() {
@@ -90,6 +91,8 @@ class ConfiguracionManager {
         .single();
 
       if (error && error.code !== 'PGRST116') throw error;
+
+      this._acercaId = data?.id ?? null;
 
       if (textareaEs) {
         textareaEs.value       = data?.contenido_es ?? '';
@@ -174,6 +177,11 @@ class ConfiguracionManager {
 
     const email = window.usuarioActual?.email ?? '';
 
+    if (!this._acercaId) {
+      window.ErrorHandler?.showToast('La configuración no pudo cargarse. Recarga la página e inténtalo de nuevo.', 'error');
+      return;
+    }
+
     if (btn) { btn.disabled = true; btn.textContent = 'Guardando…'; }
 
     try {
@@ -185,7 +193,7 @@ class ConfiguracionManager {
           updated_at:      new Date().toISOString(),
           actualizado_por: email,
         })
-        .eq('id', '00000000-0000-0000-0000-000000000001');
+        .eq('id', this._acercaId);
 
       if (error) throw error;
 
