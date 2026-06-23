@@ -234,20 +234,25 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const { data, error } = await client
         .from('imagenes')
-        .select('id, url_storage, principal, orden')
+        .select('id, url_storage, principal, orden, pendiente_borrado')
         .eq('obra_id', obraId)
         .order('orden', { ascending: true, nullsFirst: false });
 
       if (error) throw error;
 
-      if (!data || data.length === 0) {
+      // Excluir imágenes marcadas como pendiente_borrado: el editor
+      // no debe verlas ni contarlas, pero siguen en DB/Storage hasta que
+      // el admin apruebe o rechace los cambios.
+      const visibleImgs = (data ?? []).filter(img => !img.pendiente_borrado);
+
+      if (visibleImgs.length === 0) {
         container.innerHTML = '<p class="field-hint">Sin imágenes guardadas.</p>';
         // Sin imágenes → el componente de subida puede aceptar hasta MAX_IMAGES
         window.MultiImageUpload?.setExistingCount(0);
         return;
       }
 
-      container.innerHTML = data.map(img => `
+      container.innerHTML = visibleImgs.map(img => `
         <div class="existing-image-item" data-img-id="${escAttrF(img.id)}">
           <img src="${escAttrF(img.url_storage)}"
                alt="Imagen de la obra"
@@ -267,8 +272,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Informar al componente de subida cuántos slots nuevos quedan disponibles
       // y si ya existe una imagen marcada como principal (evita conflictos de checkbox).
-      window.MultiImageUpload?.setExistingCount(data.length);
-      window.MultiImageUpload?.setHasPrincipal(data.some(img => img.principal));
+      window.MultiImageUpload?.setExistingCount(visibleImgs.length);
+      window.MultiImageUpload?.setHasPrincipal(visibleImgs.some(img => img.principal));
 
       // Click en thumbnail → preview grande
       container.querySelectorAll('.existing-thumb').forEach(thumb => {
@@ -293,11 +298,16 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /**
-   * Confirma y elimina un registro de la tabla `imagenes` + el archivo de Storage.
-   * Recarga la lista tras borrar.
+   * Confirma y elimina una imagen de la obra.
+   *
+   * — Obras en Borrador / En Revisión: borra el registro de `imagenes` y el archivo
+   *   de Storage de forma inmediata (comportamiento original).
+   * — Obras Publicadas (estado === 'Publicado' o visible_publico === true): en lugar
+   *   de borrar, marca la imagen con pendiente_borrado = true. El archivo en Storage
+   *   no se toca; el borrado real ocurre cuando el admin aprueba los cambios.
    *
    * @param {string} imgId    - ID del registro en tabla imagenes
-   * @param {string} obraId   - ID de la obra (para recargar la lista)
+   * @param {string} obraId   - ID de la obra (para consultar estado y recargar lista)
    * @param {string} imgUrl   - URL pública del archivo en Storage (para borrado físico)
    */
   function deleteObraImage(imgId, obraId, imgUrl) {
@@ -308,43 +318,52 @@ document.addEventListener('DOMContentLoaded', () => {
       cancelText:  'Cancelar',
       onConfirm:   async () => {
         try {
-          // 1. Borrar registro de la tabla imagenes
-          const { error } = await client.from('imagenes').delete().eq('id', imgId);
-          if (error) throw error;
+          // PASO 1 — Consultar estado actual de la obra
+          const { data: obra, error: obraErr } = await client
+            .from('obras')
+            .select('estado, visible_publico')
+            .eq('id', obraId)
+            .single();
 
-          // 2. Borrar archivo físico de Supabase Storage
-          //
-          // TODO (sprint visible_publico): cuando exista la columna `visible_publico`
-          // en la tabla `obras`, verificar su valor aquí antes de borrar.
-          //
-          //   const obra = await client.from('obras').select('visible_publico').eq('id', obraId).single();
-          //   if (obra.data?.visible_publico) {
-          //     // Obra publicada: NO borrar de inmediato — marcar pendiente de borrado
-          //     // para que el flujo de aprobación decida si se confirma o revierte.
-          //     await client.from('imagenes_pendiente_borrado').insert({ url_storage: imgUrl, obra_id: obraId });
-          //   } else {
-          //     // Obra no publicada: borrar de inmediato (ver bloque de abajo)
-          //   }
-          //
-          // Por ahora: borrar siempre de inmediato (la columna visible_publico no existe aún).
-          if (imgUrl) {
-            // El path relativo al bucket es todo lo que viene después de "/artworks/"
-            const storagePath = imgUrl.split('/artworks/')[1];
-            if (storagePath) {
-              const delResult = await window.StorageModule?.deleteImage(storagePath);
-              if (delResult?.success) {
-                console.log('🗑️ Archivo eliminado de Storage:', storagePath);
+          if (obraErr) throw obraErr;
+
+          const esPublicada = obra?.estado === 'Publicado' || obra?.visible_publico === true;
+
+          if (esPublicada) {
+            // PASO 2 — Obra publicada: marcar pendiente_borrado, no tocar Storage
+            const { error } = await client
+              .from('imagenes')
+              .update({ pendiente_borrado: true })
+              .eq('id', imgId);
+            if (error) throw error;
+
+            window.ErrorHandler?.showToast(
+              'La imagen quedará eliminada cuando se aprueben los cambios.',
+              'info'
+            );
+          } else {
+            // PASO 3 — Obra en Borrador / En Revisión: borrado inmediato
+            const { error } = await client.from('imagenes').delete().eq('id', imgId);
+            if (error) throw error;
+
+            if (imgUrl) {
+              // El path relativo al bucket es todo lo que viene después de "/artworks/"
+              const storagePath = imgUrl.split('/artworks/')[1];
+              if (storagePath) {
+                const delResult = await window.StorageModule?.deleteImage(storagePath);
+                if (!delResult?.success) {
+                  // No bloquear el flujo si el borrado de Storage falla —
+                  // el registro de DB ya fue eliminado correctamente.
+                  console.warn('⚠️ No se pudo eliminar de Storage (archivo huérfano):', delResult?.error);
+                }
               } else {
-                // No bloquear el flujo si el borrado de Storage falla —
-                // el registro de DB ya fue eliminado correctamente.
-                console.warn('⚠️ No se pudo eliminar de Storage (archivo huérfano):', delResult?.error);
+                console.warn('⚠️ No se pudo extraer path de Storage de la URL:', imgUrl);
               }
-            } else {
-              console.warn('⚠️ No se pudo extraer path de Storage de la URL:', imgUrl);
             }
+
+            window.ErrorHandler?.showToast('Imagen eliminada', 'success');
           }
 
-          window.ErrorHandler?.showToast('Imagen eliminada', 'success');
           loadObraImages(obraId); // recarga la lista y actualiza setExistingCount
         } catch (err) {
           console.error('deleteObraImage:', err);
