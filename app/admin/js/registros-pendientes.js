@@ -148,7 +148,6 @@ const RegistrosPendientes = (() => {
 
       _registros = data ?? [];
       renderTabla(_registros);
-      console.log(`[RegistrosPendientes] Cargados: ${_registros.length} registros`);
 
     } catch (err) {
       console.error('[RegistrosPendientes] Error cargando:', err);
@@ -241,8 +240,6 @@ const RegistrosPendientes = (() => {
       const FN_URL   = 'https://kfvjansfmhamkrnbxmgp.supabase.co/functions/v1/validate-registro';
       const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmdmphbnNmbWhhbWtybmJ4bWdwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4MzU3MzgsImV4cCI6MjA5NTQxMTczOH0.yesPqr7JhxniQxMa_fVPvwhBg2o98J2UB67G7u7fFsE';
 
-      console.log('[RegistrosPendientes] Llamando validate-registro para id:', id);
-
       const res = await fetch(FN_URL, {
         method:  'POST',
         headers: {
@@ -261,7 +258,6 @@ const RegistrosPendientes = (() => {
         throw new Error(result.error ?? `Error ${res.status}`);
       }
 
-      console.log('[RegistrosPendientes] Registro validado:', id);
       // ── Audit: log validación — btn tiene data-nombre y data-email ──────────
       window.auditLogger?.registrar('validar', 'registro_alumno', {
         objeto_id:    id,
@@ -347,8 +343,6 @@ const RegistrosPendientes = (() => {
       const FN_URL   = 'https://kfvjansfmhamkrnbxmgp.supabase.co/functions/v1/reject-registro';
       const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmdmphbnNmbWhhbWtybmJ4bWdwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4MzU3MzgsImV4cCI6MjA5NTQxMTczOH0.yesPqr7JhxniQxMa_fVPvwhBg2o98J2UB67G7u7fFsE';
 
-      console.log('[RegistrosPendientes] Llamando reject-registro para id:', id);
-
       const res = await fetch(FN_URL, {
         method:  'POST',
         headers: {
@@ -367,7 +361,6 @@ const RegistrosPendientes = (() => {
         throw new Error(result.error ?? `Error ${res.status}`);
       }
 
-      console.log('[RegistrosPendientes] Registro rechazado:', id);
       // ── Audit: log rechazo — lookup en _registros ANTES de cargar() ─────────
       // _registros todavía tiene la fila (cargar() la elimina al refrescar)
       const _regRechazado = _registros.find(r => r.id === id);
@@ -400,7 +393,6 @@ const RegistrosPendientes = (() => {
   function _iniciarAutoRefresh() {
     _detenerAutoRefresh();
     _autoRefreshId = setInterval(cargar, AUTO_REFRESH_MS);
-    console.log('[RegistrosPendientes] Auto-refresh activo (cada 30 s)');
   }
 
   function detener() {
@@ -411,7 +403,6 @@ const RegistrosPendientes = (() => {
     if (_autoRefreshId !== null) {
       clearInterval(_autoRefreshId);
       _autoRefreshId = null;
-      console.log('[RegistrosPendientes] Auto-refresh detenido');
     }
   }
 
@@ -449,7 +440,6 @@ const RegistrosPendientes = (() => {
       if ($('rechazarRegistroModal')?.style.display === 'flex') _cerrarModalRechazar();
     });
 
-    console.log('✅ RegistrosPendientes module inicializado');
   }
 
   // ── Llamado por navigation.js cuando se activa la sección ──────────────────
@@ -465,4 +455,3 @@ const RegistrosPendientes = (() => {
 })();
 
 window.RegistrosPendientes = RegistrosPendientes;
-console.log('📋 RegistrosPendientes module listo');

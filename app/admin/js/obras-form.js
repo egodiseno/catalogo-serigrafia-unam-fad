@@ -419,7 +419,6 @@ document.addEventListener('DOMContentLoaded', () => {
         .eq('id', obraId);
 
       if (error) throw error;
-      console.log('[obras-form] snapshot_publicado + visible_publico guardados para obra:', obraId, snap);
     } catch (err) {
       // No bloquear el flujo principal — la obra se guardó correctamente
       console.error('[obras-form] Error al guardar snapshot_publicado:', err);
@@ -731,6 +730,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ── API pública ───────────────────────────────────────
   window.obrasForm = { open, close };
-
-  console.log('✏️ obras-form.js cargado');
 });

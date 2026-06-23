@@ -69,7 +69,6 @@ export const api = {
         return { data: [], total: 0, error };
       }
 
-      console.log(`✅ Filtro aplicado: ${data.length} obras de ${count}`);
       return { data, total: count, error: null };
     } catch (err) {
       console.error('❌ Exception filterWorks:', err);
@@ -96,7 +95,6 @@ export const api = {
         return { data: null, error };
       }
 
-      console.log(`✅ Obra cargada: ${data.titulo}`);
       return { data, error: null };
     } catch (err) {
       console.error('❌ Exception getWorkById:', err);
@@ -127,7 +125,6 @@ export const api = {
         return { data: null, error };
       }
 
-      console.log(`✅ Obra cargada: ${data.titulo}`);
       return { data, error: null };
     } catch (err) {
       console.error('❌ Exception getWorkBySlug:', err);
@@ -152,7 +149,6 @@ export const api = {
       }
 
       const years = [...new Set(data.map(d => d.año))].sort((a, b) => b - a);
-      console.log(`✅ Años cargados: ${years.join(', ')}`);
       return years;
     } catch (err) {
       console.error('❌ Exception getYears:', err);
@@ -175,7 +171,6 @@ export const api = {
         return [];
       }
 
-      console.log(`✅ Técnicas cargadas: ${data.length}`);
       return data;
     } catch (err) {
       console.error('❌ Exception getTechniques:', err);
@@ -205,7 +200,6 @@ export const api = {
           counts[obra.tecnica_id] = (counts[obra.tecnica_id] || 0) + 1;
         }
       });
-      console.log('✅ Conteos por técnica:', counts);
       return counts;
     } catch (err) {
       console.error('❌ Exception getWorkCountsByTechnique:', err);
@@ -235,7 +229,6 @@ export const api = {
         return '';
       }
 
-      console.log(`✅ Acerca cargada (${lang})`);
       return data?.[col] ?? '';
     } catch (err) {
       console.error('❌ Exception getAcerca:', err);
@@ -261,7 +254,6 @@ export const api = {
         return [];
       }
 
-      console.log(`✅ Créditos cargados: ${data.length}`);
       return data;
     } catch (err) {
       console.error('❌ Exception getCreditos:', err);
@@ -286,7 +278,6 @@ export const api = {
         return [];
       }
 
-      console.log(`✅ Redes sociales cargadas: ${data.length}`);
       return data;
     } catch (err) {
       console.error('❌ Exception getRedesSociales:', err);
@@ -325,7 +316,6 @@ export const api = {
       const totalArtistas = new Set((artistasRes.data ?? []).map(r => r.artista).filter(Boolean)).size;
       const totalTecnicas = tecnicasRes.count ?? 0;
 
-      console.log(`✅ Stats catálogo: ${totalObras} obras · ${totalArtistas} artistas · ${totalTecnicas} técnicas`);
       return { obras: totalObras, artistas: totalArtistas, tecnicas: totalTecnicas };
     } catch (err) {
       console.error('❌ Exception getCatalogStats:', err);
@@ -348,7 +338,6 @@ export const api = {
         return [];
       }
 
-      console.log(`✅ Tags cargados: ${data.length}`);
       return data;
     } catch (err) {
       console.error('❌ Exception getTags:', err);

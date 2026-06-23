@@ -30,8 +30,6 @@ export class PublicCatalog {
 
   async init() {
     try {
-      console.log('🚀 Inicializando catálogo...');
-
       // Activar íconos Lucide de los elementos estáticos del hero (stats, etc.)
       if (window.lucide) window.lucide.createIcons();
 
@@ -77,7 +75,6 @@ export class PublicCatalog {
         if (this.works.length > 0) this.renderGrid();
       });
 
-      console.log('✅ Catálogo inicializado');
     } catch (error) {
       console.error('❌ Error inicializando catálogo:', error);
     }
@@ -128,8 +125,6 @@ export class PublicCatalog {
    * Cargar opciones de filtro (años, técnicas, tags)
    */
   async loadFilterOptions() {
-    console.log('📥 Cargando opciones de filtro...');
-
     const [years, techniques, tags] = await Promise.all([
       api.getYears(),
       api.getTechniques(),
@@ -156,7 +151,6 @@ export class PublicCatalog {
         option.textContent = year;
         yearSelect.appendChild(option);
       });
-      console.log(`✅ ${this.yearOptions.length} años cargados`);
     }
 
     // Técnicas
@@ -168,7 +162,6 @@ export class PublicCatalog {
         option.textContent = tech.nombre;
         techniqueSelect.appendChild(option);
       });
-      console.log(`✅ ${this.techniqueOptions.length} técnicas cargadas`);
     }
 
     // Tags popover
@@ -190,7 +183,6 @@ export class PublicCatalog {
         label.appendChild(span);
         tagsGrid.appendChild(label);
       });
-      console.log(`✅ ${this.tagOptions.length} tags cargados`);
     }
   }
 
@@ -272,7 +264,6 @@ export class PublicCatalog {
       }, 300));
     }
 
-    console.log('✅ Event listeners attached');
   }
 
   /**
@@ -367,7 +358,6 @@ export class PublicCatalog {
       this.updateLoadMoreButton();
     }
 
-    console.log(`✅ Grid renderizado: ${this.works.length} obras`);
   }
 
   /**
@@ -796,7 +786,6 @@ export class PublicCatalog {
       if (elArtistas) this._animateCounter(elArtistas, stats.artistas);
       if (elTecnicas) this._animateCounter(elTecnicas, stats.tecnicas);
 
-      console.log('✅ Estadísticas del hero actualizadas');
     } catch (err) {
       // Silencioso: las tarjetas mantienen el guión '—' como fallback
       console.warn('⚠️ No se cargaron las estadísticas del hero:', err);
