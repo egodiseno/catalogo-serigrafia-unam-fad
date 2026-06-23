@@ -1616,8 +1616,6 @@ body.is-scrolled .filters {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-  position: sticky;
-  top: calc(60px + 80px + var(--space-2)); /* header + filtros + gap */
 }
 
 /* Figura / contenedor imagen principal */
