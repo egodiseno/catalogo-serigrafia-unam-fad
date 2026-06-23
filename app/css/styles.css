@@ -1569,6 +1569,10 @@ body.is-scrolled .filters {
   min-height: 300px;
 }
 
+.work-loading[hidden] {
+  display: none !important;
+}
+
 .work-error {
   display: flex;
   flex-direction: column;
@@ -1578,6 +1582,10 @@ body.is-scrolled .filters {
   justify-content: center;
   text-align: center;
   color: var(--color-muted);
+}
+
+.work-error[hidden] {
+  display: none !important;
 }
 
 .work-error i,
