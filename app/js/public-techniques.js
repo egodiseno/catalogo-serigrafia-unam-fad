@@ -154,7 +154,7 @@ export class PublicTechniques {
 
       return `
         <li>
-          <a href="obra.html?id=${work.id}" class="artwork-card" aria-label="${work.titulo} — ${work.artista}">
+          <a href="obra.html?slug=${work.slug || work.id}" class="artwork-card" aria-label="${work.titulo} — ${work.artista}">
             <div class="artwork-card__media ${!imageUrl ? 'is-empty' : ''}">
               ${imageUrl ? `<img src="${imageUrl}" alt="${work.titulo}" loading="lazy" />` : ''}
               ${hasTechnique ? `<span class="artwork-card__badge">${hasTechnique}</span>` : ''}
