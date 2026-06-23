@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+
+# Panel de administración — no indexar
+Disallow: /admin/
+
+Sitemap: https://catalogo-serigrafia-unam-fad.netlify.app/sitemap.xml
