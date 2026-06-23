@@ -629,7 +629,7 @@ export class PublicDetail {
 
     return `
       <li>
-        <a href="obra.html?id=${this.escapeHtml(obra.id)}"
+        <a href="obra.html?slug=${this.escapeHtml(obra.slug || obra.id)}"
            class="artwork-card"
            aria-label="${this.escapeHtml(obra.titulo)} — ${this.escapeHtml(obra.artista)}">
 
