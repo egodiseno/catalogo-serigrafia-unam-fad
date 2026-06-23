@@ -32,8 +32,14 @@ export class PublicCatalog {
     try {
       console.log('🚀 Inicializando catálogo...');
 
-      // Cargar opciones de filtro
-      await this.loadFilterOptions();
+      // Activar íconos Lucide de los elementos estáticos del hero (stats, etc.)
+      if (window.lucide) window.lucide.createIcons();
+
+      // Cargar opciones de filtro + estadísticas del hero en paralelo
+      await Promise.all([
+        this.loadFilterOptions(),
+        this.loadStats(),
+      ]);
 
       // PASO 2 — Leer ?q= de la URL y pre-aplicar como filtro de búsqueda inicial
       const _urlParams = new URLSearchParams(window.location.search);
@@ -772,6 +778,55 @@ export class PublicCatalog {
     if (sentinel) {
       observer.observe(sentinel);
     }
+  }
+
+  /**
+   * Cargar estadísticas del catálogo y llenar las tarjetas del hero.
+   * Animación de contador numérico (ease-out) para efecto premium.
+   */
+  async loadStats() {
+    try {
+      const stats = await api.getCatalogStats();
+
+      const elObras    = document.getElementById('statObras');
+      const elArtistas = document.getElementById('statArtistas');
+      const elTecnicas = document.getElementById('statTecnicas');
+
+      if (elObras)    this._animateCounter(elObras,    stats.obras);
+      if (elArtistas) this._animateCounter(elArtistas, stats.artistas);
+      if (elTecnicas) this._animateCounter(elTecnicas, stats.tecnicas);
+
+      console.log('✅ Estadísticas del hero actualizadas');
+    } catch (err) {
+      // Silencioso: las tarjetas mantienen el guión '—' como fallback
+      console.warn('⚠️ No se cargaron las estadísticas del hero:', err);
+    }
+  }
+
+  /**
+   * Anima un elemento de texto desde 0 hasta `target` con ease-out cúbico.
+   * Duración fija de 900ms. Si target = 0 escribe "0" sin animar.
+   * @param {HTMLElement} el     - elemento cuyo textContent se actualiza
+   * @param {number}      target - valor final
+   */
+  _animateCounter(el, target) {
+    if (target === 0) {
+      el.textContent = '0';
+      return;
+    }
+
+    const DURATION = 900;   // ms
+    const startTs  = performance.now();
+
+    const step = (now) => {
+      const progress = Math.min((now - startTs) / DURATION, 1);
+      // Ease-out cúbico: progresa rápido al inicio, frena al final
+      const eased    = 1 - Math.pow(1 - progress, 3);
+      el.textContent = Math.round(eased * target);
+      if (progress < 1) requestAnimationFrame(step);
+    };
+
+    requestAnimationFrame(step);
   }
 
   /**

@@ -295,6 +295,45 @@ export const api = {
   },
 
   /**
+   * Estadísticas del catálogo — para el bloque hero del home.
+   * Tres queries en paralelo:
+   *   obras    → COUNT(*) FROM obras WHERE visible_publico = true
+   *   artistas → COUNT(DISTINCT artista) — calculado en JS desde la columna artista
+   *   tecnicas → COUNT(*) FROM tecnicas
+   * @returns {Promise<{obras: number, artistas: number, tecnicas: number}>}
+   */
+  async getCatalogStats() {
+    try {
+      const [obrasRes, artistasRes, tecnicasRes] = await Promise.all([
+        // Total obras públicas — head:true evita traer filas, solo el count
+        supabase
+          .from('obras')
+          .select('*', { count: 'exact', head: true })
+          .eq('visible_publico', true),
+        // Artistas distintos — fetch solo la columna artista, deduplicar en JS
+        supabase
+          .from('obras')
+          .select('artista')
+          .eq('visible_publico', true),
+        // Total técnicas
+        supabase
+          .from('tecnicas')
+          .select('*', { count: 'exact', head: true }),
+      ]);
+
+      const totalObras    = obrasRes.count ?? 0;
+      const totalArtistas = new Set((artistasRes.data ?? []).map(r => r.artista).filter(Boolean)).size;
+      const totalTecnicas = tecnicasRes.count ?? 0;
+
+      console.log(`✅ Stats catálogo: ${totalObras} obras · ${totalArtistas} artistas · ${totalTecnicas} técnicas`);
+      return { obras: totalObras, artistas: totalArtistas, tecnicas: totalTecnicas };
+    } catch (err) {
+      console.error('❌ Exception getCatalogStats:', err);
+      return { obras: 0, artistas: 0, tecnicas: 0 };
+    }
+  },
+
+  /**
    * Obtener todos los tags
    */
   async getTags() {

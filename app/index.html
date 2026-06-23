@@ -106,6 +106,44 @@
       <span class="title-black" data-i18n data-es="Catálogo de" data-en="Catalog of">Catálogo de</span> <span class="title-blue" data-i18n data-es="Obra Serigráfica" data-en="Printmaking Works">Obra Serigráfica</span>
     </h1>
     <p class="hero__lead" data-i18n data-es="Explora la colección de obras del Taller de Serigrafía de la FAD." data-en="Explore the Printmaking Workshop's collection.">Explora la colección de obras del Taller de Serigrafía de la FAD.</p>
+
+    <!-- Estadísticas del catálogo — llenadas dinámicamente por public-catalog.js -->
+    <div class="hero-stats" id="heroStats" aria-label="Estadísticas del catálogo">
+
+      <div class="hero-stats__card">
+        <span class="hero-stats__icon" aria-hidden="true">
+          <i data-lucide="image"></i>
+        </span>
+        <strong class="hero-stats__number" id="statObras">—</strong>
+        <span class="hero-stats__label"
+              data-i18n data-es="obras en el catálogo" data-en="works in catalog">
+          obras en el catálogo
+        </span>
+      </div>
+
+      <div class="hero-stats__card">
+        <span class="hero-stats__icon" aria-hidden="true">
+          <i data-lucide="users"></i>
+        </span>
+        <strong class="hero-stats__number" id="statArtistas">—</strong>
+        <span class="hero-stats__label"
+              data-i18n data-es="artistas" data-en="artists">
+          artistas
+        </span>
+      </div>
+
+      <div class="hero-stats__card">
+        <span class="hero-stats__icon" aria-hidden="true">
+          <i data-lucide="layers"></i>
+        </span>
+        <strong class="hero-stats__number" id="statTecnicas">—</strong>
+        <span class="hero-stats__label"
+              data-i18n data-es="técnicas disponibles" data-en="available techniques">
+          técnicas disponibles
+        </span>
+      </div>
+
+    </div><!-- /.hero-stats -->
   </div>
 </section>
 

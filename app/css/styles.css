@@ -443,6 +443,109 @@ h1, h2, h3 {
 }
 
 /* ============================================================
+   Hero Stats — tarjetas de estadísticas del catálogo
+   ============================================================ */
+.hero-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: var(--space-4);   /* 32px — respira del lead */
+  max-width: 520px;             /* alineado con el ancho del texto del hero */
+}
+
+.hero-stats__card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 16px 18px 18px;
+  background: var(--color-surface);     /* #fffcf5 — blanco cálido */
+  border: 1px solid var(--color-line);  /* #e4ddcf — borde sutil */
+  border-radius: var(--radius-card);    /* 8px */
+  transition:
+    box-shadow 0.22s var(--ease),
+    transform  0.22s var(--ease);
+}
+
+@media (hover: hover) {
+  .hero-stats__card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+  }
+}
+
+.hero-stats__icon {
+  display: flex;
+  align-items: center;
+  color: var(--color-gold);
+  margin-bottom: 8px;
+}
+
+.hero-stats__icon svg {
+  width: 18px;
+  height: 18px;
+  stroke-width: 1.75;
+}
+
+.hero-stats__number {
+  display: block;
+  font-family: var(--font-serif);
+  font-size: clamp(2rem, 3.2vw, 2.5rem);  /* 32 – 40px */
+  font-weight: 700;
+  color: var(--color-blue);
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.hero-stats__label {
+  margin-top: 5px;
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;    /* 13px */
+  color: var(--color-muted);
+  line-height: 1.35;
+}
+
+/* ── Mobile: cards apilan en 1 columna, layout horizontal ── */
+@media (max-width: 767px) {
+  .hero-stats {
+    grid-template-columns: 1fr;
+    max-width: 340px;
+    gap: 8px;
+    margin-top: var(--space-3);
+  }
+
+  .hero-stats__card {
+    flex-direction: row;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 16px;
+  }
+
+  .hero-stats__icon {
+    margin-bottom: 0;
+    flex-shrink: 0;
+  }
+
+  .hero-stats__number {
+    font-size: 1.6rem;
+    display: inline;
+  }
+
+  .hero-stats__label {
+    display: inline;
+    margin-top: 0;
+    margin-left: 4px;
+    font-size: 0.75rem;
+  }
+}
+
+/* ── Tablet intermedio: 2+1 si no cabe la fila completa ──── */
+@media (min-width: 768px) and (max-width: 899px) {
+  .hero-stats {
+    max-width: 100%;
+  }
+}
+
+/* ============================================================
    Filtros (Sticky)
    ============================================================ */
 /* ============================================================
