@@ -66,6 +66,17 @@
     </nav>
 
     <div class="header-actions">
+      <div class="search-container">
+        <input
+          type="search"
+          id="headerSearchInput"
+          class="search-input"
+          placeholder="Buscar obras..."
+          aria-label="Buscar obras en el catálogo"
+        />
+        <i data-lucide="search" class="search-icon" aria-hidden="true"></i>
+      </div>
+
       <div class="lang-toggle" role="group" aria-label="Cambiar idioma">
         <button type="button" class="lang-btn" data-lang="es" aria-pressed="true">ES</button>
         <button type="button" class="lang-btn" data-lang="en" aria-pressed="false">EN</button>
@@ -221,6 +232,19 @@
         ticking = true;
       }
     }, { passive: true });
+  })();
+</script>
+<script>
+  // Búsqueda en header: redirige a index.html?q= al presionar Enter
+  (function () {
+    var hsi = document.getElementById('headerSearchInput');
+    if (!hsi) return;
+    hsi.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') {
+        var q = hsi.value.trim();
+        if (q) { e.preventDefault(); window.location.href = 'index.html?q=' + encodeURIComponent(q); }
+      }
+    });
   })();
 </script>
 <script type="module">

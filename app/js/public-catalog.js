@@ -35,6 +35,15 @@ export class PublicCatalog {
       // Cargar opciones de filtro
       await this.loadFilterOptions();
 
+      // PASO 2 — Leer ?q= de la URL y pre-aplicar como filtro de búsqueda inicial
+      const _urlParams = new URLSearchParams(window.location.search);
+      const _qParam    = _urlParams.get('q');
+      if (_qParam) {
+        this.filters.search = _qParam.trim();
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) searchInput.value = _qParam.trim();
+      }
+
       // Cargar primeras obras
       await this.loadWorks();
 
