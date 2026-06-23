@@ -158,10 +158,8 @@ export class PublicCatalog {
 
     // Tags popover
     const tagsGrid = document.getElementById('tagsGrid');
-    console.log('DEBUG populateFilterOptions — tagsGrid:', !!tagsGrid, '| tagOptions:', this.tagOptions.length);
     if (tagsGrid) {
       this.tagOptions.forEach(tag => {
-        console.log('  - tag:', tag.id, tag.nombre);
         const label = document.createElement('label');
         label.className = 'tag-checkbox-label';
 
@@ -227,15 +225,6 @@ export class PublicCatalog {
         this.handleFilterChange();
       });
     }
-
-    // Debug logs popover
-    console.log('🔍 Tags popover debug:');
-    console.log('  - tagsPopoverBtn existe:', !!tagsPopoverBtn);
-    console.log('  - tagsPopover existe:', !!tagsPopover);
-    console.log('  - tagsGrid existe:', !!tagsGrid);
-    console.log('  - Checkboxes en grid:', tagsGrid?.querySelectorAll('input').length ?? 0);
-    console.log('  - tagsRemoveBtn existe:', !!document.getElementById('tagsRemoveBtn'));
-    console.log('  - tagsChipsContainer existe:', !!document.getElementById('tagsChipsContainer'));
 
     // Filtros (cambio real-time)
     const filterForm = document.querySelector('[data-filters]');
