@@ -241,16 +241,15 @@ export class PublicDetail {
     el.querySelector('.lightbox__next')
       ?.addEventListener('click', () => this.showImage(this.currentIndex + 1));
 
-    // ── Swipe dentro del lightbox ─────────────────────────
-    const lightboxImg = el.querySelector('.lightbox__image');
+    // ── Swipe dentro del lightbox (área completa del overlay) ─
     let lbTouchStartX = 0;
     let lbTouchEndX   = 0;
 
-    lightboxImg.addEventListener('touchstart', (e) => {
+    el.addEventListener('touchstart', (e) => {
       lbTouchStartX = e.changedTouches[0].clientX;
     }, { passive: true });
 
-    lightboxImg.addEventListener('touchend', (e) => {
+    el.addEventListener('touchend', (e) => {
       lbTouchEndX = e.changedTouches[0].clientX;
       const diff = lbTouchStartX - lbTouchEndX;
 

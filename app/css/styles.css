@@ -1971,6 +1971,14 @@ body.is-scrolled .filters {
   transform: translateY(-50%) translateX(2px);
 }
 
+/* Flechas solo en desktop ≥ 1200px; en tablet/mobile se usa swipe */
+@media (max-width: 1199px) {
+  .lightbox__prev,
+  .lightbox__next {
+    display: none;
+  }
+}
+
 /* Mobile: botones más pequeños y pegados al borde */
 @media (max-width: 639px) {
   .lightbox__image {
