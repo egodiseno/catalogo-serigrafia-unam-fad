@@ -143,12 +143,13 @@ const TagsCRUD = (() => {
       return;
     }
 
-    window.confirmModal.abrir({
+    window.ModalManager.openConfirm({
       title:       '¿Eliminar tag?',
       message:     `Se eliminará "${nombre}". Esta acción no se puede deshacer.`,
       confirmText: 'Eliminar',
       cancelText:  'Cancelar',
-      onConfirm:   () => _doDeleteTag(id, nombre)
+      tipo:        'danger',
+      onConfirm:   () => _doDeleteTag(id, nombre),
     });
   }
 
@@ -198,7 +199,6 @@ const TagsCRUD = (() => {
     ], { field: 'nombre', direction: 'asc' });   // default = comportamiento actual
     window.sortManager?.mountDropdown('tags-table', () => loadTagsTable());
 
-    console.log('🏷️  TagsCRUD listo');
   }
 
   if (document.readyState === 'loading') {

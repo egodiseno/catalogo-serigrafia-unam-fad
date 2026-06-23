@@ -147,12 +147,13 @@ const TecnicasCRUD = (() => {
       return;
     }
 
-    window.confirmModal.abrir({
+    window.ModalManager.openConfirm({
       title:       '¿Eliminar técnica?',
       message:     `Se eliminará "${nombre}". Esta acción no se puede deshacer.`,
       confirmText: 'Eliminar',
       cancelText:  'Cancelar',
-      onConfirm:   () => _doDeleteTecnica(id, nombre)
+      tipo:        'danger',
+      onConfirm:   () => _doDeleteTecnica(id, nombre),
     });
   }
 
@@ -202,7 +203,6 @@ const TecnicasCRUD = (() => {
     ], { field: 'nombre', direction: 'asc' });   // default = comportamiento actual
     window.sortManager?.mountDropdown('tecnicas-table', () => loadTecnicas());
 
-    console.log('🔧 TecnicasCRUD listo');
   }
 
   if (document.readyState === 'loading') {
