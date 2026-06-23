@@ -147,19 +147,13 @@ const TecnicasCRUD = (() => {
       return;
     }
 
-    if (window.ModalManager?.openConfirm) {
-      window.ModalManager.openConfirm({
-        title:       '¿Eliminar técnica?',
-        message:     `Se eliminará "${nombre}". Esta acción no se puede deshacer.`,
-        confirmText: 'Eliminar',
-        cancelText:  'Cancelar',
-        onConfirm:   async () => _doDeleteTecnica(id, nombre)
-      });
-    } else {
-      // Fallback a confirm() nativo si openConfirm no está disponible
-      if (!confirm(`¿Eliminar la técnica "${nombre}"?`)) return;
-      await _doDeleteTecnica(id, nombre);
-    }
+    window.confirmModal.abrir({
+      title:       '¿Eliminar técnica?',
+      message:     `Se eliminará "${nombre}". Esta acción no se puede deshacer.`,
+      confirmText: 'Eliminar',
+      cancelText:  'Cancelar',
+      onConfirm:   () => _doDeleteTecnica(id, nombre)
+    });
   }
 
   async function _doDeleteTecnica(id, nombre) {

@@ -143,18 +143,13 @@ const TagsCRUD = (() => {
       return;
     }
 
-    if (window.ModalManager?.openConfirm) {
-      window.ModalManager.openConfirm({
-        title:       '¿Eliminar tag?',
-        message:     `Se eliminará "${nombre}". Esta acción no se puede deshacer.`,
-        confirmText: 'Eliminar',
-        cancelText:  'Cancelar',
-        onConfirm:   async () => _doDeleteTag(id, nombre)
-      });
-    } else {
-      if (!confirm(`¿Eliminar el tag "${nombre}"?`)) return;
-      await _doDeleteTag(id, nombre);
-    }
+    window.confirmModal.abrir({
+      title:       '¿Eliminar tag?',
+      message:     `Se eliminará "${nombre}". Esta acción no se puede deshacer.`,
+      confirmText: 'Eliminar',
+      cancelText:  'Cancelar',
+      onConfirm:   () => _doDeleteTag(id, nombre)
+    });
   }
 
   async function _doDeleteTag(id, nombre) {
