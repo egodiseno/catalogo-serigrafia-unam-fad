@@ -57,6 +57,11 @@ export class PublicCatalog {
       // Sincronizar top de filtros con altura real del header
       this.syncFiltersTop();
 
+      // Re-renderizar grid al cambiar idioma (técnicas, tags y CTA se traducen)
+      document.addEventListener('lang:changed', () => {
+        if (this.works.length > 0) this.renderGrid();
+      });
+
       console.log('✅ Catálogo inicializado');
     } catch (error) {
       console.error('❌ Error inicializando catálogo:', error);
@@ -370,12 +375,15 @@ export class PublicCatalog {
     const mainImage = imgs.find(img => img.principal === true) || imgs[0] || null;
     const imageUrl = mainImage?.url_storage || '';
     const technique = Array.isArray(work.tecnica) ? work.tecnica[0] : work.tecnica;
-    const hasTechnique = technique?.nombre || null;
+    const hasTechnique = technique?.nombre ? i18n.translate(technique.nombre) : null;
 
     // tags: obra_tags[].tag.nombre  (puede ser array de {tag:{id,nombre,slug}})
     const tagItems = (work.tags || [])
       .map(t => t?.tag?.nombre)
-      .filter(Boolean);
+      .filter(Boolean)
+      .map(n => i18n.translate(n));
+
+    const ctaLabel = i18n.currentLang === 'en' ? 'View work' : 'Ver obra';
 
     return `
       <li>
@@ -398,7 +406,7 @@ export class PublicCatalog {
               </div>
             ` : ''}
             <button type="button" class="artwork-card__cta">
-              <span data-i18n data-es="Ver obra" data-en="View work">Ver obra</span>
+              <span>${ctaLabel}</span>
               <i data-lucide="arrow-right"></i>
             </button>
           </div>

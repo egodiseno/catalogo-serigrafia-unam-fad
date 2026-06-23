@@ -2,6 +2,7 @@
 // Ficha detalle de obra — carga por ?slug=<slug>, rellena DOM, galería de miniaturas
 
 import { api } from './api-client.js';
+import { i18n } from './i18n.js';
 
 export class PublicDetail {
   constructor() {
@@ -67,7 +68,7 @@ export class PublicDetail {
 
     // ── Técnica (objeto o array según la query) ───────────
     const tecnica = Array.isArray(work.tecnica) ? work.tecnica[0] : work.tecnica;
-    this._setText('workTechnique', tecnica?.nombre || '—');
+    this._setText('workTechnique', tecnica?.nombre ? i18n.translate(tecnica.nombre) : '—');
 
     // ── Tags ──────────────────────────────────────────────
     const tagNames = (work.tags || [])
@@ -79,7 +80,7 @@ export class PublicDetail {
 
     if (tagNames.length > 0 && tagsEl) {
       tagsEl.innerHTML = tagNames
-        .map(n => `<span class="tag-small">${this.escapeHtml(n)}</span>`)
+        .map(n => `<span class="tag-small">${this.escapeHtml(i18n.translate(n))}</span>`)
         .join('');
       tagsRow?.removeAttribute('hidden');
     } else {
@@ -614,14 +615,17 @@ export class PublicDetail {
     const mainImg  = imgs.find(i => i.principal === true) || imgs[0] || null;
     const imageUrl = mainImg?.url_storage || '';
 
-    const tecnicaNombre = obra.tecnica?.nombre
+    const tecnicaNombre = i18n.translate(
+      obra.tecnica?.nombre
       ?? (Array.isArray(obra.tecnica) ? obra.tecnica[0]?.nombre : null)
-      ?? '';
+      ?? ''
+    );
 
     const tagItems = (obra.tags || [])
       .map(t => t?.tag?.nombre)
       .filter(Boolean)
-      .slice(0, 2);
+      .slice(0, 2)
+      .map(n => i18n.translate(n));
 
     return `
       <li>
@@ -654,7 +658,7 @@ export class PublicDetail {
                  </div>`
               : ''}
             <button type="button" class="artwork-card__cta">
-              <span>Ver obra</span>
+              <span>${i18n.currentLang === 'en' ? 'View work' : 'Ver obra'}</span>
               <i data-lucide="arrow-right"></i>
             </button>
           </div>
