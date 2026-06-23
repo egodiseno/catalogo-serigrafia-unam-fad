@@ -405,6 +405,8 @@ document.addEventListener('DOMContentLoaded', () => {
         _close();
         window.ErrorHandler?.showToast(`"${escHtml(obra.titulo)}" aprobada y publicada.`, 'success');
         loadObras(true);
+        // Notificar al editor por email (fire-and-forget — no bloquea el flujo)
+        notificarEditor(obra.id, 'aprobado').catch(() => {});
       } catch (err) {
         console.error('[obras-list] ejecutarAprobacion error:', err);
         window.ErrorHandler?.showToast('No se pudo aprobar la obra. Revisa la consola.', 'error');
@@ -479,6 +481,8 @@ document.addEventListener('DOMContentLoaded', () => {
         _close();
         window.ErrorHandler?.showToast(`Cambios rechazados. "${escHtml(obra.titulo)}" vuelve a la versión publicada.`, 'success');
         loadObras(true);
+        // Notificar al editor por email con el motivo (fire-and-forget — no bloquea el flujo)
+        notificarEditor(obra.id, 'rechazado', motivo).catch(() => {});
       } catch (err) {
         console.error('[obras-list] ejecutarRechazo error:', err);
         window.ErrorHandler?.showToast('No se pudo rechazar la obra. Revisa la consola.', 'error');
@@ -649,6 +653,42 @@ document.addEventListener('DOMContentLoaded', () => {
           console.warn('[obras-list] No se pudo eliminar de Storage (archivo huérfano):', delResult?.error);
         }
       }
+    }
+  }
+
+  // ── Notificar al editor por email via Edge Function ──────────────────────
+  // Fire-and-forget: no bloquea la UI si falla. Errores solo en consola.
+  async function notificarEditor(obraId, resultado, motivo = '') {
+    const SUPABASE_URL = 'https://kfvjansfmhamkrnbxmgp.supabase.co';
+    const ANON_KEY     = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmdmphbnNmbWhhbWtybmJ4bWdwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4MzU3MzgsImV4cCI6MjA5NTQxMTczOH0.yesPqr7JhxniQxMa_fVPvwhBg2o98J2UB67G7u7fFsE';
+    const FN_URL       = `${SUPABASE_URL}/functions/v1/notify-obra-approval`;
+
+    try {
+      const { data: sessionData } = await client.auth.getSession();
+      const accessToken = sessionData?.session?.access_token;
+      if (!accessToken) {
+        console.warn('[obras-list] notificarEditor: sesión expirada, email no enviado');
+        return;
+      }
+
+      const res = await fetch(FN_URL, {
+        method:  'POST',
+        headers: {
+          'Content-Type':  'application/json',
+          'Authorization': `Bearer ${accessToken}`,
+          'apikey':        ANON_KEY,
+        },
+        body: JSON.stringify({ obraId, resultado, motivo }),
+      });
+
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || !json.success) {
+        console.warn('[obras-list] notificarEditor: email no enviado —', json.error ?? `HTTP ${res.status}`);
+      } else {
+        console.log(`[obras-list] notificarEditor: email ${resultado} enviado. messageId: ${json.messageId}`);
+      }
+    } catch (err) {
+      console.warn('[obras-list] notificarEditor: error de red —', err?.message ?? err);
     }
   }
 
