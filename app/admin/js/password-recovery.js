@@ -2,22 +2,30 @@
  * password-recovery.js — Recuperación y restablecimiento de contraseña
  * ──────────────────────────────────────────────────────────────────────────────
  *
- * FLUJO 1 — "¿Olvidaste tu contraseña?" (desde el login)
+ * FLUJO 1 — "¿Olvidaste tu contraseña?" (self-service desde el login)
  *   Clic en .link-forgot
  *   → showSection('forgotSection')
  *   → Usuario ingresa email
- *   → supabase.auth.resetPasswordForEmail() → Supabase envía email
- *   → Mensaje: "✅ Revisa tu correo para resetear tu contraseña"
+ *   → Edge Function reset-user-password (PASO A)
+ *   → Email con link de reset (expiración 30 min)
+ *   → Mensaje genérico (no revela si el email existe)
  *
- * FLUJO 2 — PASSWORD_RECOVERY (desde link del email)
- *   Email de Supabase → link redirige aquí con #access_token=...&type=recovery
- *   → auth.js detecta el hash y llama window.PasswordRecovery.showNewPasswordForm()
+ * FLUJO 2 — Nuevo token de reset (desde link del email)
+ *   Email del catálogo → link con ?reset_token=<uuid>
+ *   → auth.js detecta el param, limpia la URL y llama showTokenResetSection()
+ *   → showSection('tokenResetSection')
+ *   → Usuario ingresa nueva contraseña + confirma
+ *   → Edge Function reset-user-password/confirm (PASO B)
+ *   → Redirige al login con mensaje de éxito
+ *
+ * FLUJO 3 — PASSWORD_RECOVERY (Supabase native — enlace legacy)
+ *   Email de Supabase → link con #access_token=...&type=recovery
+ *   → auth.js detecta el hash y llama showNewPasswordForm()
  *   → showSection('newPasswordSection')
- *   → Usuario ingresa nueva contraseña
  *   → supabase.auth.updateUser({ password }) → signOut() → vuelve al login
  *
- * Depende de: config.js (window.supabase_client)
- * Expone:     window.PasswordRecovery = { showNewPasswordForm, showSection }
+ * Depende de: config.js (window.supabaseConfig, window.supabase_client)
+ * Expone:     window.PasswordRecovery = { showNewPasswordForm, showSection, showTokenResetSection }
  */
 
 const PasswordRecovery = (() => {
@@ -28,7 +36,10 @@ const PasswordRecovery = (() => {
 
   // ── Mostrar sección activa del login, ocultar las demás ──────
   function showSection(activeId) {
-    const sections = ['loginFormSection', 'forgotSection', 'newPasswordSection', 'mfaVerifySection', 'mfaEnrollSection'];
+    const sections = [
+      'loginFormSection', 'forgotSection', 'newPasswordSection',
+      'mfaVerifySection', 'mfaEnrollSection', 'tokenResetSection',
+    ];
     sections.forEach(id => {
       const el = getEl(id);
       if (!el) return;
@@ -96,27 +107,39 @@ const PasswordRecovery = (() => {
     const submitBtn = e.target.querySelector('button[type="submit"]');
     if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Enviando…'; }
 
+    // Mensaje genérico reutilizable (no revela si el email existe)
+    const successMsg = 'Si existe una cuenta con ese email, recibirás un enlace en los próximos minutos.';
+
     try {
-      // redirectTo: esta misma página → Supabase redirigirá aquí con #type=recovery
-      const redirectTo = `${window.location.origin}${window.location.pathname}`;
+      // ── Llamar al PASO A de la Edge Function ────────────────────────────
+      const edgeUrl = `${window.supabaseConfig.url}/functions/v1/reset-user-password`;
 
-      const { error } = await client.auth.resetPasswordForEmail(email, { redirectTo });
+      const res = await fetch(edgeUrl, {
+        method:  'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey':       window.supabaseConfig.anonKey,
+        },
+        body: JSON.stringify({ email }),
+      });
 
-      if (error) {
-        setForgotMsg(`Error: ${error.message}`, 'error');
-        hideForgotWarning();
-      } else {
-        // ✅ Paso 4 del flujo: mensaje de confirmación + advertencia de spam
-        setForgotMsg(
-          '✅ Revisa tu correo para resetear tu contraseña.',
-          'success'
-        );
-        showForgotWarning();
-        if (emailInput) emailInput.value = '';
+      // Si la Edge Function responde un error de servidor (5xx) lo registramos
+      // en consola, pero siempre mostramos el mensaje genérico al usuario.
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}));
+        console.error('[PasswordRecovery] Edge Function error:', res.status, errBody);
       }
+
+      // Siempre mostrar el mismo mensaje — sin revelar si el email existe
+      setForgotMsg(`✅ ${successMsg}`, 'success');
+      showForgotWarning();
+      if (emailInput) emailInput.value = '';
+
     } catch (err) {
-      setForgotMsg('Error de conexión. Intenta de nuevo.', 'error');
-      console.error('[PasswordRecovery] handleForgotSubmit:', err);
+      // Error de red — misma UX; el log queda para diagnóstico
+      console.error('[PasswordRecovery] handleForgotSubmit fetch error:', err);
+      setForgotMsg(`✅ ${successMsg}`, 'success');
+      showForgotWarning();
     } finally {
       if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Enviar link'; }
     }
@@ -253,6 +276,115 @@ const PasswordRecovery = (() => {
     }
   }
 
+  // ════════════════════════════════════════════════════════════
+  // FLUJO 2: Reset con token custom (desde link ?reset_token=...)
+  // ════════════════════════════════════════════════════════════
+
+  /** Token recibido desde la URL — lo guarda auth.js antes de llamar showTokenResetSection */
+  let _activeResetToken = '';
+
+  /**
+   * Llamado por auth.js cuando detecta ?reset_token= en la URL.
+   * Guarda el token y muestra la sección de nueva contraseña.
+   */
+  function showTokenResetSection(token) {
+    _activeResetToken = token ?? '';
+    getEl('tokenResetForm')?.reset();
+    clearTokenResetError();
+    showSection('tokenResetSection');
+    window.IconRegistry?.init();
+    console.log('[PasswordRecovery] Token reset section visible');
+  }
+
+  function initTokenResetForm() {
+    const form = getEl('tokenResetForm');
+    if (form) form.addEventListener('submit', handleTokenResetSubmit);
+
+    setupPasswordToggle('tokenResetNewPwd');
+    setupPasswordToggle('tokenResetConfirmPwd');
+  }
+
+  function clearTokenResetError() {
+    const el = getEl('tokenResetError');
+    if (el) { el.textContent = ''; el.style.display = 'none'; }
+  }
+
+  function showTokenResetError(msg) {
+    const el = getEl('tokenResetError');
+    if (el) { el.textContent = msg; el.style.display = 'block'; }
+  }
+
+  async function handleTokenResetSubmit(e) {
+    e.preventDefault();
+
+    const newPwd     = getEl('tokenResetNewPwd')?.value     ?? '';
+    const confirmPwd = getEl('tokenResetConfirmPwd')?.value ?? '';
+
+    clearTokenResetError();
+
+    // Validaciones cliente
+    if (newPwd.length < 8) {
+      showTokenResetError('La contraseña debe tener al menos 8 caracteres.');
+      getEl('tokenResetNewPwd')?.focus();
+      return;
+    }
+    if (newPwd !== confirmPwd) {
+      showTokenResetError('Las contraseñas no coinciden. Verifica ambos campos.');
+      getEl('tokenResetConfirmPwd')?.focus();
+      return;
+    }
+
+    if (!_activeResetToken) {
+      showTokenResetError('Token de reset no disponible. Solicita un nuevo enlace.');
+      return;
+    }
+
+    const btn = getEl('tokenResetBtn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Guardando…'; }
+
+    try {
+      // ── Llamar al PASO B de la Edge Function ────────────────────────────
+      const edgeUrl = `${window.supabaseConfig.url}/functions/v1/reset-user-password/confirm`;
+
+      const res  = await fetch(edgeUrl, {
+        method:  'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey':       window.supabaseConfig.anonKey,
+        },
+        body: JSON.stringify({ token: _activeResetToken, new_password: newPwd }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok || !data.success) {
+        // Errores claros del servidor (token inválido, expirado, usado, etc.)
+        const errMsg = data.error ?? 'Error al guardar la contraseña. Intenta de nuevo.';
+        showTokenResetError(errMsg);
+        return;
+      }
+
+      // ✅ Éxito — limpiar token, volver al login con toast
+      _activeResetToken = '';
+      window.ErrorHandler?.showToast(
+        'Contraseña actualizada correctamente. Inicia sesión con tu nueva contraseña.',
+        'success'
+      );
+      getEl('tokenResetForm')?.reset();
+      showSection('loginFormSection');
+
+    } catch (err) {
+      showTokenResetError('Error de conexión. Verifica tu red e intenta de nuevo.');
+      console.error('[PasswordRecovery] handleTokenResetSubmit:', err);
+    } finally {
+      if (btn) {
+        btn.disabled  = false;
+        btn.innerHTML = '<i data-lucide="save" style="width:15px;height:15px;" aria-hidden="true"></i> Guardar contraseña';
+        window.IconRegistry?.init();
+      }
+    }
+  }
+
   // ── Init ──────────────────────────────────────────────────────
   function init() {
     client = window.supabase_client;
@@ -264,6 +396,7 @@ const PasswordRecovery = (() => {
 
     initForgotLink();
     initNewPasswordForm();
+    initTokenResetForm();
 
     console.log('🔑 password-recovery.js listo');
   }
@@ -271,7 +404,7 @@ const PasswordRecovery = (() => {
   document.addEventListener('DOMContentLoaded', init);
 
   // ── API pública ───────────────────────────────────────────────
-  return { showNewPasswordForm, showSection };
+  return { showNewPasswordForm, showSection, showTokenResetSection };
 })();
 
 window.PasswordRecovery = PasswordRecovery;

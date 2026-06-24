@@ -58,12 +58,23 @@ document.addEventListener('DOMContentLoaded', async () => {
   //     del formulario haya obtenido el rol correcto desde usuarios_admin.
 
   // ── Detectar flujo de recovery ANTES de getSession() ──────────────────────
-  // Supabase redirige desde email con #access_token=...&type=recovery
-  const _hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
-  inRecoveryFlow    = _hashParams.get('type') === 'recovery';
+  // A) Supabase redirige desde email con #access_token=...&type=recovery
+  const _hashParams  = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+  inRecoveryFlow     = _hashParams.get('type') === 'recovery';
+
+  // B) Nuevo flujo self-service: link de reset con ?reset_token=<uuid>
+  const _queryParams      = new URLSearchParams(window.location.search);
+  const _customResetToken = _queryParams.get('reset_token') ?? '';
 
   // ── Estado inicial ─────────────────────────────────────────────────────────
-  if (inRecoveryFlow) {
+  if (_customResetToken) {
+    // Token de reset custom en la query string — limpiar URL y mostrar formulario
+    history.replaceState(null, '', window.location.pathname);
+    showLogin();
+    // PasswordRecovery ya inicializó su DOMContentLoaded handler antes que auth.js
+    window.PasswordRecovery?.showTokenResetSection(_customResetToken);
+
+  } else if (inRecoveryFlow) {
     // Token de recovery en la URL — procesar explícitamente con setSession()
     // (no esperar el evento PASSWORD_RECOVERY que puede llegar tarde o perderse)
     const accessToken  = _hashParams.get('access_token')  ?? '';
