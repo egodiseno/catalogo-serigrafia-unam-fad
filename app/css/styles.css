@@ -2267,6 +2267,52 @@ body.is-scrolled .filters {
   }
 }
 
+/* ── Contador de posición "N / total" en galería y lightbox ─────────────── */
+
+/* En la figura principal (esquina inferior derecha de la imagen) */
+.image-counter {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  z-index: 1;
+  padding: 3px 10px;
+  background: rgba(16, 27, 45, 0.62);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border-radius: 100px;
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+  line-height: 1.6;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* En el lightbox (centrado en la parte inferior) */
+.lightbox__counter {
+  position: absolute;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1001;
+  padding: 4px 14px;
+  background: rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 100px;
+  color: rgba(255, 255, 255, 0.90);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+}
+
 /* ============================================================
    Ficha detalle — breakpoints adicionales
    ============================================================ */

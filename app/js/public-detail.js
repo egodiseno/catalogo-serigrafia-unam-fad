@@ -149,6 +149,9 @@ export class PublicDetail {
     // ── Teclado (siempre, incluso con 1 imagen para Escape/lightbox) ──
     this.setupKeyboardNavigation();
 
+    // ── Contador inicial (oculto si hay 1 sola imagen) ────
+    this._updateCounter(0);
+
     if (this.sortedImages.length <= 1) return; // sin thumbs si hay 1 sola imagen
 
     const galleryEl = document.getElementById('gallery');
@@ -221,6 +224,11 @@ export class PublicDetail {
           ${!hasMultiple ? 'hidden' : ''}>
           <i data-lucide="chevron-right"></i>
         </button>
+        ${hasMultiple ? `
+        <span class="lightbox__counter"
+              aria-live="polite" aria-atomic="true">
+          ${this.currentIndex + 1} / ${this.sortedImages.length}
+        </span>` : ''}
       </div>
     `;
 
@@ -339,6 +347,13 @@ export class PublicDetail {
     if (this._lightboxEl) {
       const lbImg = this._lightboxEl.querySelector('.lightbox__image');
       if (lbImg) lbImg.src = img.url_storage;
+    }
+
+    // Actualizar contadores (figura + lightbox)
+    this._updateCounter(idx);
+    if (this._lightboxEl) {
+      const lbCounter = this._lightboxEl.querySelector('.lightbox__counter');
+      if (lbCounter) lbCounter.textContent = `${idx + 1} / ${imgs.length}`;
     }
   }
 
@@ -696,6 +711,25 @@ export class PublicDetail {
       .replace(/>/g,  '&gt;')
       .replace(/"/g,  '&quot;')
       .replace(/'/g,  '&#039;');
+  }
+
+  // ─────────────────────────────────────────────────────────
+  // _updateCounter — actualiza el contador "N / total" en la figura.
+  // Lo oculta si la obra tiene una sola imagen (no hay nada que contar).
+  // @param {number} idx — índice 0-based de la imagen activa
+  // ─────────────────────────────────────────────────────────
+  _updateCounter(idx) {
+    const el    = document.getElementById('imageCounter');
+    const total = this.sortedImages.length;
+    if (!el) return;
+
+    if (total <= 1) {
+      el.setAttribute('hidden', '');
+      return;
+    }
+
+    el.removeAttribute('hidden');
+    el.textContent = `${idx + 1} / ${total}`;
   }
 
   // ─────────────────────────────────────────────────────────
