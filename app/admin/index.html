@@ -408,6 +408,20 @@
               <div class="stat-label">Registros Pendientes</div>
               <div class="stat-card-action">Ver registros →</div>
             </div>
+            <!-- 7. Obras estancadas en revisión > 7 días — solo admin/super_editor, solo si count > 0 -->
+            <div class="stat-card stat-card--stale"
+                 id="cardObrasEstancadas"
+                 style="display:none;"
+                 role="button"
+                 tabindex="0"
+                 title="Obras en revisión sin decisión por más de 7 días">
+              <div class="stat-card__icon" aria-hidden="true">
+                <i data-lucide="clock" style="width:20px;height:20px;"></i>
+              </div>
+              <div class="stat-value" id="totalObrasEstancadas">0</div>
+              <div class="stat-label">obras llevan más de 7 días sin revisión</div>
+              <div class="stat-card-action">Revisar ahora →</div>
+            </div>
           </div>
 
           <div class="recent-section">

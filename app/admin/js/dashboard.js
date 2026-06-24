@@ -20,6 +20,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const cardRegPendientes = document.getElementById('cardRegistrosPendientes');
   const elRegPendientes   = document.getElementById('totalRegistrosPendientes');
 
+  // Card Obras Estancadas — "En Revisión" sin actividad > 7 días (solo admin/super_editor)
+  const cardEstancadas = document.getElementById('cardObrasEstancadas');
+  const elEstancadas   = document.getElementById('totalObrasEstancadas');
+
   // ── Carga de estadísticas ─────────────────────────────
   async function loadStats() {
     setLoading(true);
@@ -59,6 +63,15 @@ document.addEventListener('DOMContentLoaded', () => {
         ? client.from('registro_alumnos').select('*', { count: 'exact', head: true }).eq('estado', 'pendiente_validacion')
         : Promise.resolve({ count: 0 });
 
+      // Obras "En Revisión" con updated_at > 7 días atrás (sin actividad reciente)
+      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+      const estancadasQ = esAdmin
+        ? client.from('obras')
+            .select('*', { count: 'exact', head: true })
+            .eq('estado', 'En Revisión')
+            .lt('updated_at', sevenDaysAgo)
+        : Promise.resolve({ count: 0 });
+
       const [
         { count: obras         },
         { count: tecnicas      },
@@ -68,6 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { count: pendientes    },
         { count: conCambios    },
         { count: regPendientes },
+        { count: estancadas    },
       ] = await Promise.all([
         obrasCountQ,
         client.from('tecnicas').select('*',        { count: 'exact', head: true }),
@@ -77,6 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
         pendientesQ,
         conCambiosQ,
         regPendientesQ,
+        estancadasQ,
       ]);
 
       // Stat cards base
@@ -111,6 +126,19 @@ document.addEventListener('DOMContentLoaded', () => {
         if (elRegPendientes) elRegPendientes.textContent = regPendientes ?? 0;
       } else if (cardRegPendientes) {
         cardRegPendientes.style.display = 'none';
+      }
+
+      // Widget "Obras estancadas" — solo ADMIN / SUPER_EDITOR y solo si count > 0
+      if (esAdmin && cardEstancadas) {
+        const n = estancadas ?? 0;
+        if (n > 0) {
+          if (elEstancadas) elEstancadas.textContent = n;
+          cardEstancadas.style.display = '';
+        } else {
+          cardEstancadas.style.display = 'none';
+        }
+      } else if (cardEstancadas) {
+        cardEstancadas.style.display = 'none';
       }
 
       // Tabla de últimas obras
@@ -160,6 +188,24 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     cardRegPendientes.addEventListener('keydown', e => {
       if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); cardRegPendientes.click(); }
+    });
+  }
+
+  // ── Widget "Obras estancadas" ──────────────────────────
+  // Clic → sección Obras + filtro "En Revisión" (igual que cardPendientesRevision)
+  if (cardEstancadas) {
+    cardEstancadas.addEventListener('click', () => {
+      window.showSection?.('obras');
+      setTimeout(() => {
+        const filterEstado = document.getElementById('filterEstado');
+        if (filterEstado) {
+          filterEstado.value = 'En Revisión';
+          filterEstado.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      }, 300);
+    });
+    cardEstancadas.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); cardEstancadas.click(); }
     });
   }
 
