@@ -397,7 +397,10 @@ export class PublicCatalog {
       grid.addEventListener('click', (e) => {
         const btn = e.target.closest('.artwork-fav-btn');
         if (!btn) return;
-        e.preventDefault(); // evitar activar el link de la card
+        // No llamar e.preventDefault() aquí: el botón es hermano del <a> (no está
+        // dentro de él), así que no hay riesgo de navegar. En mobile, preventDefault
+        // en el listener de click puede suprimir el segundo toque sintético e impedir
+        // que el toggle funcione correctamente en el segundo clic.
 
         const id = btn.dataset.favId;
         const isNowFav = Favoritos.toggle(id);
@@ -410,6 +413,11 @@ export class PublicCatalog {
             ? (isNowFav ? 'Remove from favorites' : 'Add to favorites')
             : (isNowFav ? 'Quitar de favoritos'   : 'Agregar a favoritos')
         );
+
+        // Vibración táctil al ACTIVAR (solo en dispositivos que soporten el API)
+        if (isNowFav && navigator.vibrate) {
+          navigator.vibrate(40);
+        }
 
         // Animación pop (re-trigger forzando reflow)
         btn.classList.remove('fav-pop');

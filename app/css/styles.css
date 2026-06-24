@@ -1107,31 +1107,34 @@ body.is-scrolled .filters {
   padding: 0;
   border: none;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.82);
+  /* Inactivo: blanco semitransparente, ícono azul UNAM */
+  background: rgba(255, 255, 255, 0.88);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
-  color: var(--color-muted);
+  color: var(--color-blue);
   cursor: pointer;
-  transition: background 160ms ease, color 160ms ease, transform 120ms ease,
-              box-shadow 160ms ease;
+  transition: background-color 200ms ease, color 160ms ease,
+              transform 120ms ease, box-shadow 160ms ease;
   box-shadow: 0 1px 4px rgba(16, 27, 45, 0.12);
   pointer-events: auto;
 }
 
 .artwork-fav-btn:hover {
   background: var(--color-white);
-  color: var(--color-gold);
+  color: var(--color-blue);
   transform: scale(1.12);
   box-shadow: 0 2px 8px rgba(16, 27, 45, 0.18);
 }
 
 .artwork-fav-btn.is-fav {
-  background: var(--color-white);
-  color: var(--color-gold);
+  /* Activo: fondo dorado sólido, ícono azul UNAM — cambio claramente visible */
+  background: var(--color-gold);
+  color: var(--color-blue);
 }
 
 .artwork-fav-btn.is-fav:hover {
-  color: var(--color-gold-deep);
+  background: var(--color-gold-deep);
+  color: var(--color-blue);
 }
 
 .artwork-fav-btn:focus-visible {
