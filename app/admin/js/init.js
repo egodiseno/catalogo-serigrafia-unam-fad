@@ -14,7 +14,8 @@ const AdminInit = (() => {
     { name: 'TagsCRUD', key: 'TagsCRUD', required: false },
     { name: 'UsuariosCRUD', key: 'UsuariosCRUD', required: false },
     { name: 'RegistrosPendientes', key: 'RegistrosPendientes', required: false },
-    { name: 'ControlRegistro', key: 'controlRegistroManager', required: false }
+    { name: 'ControlRegistro',     key: 'controlRegistroManager', required: false },
+    { name: 'EstadisticasManager', key: 'EstadisticasManager',    required: false },
   ];
 
   const status = {

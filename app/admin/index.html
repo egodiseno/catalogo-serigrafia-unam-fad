@@ -458,8 +458,8 @@
             </h3>
             <ol class="top-visitas-list" id="topVisitasList" aria-label="Ranking de obras más visitadas del mes"></ol>
             <div class="top-visitas-footer">
-              <button class="btn-link-small" data-section="estadisticas">
-                <i data-lucide="bar-chart-2" style="width:13px;height:13px;vertical-align:-2px;" aria-hidden="true"></i>
+              <button class="btn btn-secondary btn-sm" data-section="estadisticas" type="button">
+                <i data-lucide="bar-chart-2" style="width:14px;height:14px;" aria-hidden="true"></i>
                 Ver historial completo
               </button>
             </div>
@@ -1268,13 +1268,39 @@
           <div class="section-header">
             <div>
               <h2>Estadísticas</h2>
-              <p>Historial de visitas y engagement del catálogo público</p>
+              <p>Visitas y engagement del catálogo público</p>
             </div>
           </div>
-          <div class="empty-section-placeholder">
-            <i data-lucide="bar-chart-2" style="width:48px;height:48px;color:var(--color-border);" aria-hidden="true"></i>
-            <p>Esta sección está en construcción.<br>Próximamente: gráficas de visitas, favoritos y tendencias por mes.</p>
+
+          <!-- Parte A — Top 10 del mes actual -->
+          <div class="recent-section">
+            <h3>
+              <i data-lucide="trending-up" style="width:18px;height:18px;vertical-align:-3px;margin-right:6px;" aria-hidden="true"></i>
+              Obras más visitadas — <span id="estMesLabel">este mes</span>
+            </h3>
+            <ol class="top-visitas-list" id="estTop10List" aria-label="Top 10 obras más visitadas del mes"></ol>
           </div>
+
+          <!-- Parte B — Historial todos los tiempos (scroll infinito) -->
+          <div class="recent-section est-hist-panel">
+            <div class="est-panel-header">
+              <h3 class="est-panel-h3">
+                <i data-lucide="history" style="width:18px;height:18px;vertical-align:-3px;margin-right:6px;" aria-hidden="true"></i>
+                Historial — todos los tiempos
+              </h3>
+              <button class="btn btn-secondary btn-sm" id="estToggleOrden" type="button" aria-label="Cambiar orden">
+                <i data-lucide="arrow-down" style="width:14px;height:14px;" aria-hidden="true"></i>
+                Mayor a menor
+              </button>
+            </div>
+            <ul class="est-hist-list" id="estHistorialList" aria-label="Historial completo de visitas por obra"></ul>
+            <div id="estLoadingRow" class="est-loading-row" style="display:none;" aria-live="polite">
+              <i data-lucide="loader" class="spin-anim" style="width:15px;height:15px;" aria-hidden="true"></i>
+              Cargando más…
+            </div>
+            <div id="estScrollSentinel" class="est-sentinel" aria-hidden="true"></div>
+          </div>
+
         </section><!-- /#estadisticasSection -->
 
         <!-- ========== REGISTROS PENDIENTES SECTION ========== -->
@@ -1618,6 +1644,7 @@
   <script src="js/historial-alumnos.js" defer></script>
   <script src="js/registros-pendientes.js" defer></script>
   <script src="js/control-registro.js" defer></script>
+  <script src="js/estadisticas.js" defer></script>
   <script src="js/init.js" defer></script>
   <!-- Seed data (solo localhost) -->
   <script src="js/seed.js" defer></script>

@@ -1710,7 +1710,8 @@ select {
   line-height: 1;
 }
 
-.top-visitas-item:first-child .top-visitas-rank {
+.top-visitas-item:first-child .top-visitas-rank,
+.top-visitas-rank--gold {
   background: var(--color-accent);
 }
 
@@ -1811,6 +1812,93 @@ select {
   margin: 0;
   line-height: 1.6;
   font-size: 0.9375rem;
+}
+
+/* ── Estadísticas — Historial todos los tiempos ──────── */
+
+/* Separador entre el panel Top 10 y el panel Historial */
+.est-hist-panel {
+  margin-top: var(--spacing-lg);
+}
+
+/* Cabecera del panel Historial: título izq, toggle der */
+.est-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+/* El h3 dentro del panel-header no tiene margin-bottom propio
+   (el margin lo gestiona el contenedor .est-panel-header) */
+.est-panel-h3 {
+  color: var(--color-blue);
+  margin-bottom: 0;
+}
+
+/* Lista del historial — misma estructura visual que .top-visitas-list */
+.est-hist-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+/* Fila del historial — idéntica a .top-visitas-item */
+.est-hist-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--color-bg, #F9FAFB);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border, #E5E7EB);
+}
+
+/* Número de posición — círculo gris (para posiciones > 10 sin color de ranking) */
+.est-hist-pos {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--color-text-muted, #9CA3AF);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* Fila de estado (cargando / vacío / error) en ambos paneles */
+.est-state-row {
+  padding: var(--spacing-md) 0;
+  color: var(--color-text-muted, #6B7280);
+  font-size: 0.875rem;
+  text-align: center;
+  list-style: none;
+}
+
+/* Spinner de "Cargando más…" al final del historial */
+.est-loading-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md) 0 var(--spacing-sm);
+  color: var(--color-text-muted, #6B7280);
+  font-size: 0.875rem;
+}
+
+/* Sentinel invisible para IntersectionObserver */
+.est-sentinel {
+  height: 1px;
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .filter-bar {
