@@ -76,9 +76,9 @@ document.addEventListener('DOMContentLoaded', () => {
             .lt('updated_at', sevenDaysAgo)
         : Promise.resolve({ count: 0 });
 
-      // Top 5 obras más visitadas del mes actual (solo admin/super_editor)
+      // Top 10 obras más visitadas del mes actual con corazones totales (solo admin/super_editor)
       const topVisitasQ = esAdmin
-        ? client.rpc('get_top_obras_visitas_mes', { p_limit: 5 })
+        ? client.rpc('get_top_obras_visitas_mes', { p_limit: 10 })
         : Promise.resolve({ data: [] });
 
       const [
@@ -271,8 +271,19 @@ document.addEventListener('DOMContentLoaded', () => {
           <span class="top-visitas-title">${escHtml(row.titulo)}</span>
           <span class="top-visitas-artist">${escHtml(row.artista)}</span>
         </span>
-        <span class="top-visitas-count">${row.visitas} visita${row.visitas !== 1 ? 's' : ''}</span>
+        <span class="top-visitas-stats">
+          <span class="top-visitas-stat" title="Visitas este mes">
+            <i data-lucide="eye" style="width:12px;height:12px;" aria-hidden="true"></i>
+            ${row.visitas}
+          </span>
+          <span class="top-visitas-stat top-visitas-stat--fav" title="Corazones totales">
+            <i data-lucide="heart" style="width:12px;height:12px;" aria-hidden="true"></i>
+            ${row.favoritos ?? 0}
+          </span>
+        </span>
       </li>`).join('');
+    // Inicializar íconos Lucide inyectados dinámicamente
+    window.IconRegistry?.init();
   }
 
   function renderError() {
@@ -301,6 +312,14 @@ document.addEventListener('DOMContentLoaded', () => {
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;');
+  }
+
+  // ── "Ver historial completo" en top-visitas → navegar a Estadísticas ───────
+  const verHistorialBtn = document.querySelector('.top-visitas-footer [data-section]');
+  if (verHistorialBtn) {
+    verHistorialBtn.addEventListener('click', () => {
+      window.showSection?.(verHistorialBtn.dataset.section);
+    });
   }
 
   // ── NTH-04: Botón "Nueva Obra" de acceso rápido ───────

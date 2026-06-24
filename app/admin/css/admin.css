@@ -1747,6 +1747,72 @@ select {
   white-space: nowrap;
 }
 
+/* Pair of stat pills (eye + heart) replacing the old single count */
+.top-visitas-stats {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.top-visitas-stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  white-space: nowrap;
+}
+
+.top-visitas-stat--fav {
+  color: var(--color-accent);
+}
+
+/* Footer link inside the top-visitas widget */
+.top-visitas-footer {
+  margin-top: var(--spacing-md);
+  text-align: right;
+}
+
+.btn-link-small {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: none;
+  border: none;
+  padding: 4px 0;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--color-primary);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color 150ms ease;
+}
+
+.btn-link-small:hover {
+  color: var(--color-accent);
+}
+
+/* Empty-state placeholder for sections under construction */
+.empty-section-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-2xl) var(--spacing-lg);
+  color: var(--color-text-muted, #6B7280);
+  text-align: center;
+}
+
+.empty-section-placeholder p {
+  margin: 0;
+  line-height: 1.6;
+  font-size: 0.9375rem;
+}
+
 .filter-bar {
   display: flex;
   gap: var(--spacing-lg);
