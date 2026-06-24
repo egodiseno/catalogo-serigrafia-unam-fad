@@ -1119,22 +1119,31 @@ body.is-scrolled .filters {
   pointer-events: auto;
 }
 
-.artwork-fav-btn:hover {
-  background: var(--color-white);
-  color: var(--color-blue);
-  transform: scale(1.12);
-  box-shadow: 0 2px 8px rgba(16, 27, 45, 0.18);
-}
-
+/* Estado activo: fondo dorado sólido, ícono azul UNAM.
+   Fuera del bloque @media hover para garantizar #d9a500 exacto
+   en todos los dispositivos y breakpoints. */
 .artwork-fav-btn.is-fav {
-  /* Activo: fondo dorado sólido, ícono azul UNAM — cambio claramente visible */
   background: var(--color-gold);
   color: var(--color-blue);
 }
 
-.artwork-fav-btn.is-fav:hover {
-  background: var(--color-gold-deep);
-  color: var(--color-blue);
+/* Hover — SOLO en dispositivos con puntero real (mouse/trackpad).
+   @media (hover:hover) excluye pantallas táctiles donde el navegador
+   aplica :hover de forma pegajosa tras el toque, lo que mostraría
+   --color-gold-deep en mobile en lugar del --color-gold correcto. */
+@media (hover: hover) and (pointer: fine) {
+  .artwork-fav-btn:hover {
+    background: var(--color-white);
+    color: var(--color-blue);
+    transform: scale(1.12);
+    box-shadow: 0 2px 8px rgba(16, 27, 45, 0.18);
+  }
+
+  .artwork-fav-btn.is-fav:hover {
+    /* Hover sobre activo: dorado más oscuro para distinguir del activo puro */
+    background: var(--color-gold-deep);
+    color: var(--color-blue);
+  }
 }
 
 .artwork-fav-btn:focus-visible {
