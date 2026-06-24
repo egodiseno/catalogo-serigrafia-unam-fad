@@ -1,6 +1,6 @@
 {
   "name": "Catálogo de Obra Serigráfica UNAM/FAD",
-  "short_name": "Catálogo FAD",
+  "short_name": "Catálogo Digital de Obra Serigráfica",
   "description": "Catálogo Digital de Obra Serigráfica — UNAM / Facultad de Artes y Diseño",
   "start_url": "/",
   "display": "standalone",
@@ -19,4 +19,12 @@
       "type": "image/png"
     }
   ]
+  "screenshots": [
+  {
+    "src": "/admin/assets/app-catalogo-fad.jpg",
+    "sizes": "1284x2778",
+    "type": "image/jpeg",
+    "form_factor": "narrow"
+  }
+]
 }
