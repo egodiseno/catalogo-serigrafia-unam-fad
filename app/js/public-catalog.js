@@ -75,6 +75,12 @@ export class PublicCatalog {
 
     // Exponer Favoritos al nivel de instancia (útil para tests/consola)
     this.Favoritos = Favoritos;
+
+    // ── Campos de restauración de estado de navegación ───────────────────────
+    // Usados para volver al mismo punto del catálogo desde una ficha de obra.
+    this._restoringState     = false; // true mientras se reconstruye el estado mobile
+    this._restoreScrollY     = 0;     // scrollY guardado a restaurar
+    this._restoredPagesCount = 1;     // número de páginas que estaban cargadas (mobile)
   }
 
   async init() {
@@ -97,8 +103,49 @@ export class PublicCatalog {
         if (searchInput) searchInput.value = _qParam.trim();
       }
 
-      // Cargar primeras obras
+      // ── Restaurar estado de navegación al regresar de una ficha de obra ──────
+      // Condición: URL tiene ?from=obra (link explícito) O referrer es obra.html
+      //   (botón Atrás del navegador). Si hay ?q= el usuario llegó por búsqueda
+      //   y se arranca desde cero.
+      const _fromObra   = _urlParams.get('from') === 'obra'
+                       || document.referrer.includes('obra.html');
+      const _savedState = this._loadState();
+
+      if (_fromObra && _savedState && !_qParam) {
+        if (this.isDesktop) {
+          // Desktop: saltar directamente a la página guardada
+          this.page = Math.max(1, _savedState.page || 1);
+        } else {
+          // Mobile: ampliar pageSize para cargar todas las páginas acumuladas
+          // en una sola query, luego restaurar el scroll.
+          this._restoringState     = true;
+          this._restoreScrollY     = _savedState.scrollY || 0;
+          this._restoredPagesCount = Math.max(1, _savedState.page || 1);
+          this.pageSize            = this._restoredPagesCount * this.pageSize; // e.g. 3×12=36
+        }
+      } else if (!_fromObra) {
+        // Llegada desde cualquier otro origen (header, URL directa, footer) → limpiar
+        this._clearState();
+      }
+      // Si _fromObra && !_savedState: no hay nada que restaurar, carga normal desde pág. 1
+
+      // Cargar primeras obras (con el estado ya configurado)
       await this.loadWorks();
+
+      // ── Finalizar restauración mobile ──────────────────────────────────────────
+      // Restablece page y pageSize a valores normales, luego salta al scroll guardado.
+      if (this._restoringState) {
+        this.page     = this._restoredPagesCount;
+        this.pageSize = 12;               // volver al pageSize normal de mobile
+        this.updateLoadMoreButton();      // recalcular botón con page/pageSize correctos
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          if (this._restoreScrollY > 0) {
+            window.scrollTo({ top: this._restoreScrollY, behavior: 'instant' });
+          }
+          this._restoringState = false;
+          this._saveState();              // persistir estado correcto tras la restauración
+        }));
+      }
 
       // Attach event listeners
       this.attachEventListeners();
@@ -121,6 +168,9 @@ export class PublicCatalog {
 
       // Sincronizar top de filtros con altura real del header
       this.syncFiltersTop();
+
+      // Guardar scrollY actualizado al scrollear (debounced 250 ms)
+      window.addEventListener('scroll', this.debounce(() => this._saveState(), 250), { passive: true });
 
       // Re-renderizar grid al cambiar idioma (técnicas, tags y CTA se traducen)
       document.addEventListener('lang:changed', () => {
@@ -507,6 +557,8 @@ export class PublicCatalog {
       this.updateLoadMoreButton();
     }
 
+    // Persistir estado de navegación tras cada renderizado del grid
+    this._saveState();
   }
 
   /**
@@ -1037,5 +1089,43 @@ export class PublicCatalog {
       clearTimeout(timeout);
       timeout = setTimeout(later, wait);
     };
+  }
+
+  // ── Persistencia de estado de navegación ─────────────────────────────────
+  // Clave sessionStorage: 'catalogo_estado'  { page, scrollY }
+  // • 'page'    → número de página activa (desktop) o de páginas cargadas (mobile)
+  // • 'scrollY' → posición vertical al momento de navegar a la ficha
+  // El ámbito de sessionStorage es la pestaña actual; se borra al cerrar el tab.
+
+  /**
+   * Persiste { page, scrollY } en sessionStorage.
+   * No-op mientras _restoringState = true para no sobrescribir el estado cargado.
+   */
+  _saveState() {
+    if (this._restoringState) return;
+    try {
+      sessionStorage.setItem('catalogo_estado', JSON.stringify({
+        page:    this.page,
+        scrollY: window.scrollY,
+      }));
+    } catch { /* quota exceeded — silencioso */ }
+  }
+
+  /**
+   * Lee el estado guardado. Devuelve null si no existe o el JSON es inválido.
+   * @returns {{ page: number, scrollY: number } | null}
+   */
+  _loadState() {
+    try {
+      const raw = sessionStorage.getItem('catalogo_estado');
+      return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
+  }
+
+  /**
+   * Elimina el estado guardado (el usuario llegó desde un origen distinto a una ficha).
+   */
+  _clearState() {
+    try { sessionStorage.removeItem('catalogo_estado'); } catch { }
   }
 }

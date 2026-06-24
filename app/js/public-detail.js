@@ -20,6 +20,12 @@ export class PublicDetail {
   // init — punto de entrada principal
   // ─────────────────────────────────────────────────────────
   async init() {
+    // Parchear los links "Volver al catálogo" con ?from=obra para que el catálogo
+    // sepa que debe restaurar la posición de navegación al regresar.
+    // Se hace antes de cualquier carga asíncrona para que incluso el estado de
+    // error tenga el link correcto.
+    this._patchBackLinks();
+
     if (!this.workSlug || this.workSlug.trim() === '') {
       console.error('❌ No se encontró ?slug= en la URL');
       this.showError();
@@ -733,6 +739,28 @@ export class PublicDetail {
 
     el.removeAttribute('hidden');
     el.textContent = `${idx + 1} / ${total}`;
+  }
+
+  // ─────────────────────────────────────────────────────────
+  // _patchBackLinks — agrega ?from=obra a los links de regreso al catálogo
+  // ─────────────────────────────────────────────────────────
+  /**
+   * Busca todos los links explícitos "Volver al catálogo" en la página
+   * (breadcrumb, estado de error) y les añade ?from=obra para que
+   * public-catalog.js pueda detectar que el usuario viene de una ficha
+   * y restaurar su posición de scroll / página.
+   *
+   * NO modifica los links de navegación global (nav, brand) porque esos son
+   * "ir al catálogo" intencional, no "volver" — deben arrancar desde página 1.
+   */
+  _patchBackLinks() {
+    document.querySelectorAll('.work-back-btn').forEach(a => {
+      try {
+        const url = new URL(a.href, window.location.href);
+        url.searchParams.set('from', 'obra');
+        a.href = url.toString();
+      } catch { /* silencioso si href no es parseable */ }
+    });
   }
 
   // ─────────────────────────────────────────────────────────
