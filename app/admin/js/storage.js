@@ -24,11 +24,14 @@ const StorageModule = (() => {
 
   /**
    * Upload de imagen a Supabase Storage
-   * @param {File} file - Archivo a subir
-   * @param {string} obraId - ID de la obra
+   * @param {File} file      - Archivo a subir
+   * @param {string} obraId  - ID de la obra
+   * @param {Function} [onPhase] - Callback opcional de progreso: onPhase('uploading'|'processing')
+   *   • 'uploading'  → conversión WebP en curso (Edge Function)
+   *   • 'processing' → WebP listo, subiendo al bucket de Storage
    * @returns {Promise} { success, url, error }
    */
-  async function uploadImage(file, obraId) {
+  async function uploadImage(file, obraId, onPhase) {
     try {
       // Validaciones
       if (!file) {
@@ -59,6 +62,9 @@ const StorageModule = (() => {
       // Si falla (red, error WASM) se usa el archivo original sin interrumpir el flujo.
       let uploadFile = file;
       let uploadExt  = file.name.split('.').pop()?.toLowerCase() ?? 'jpg';
+
+      // Fase 1: notificar que la conversión WebP está en curso
+      onPhase?.('uploading');
 
       try {
         const EDGE_FN_URL = 'https://kfvjansfmhamkrnbxmgp.supabase.co/functions/v1/convert-webp';
@@ -103,6 +109,9 @@ const StorageModule = (() => {
         console.warn('⚠️ Edge Function inaccesible — usando original:', convErr.message);
       }
       // ─────────────────────────────────────────────────────────────
+
+      // Fase 2: conversión lista (o saltada), ahora subimos al bucket
+      onPhase?.('processing');
 
       // Generar nombre único
       const timestamp = Date.now();

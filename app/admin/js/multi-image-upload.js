@@ -171,12 +171,56 @@ const MultiImageUpload = (() => {
     return images.filter(img => img.file !== null);
   }
 
+  // ── Helpers de progreso por imagen ────────────────────────────────────
+  /** Configuración visual de cada estado */
+  const _PHASE_CFG = {
+    uploading:  { icon: 'loader',       spin: true,  label: 'Subiendo…',        css: 'uploading'  },
+    processing: { icon: 'loader',       spin: true,  label: 'Procesando WebP…', css: 'processing' },
+    done:       { icon: 'check-circle', spin: false, label: 'Lista',            css: 'done'       },
+    error:      { icon: 'alert-circle', spin: false, label: 'Error',            css: 'error'      },
+  };
+
   /**
-   * Subir todas las imágenes a Storage
+   * Actualiza el HTML de un elemento .upload-progress-item.
+   * @param {HTMLElement} el       - elemento contenedor del ítem
+   * @param {string}      filename - nombre del archivo (para el label)
+   * @param {string}      state    - 'uploading' | 'processing' | 'done' | 'error'
+   * @param {string}      [errMsg] - mensaje breve de error (solo para state='error')
+   */
+  function _setItemStatus(el, filename, state, errMsg) {
+    if (!el) return;
+    const cfg = _PHASE_CFG[state] || _PHASE_CFG.error;
+
+    el.className = `upload-progress-item upload-progress-item--${cfg.css}`;
+    el.innerHTML = `
+      <i data-lucide="${cfg.icon}"
+         class="upload-pi__icon${cfg.spin ? ' spin-anim' : ''}"
+         aria-hidden="true"></i>
+      <span class="upload-pi__filename"></span>
+      <span class="upload-pi__state">${state === 'error' && errMsg ? _truncate(errMsg, 40) : cfg.label}</span>
+    `;
+    // Usar textContent para el nombre (evita XSS y problemas de encoding)
+    el.querySelector('.upload-pi__filename').textContent = _truncate(filename, 35);
+
+    // Re-renderizar ícono Lucide en el elemento actualizado
+    if (window.lucide) window.lucide.createIcons();
+  }
+
+  /** Trunca una cadena añadiendo '…' si excede maxLen */
+  function _truncate(str, maxLen) {
+    const s = String(str || '');
+    return s.length > maxLen ? s.slice(0, maxLen - 1) + '…' : s;
+  }
+
+  /**
+   * Subir todas las imágenes a Storage.
+   * Muestra un indicador de estado por archivo en #uploadProgressList.
    * @param {string} obraId - ID de la obra
-   * @returns {Promise} { success, urls: [{ url, principal }], error }
+   * @returns {Promise} { success, urls: [{ url, principal, orden }], error }
    */
   async function uploadAll(obraId) {
+    const progressList = document.getElementById('uploadProgressList');
+
     try {
       const imagesToUpload = getImages();
 
@@ -184,37 +228,61 @@ const MultiImageUpload = (() => {
         return { success: true, urls: [], message: 'Sin imágenes' };
       }
 
+      // ── Inicializar lista de progreso ─────────────────────────
+      if (progressList) {
+        progressList.innerHTML = '';
+        progressList.removeAttribute('hidden');
+      }
+
+      // Crear un ítem de progreso por cada imagen (estado inicial: uploading)
+      const progressItems = imagesToUpload.map(img => {
+        const el = document.createElement('div');
+        progressList?.appendChild(el);
+        _setItemStatus(el, img.file.name, 'uploading');
+        return el;
+      });
+
       const results = [];
 
       for (let i = 0; i < imagesToUpload.length; i++) {
-        const img = imagesToUpload[i];
-        const label = `${i + 1}/${imagesToUpload.length}`;
+        const img   = imagesToUpload[i];
+        const itemEl = progressItems[i];
+        const label  = `${i + 1}/${imagesToUpload.length}`;
+
         console.log(`📤 Subiendo imagen ${label}…`);
 
-        // Feedback de progreso al usuario
-        if (imagesToUpload.length > 1) {
-          window.ErrorHandler?.showToast(`Subiendo imagen ${label}…`, 'info');
-        }
-
-        const uploadResult = await window.StorageModule.uploadImage(img.file, obraId);
+        // Pasar callback de fase a StorageModule
+        const uploadResult = await window.StorageModule.uploadImage(
+          img.file,
+          obraId,
+          (phase) => _setItemStatus(itemEl, img.file.name, phase)
+        );
 
         if (uploadResult.success) {
+          _setItemStatus(itemEl, img.file.name, 'done');
           results.push({
-            url: uploadResult.url,
+            url:       uploadResult.url,
             principal: img.principal,
-            orden: i + 1,
+            orden:     i + 1,
           });
           console.log(`✅ Imagen ${label} subida`);
         } else {
+          _setItemStatus(itemEl, img.file.name, 'error', uploadResult.error);
           throw new Error(`Error en imagen ${label}: ${uploadResult.error}`);
         }
       }
 
       console.log(`✅ Todas las imágenes subidas (${results.length})`);
 
+      // Ocultar la lista de progreso tras un breve delay (permite ver los checkmarks)
+      setTimeout(() => {
+        if (progressList) progressList.setAttribute('hidden', '');
+      }, 2200);
+
       return { success: true, urls: results };
     } catch (error) {
       console.error('❌ Error uploading images:', error);
+      // No ocultar la lista: el estado de error queda visible para el usuario
       return { success: false, error: error.message };
     }
   }
@@ -262,6 +330,9 @@ const MultiImageUpload = (() => {
     hasPrincipal  = false;
     const imageList = document.getElementById('imageList');
     if (imageList) imageList.innerHTML = '';
+    // Limpiar y ocultar indicadores de progreso de subida anterior
+    const progressList = document.getElementById('uploadProgressList');
+    if (progressList) { progressList.innerHTML = ''; progressList.setAttribute('hidden', ''); }
     addImageInput();
     updateCounter();
   }

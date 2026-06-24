@@ -1469,6 +1469,9 @@
             <label>Imágenes <span class="required">*</span> <span class="field-hint">(JPG, PNG o WebP · máx. 5 MB c/u · ideal: 1200×1600 px · máx. 4 imágenes)</span></label>
             <div id="multiImageContainer">
               <div id="imageList"></div>
+              <!-- Estado de subida por archivo — visible solo durante el proceso de upload -->
+              <div id="uploadProgressList" class="upload-progress-list" hidden
+                   aria-live="polite" aria-label="Progreso de subida de imágenes"></div>
               <div class="image-upload-actions">
                 <button type="button" id="addImageBtn" class="btn btn-secondary btn-sm">
                   <i data-lucide="image-plus" style="width:14px; height:14px;" aria-hidden="true"></i> Agregar imagen
