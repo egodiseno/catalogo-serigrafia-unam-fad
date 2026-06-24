@@ -341,6 +341,84 @@ export const api = {
     } catch { /* silencioso — no bloquea la UI */ }
   },
 
+  // ── Favoritos anónimos (tabla obra_favoritos) ────────────────────────────
+
+  /**
+   * Cargar todos los obra_id marcados como favorito para un session_id.
+   * @param {string} sessionId - UUID del visitante anónimo
+   * @returns {Promise<string[]>} array de UUIDs de obras
+   */
+  async getFavorites(sessionId) {
+    try {
+      const { data, error } = await supabase
+        .from('obra_favoritos')
+        .select('obra_id')
+        .eq('session_id', sessionId);
+
+      if (error) {
+        console.error('❌ Error fetching favorites:', error);
+        return [];
+      }
+
+      return (data ?? []).map(r => r.obra_id);
+    } catch (err) {
+      console.error('❌ Exception getFavorites:', err);
+      return [];
+    }
+  },
+
+  /**
+   * Agregar un favorito. Usa upsert para tolerar dobles clics rápidos.
+   * @param {string} sessionId
+   * @param {string} obraId
+   * @returns {Promise<boolean>} true si la operación tuvo éxito
+   */
+  async addFavorite(sessionId, obraId) {
+    try {
+      const { error } = await supabase
+        .from('obra_favoritos')
+        .upsert([{ session_id: sessionId, obra_id: obraId }], {
+          onConflict: 'session_id,obra_id',
+        });
+
+      if (error) {
+        console.error('❌ Error adding favorite:', error);
+        return false;
+      }
+
+      return true;
+    } catch (err) {
+      console.error('❌ Exception addFavorite:', err);
+      return false;
+    }
+  },
+
+  /**
+   * Eliminar un favorito.
+   * @param {string} sessionId
+   * @param {string} obraId
+   * @returns {Promise<boolean>} true si la operación tuvo éxito
+   */
+  async removeFavorite(sessionId, obraId) {
+    try {
+      const { error } = await supabase
+        .from('obra_favoritos')
+        .delete()
+        .eq('session_id', sessionId)
+        .eq('obra_id', obraId);
+
+      if (error) {
+        console.error('❌ Error removing favorite:', error);
+        return false;
+      }
+
+      return true;
+    } catch (err) {
+      console.error('❌ Exception removeFavorite:', err);
+      return false;
+    }
+  },
+
   /**
    * Obtener todos los tags
    */

@@ -5,47 +5,97 @@ import { api } from './api-client.js';
 import { i18n } from './i18n.js';
 
 // ── Módulo de Favoritos ────────────────────────────────────────────────────
-// Lee y escribe en localStorage bajo la clave 'catalogo_favoritos'.
-// No requiere cuenta ni login — todo es local al navegador.
+// Fuente de verdad: tabla obra_favoritos en Supabase.
+// Identificador anónimo: session_id (UUID v4) persistido en localStorage bajo
+// la clave 'catalogo_session_id'. Sin datos personales.
+//
+// Flujo:
+//   init(api)  → carga los obra_id del visitante desde Supabase → llena _set
+//   has(id)    → consulta _set en memoria (síncrono, O(1))
+//   toggle(id) → actualiza _set en memoria inmediatamente (UI responde al instante)
+//                + dispara insert/delete a Supabase en segundo plano
+//                + rollback silencioso en _set si Supabase falla
 const Favoritos = (() => {
-  const LS_KEY = 'catalogo_favoritos';
-  let _set = null;
+  const SESSION_KEY = 'catalogo_session_id';
 
-  function _load() {
-    if (_set) return _set;
-    try {
-      const raw = localStorage.getItem(LS_KEY);
-      _set = new Set(raw ? JSON.parse(raw) : []);
-    } catch {
-      _set = new Set();
+  // Conjunto en memoria de obra_ids favoritos del visitante actual.
+  // Poblado por init() antes del primer renderizado del grid.
+  let _set = new Set();
+
+  // Referencia al objeto api (inyectada en init() para evitar dependencia circular)
+  let _api = null;
+
+  /**
+   * Recupera o genera el session_id anónimo del visitante.
+   * Persiste en localStorage para sobrevivir recargas de página.
+   * @returns {string} UUID v4
+   */
+  function _getSessionId() {
+    let id;
+    try { id = localStorage.getItem(SESSION_KEY); } catch { id = null; }
+    if (!id) {
+      id = typeof crypto.randomUUID === 'function'
+        ? crypto.randomUUID()
+        : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
+      try { localStorage.setItem(SESSION_KEY, id); } catch { /* silencioso */ }
     }
-    return _set;
-  }
-
-  function _save() {
-    try {
-      localStorage.setItem(LS_KEY, JSON.stringify([..._set]));
-    } catch { /* quota exceeded — silencioso */ }
+    return id;
   }
 
   return {
-    /** @param {string} id UUID de la obra */
-    has(id)    { return _load().has(id); },
-    add(id)    { _load().add(id);    _save(); },
-    remove(id) { _load().delete(id); _save(); },
     /**
-     * Alterna el estado del favorito.
+     * Cargar favoritos desde Supabase. Llamar antes del primer renderizado.
+     * @param {object} apiInstance - objeto api importado de api-client.js
+     */
+    async init(apiInstance) {
+      _api = apiInstance;
+      try {
+        const ids = await _api.getFavorites(_getSessionId());
+        _set = new Set(ids);
+        console.log(`❤️ Favoritos cargados: ${_set.size}`);
+      } catch {
+        _set = new Set(); // fallback vacío — silencioso
+      }
+    },
+
+    /** @param {string} id UUID de la obra */
+    has(id) { return _set.has(id); },
+
+    /**
+     * Alterna el favorito con actualización optimista de UI.
+     * La sincronización con Supabase ocurre en segundo plano.
+     * @param {string} id - UUID de la obra
      * @returns {boolean} true si quedó marcado como favorito
      */
     toggle(id) {
-      const s = _load();
-      s.has(id) ? s.delete(id) : s.add(id);
-      _save();
-      return s.has(id);
+      const isNowFav = !_set.has(id);
+      isNowFav ? _set.add(id) : _set.delete(id);
+
+      if (!_api) return isNowFav; // guard: api aún no inicializada
+
+      const sessionId = _getSessionId();
+      if (isNowFav) {
+        _api.addFavorite(sessionId, id).then(ok => {
+          if (!ok) {
+            _set.delete(id); // rollback silencioso en memoria
+            console.warn('⚠️ No se pudo guardar el favorito en Supabase');
+          }
+        });
+      } else {
+        _api.removeFavorite(sessionId, id).then(ok => {
+          if (!ok) {
+            _set.add(id); // rollback silencioso en memoria
+            console.warn('⚠️ No se pudo eliminar el favorito de Supabase');
+          }
+        });
+      }
+
+      return isNowFav;
     },
+
     /** @returns {string[]} array de UUIDs */
-    getAll()   { return [..._load()]; },
-    count()    { return _load().size; },
+    getAll() { return [..._set]; },
+    count()  { return _set.size; },
   };
 })();
 
@@ -88,10 +138,11 @@ export class PublicCatalog {
       // Activar íconos Lucide de los elementos estáticos del hero (stats, etc.)
       if (window.lucide) window.lucide.createIcons();
 
-      // Cargar opciones de filtro + estadísticas del hero en paralelo
+      // Cargar opciones de filtro + estadísticas del hero + favoritos en paralelo
       await Promise.all([
         this.loadFilterOptions(),
         this.loadStats(),
+        Favoritos.init(api), // carga obra_ids desde Supabase antes del primer render
       ]);
 
       // PASO 2 — Leer ?q= de la URL y pre-aplicar como filtro de búsqueda inicial
