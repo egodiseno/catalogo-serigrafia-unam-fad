@@ -24,6 +24,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const cardEstancadas = document.getElementById('cardObrasEstancadas');
   const elEstancadas   = document.getElementById('totalObrasEstancadas');
 
+  // Sección "Obras más visitadas este mes" (solo admin/super_editor)
+  const topVisitasSection = document.getElementById('topVisitasSection');
+  const topVisitasList    = document.getElementById('topVisitasList');
+
   // ── Carga de estadísticas ─────────────────────────────
   async function loadStats() {
     setLoading(true);
@@ -72,6 +76,11 @@ document.addEventListener('DOMContentLoaded', () => {
             .lt('updated_at', sevenDaysAgo)
         : Promise.resolve({ count: 0 });
 
+      // Top 5 obras más visitadas del mes actual (solo admin/super_editor)
+      const topVisitasQ = esAdmin
+        ? client.rpc('get_top_obras_visitas_mes', { p_limit: 5 })
+        : Promise.resolve({ data: [] });
+
       const [
         { count: obras         },
         { count: tecnicas      },
@@ -82,6 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { count: conCambios    },
         { count: regPendientes },
         { count: estancadas    },
+        { data: topVisitas     },
       ] = await Promise.all([
         obrasCountQ,
         client.from('tecnicas').select('*',        { count: 'exact', head: true }),
@@ -92,6 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
         conCambiosQ,
         regPendientesQ,
         estancadasQ,
+        topVisitasQ,
       ]);
 
       // Stat cards base
@@ -143,6 +154,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Tabla de últimas obras
       renderRecientes(recientes ?? []);
+
+      // Top 5 obras más visitadas — solo admin/super_editor
+      if (esAdmin && topVisitasSection) {
+        const tv = topVisitas ?? [];
+        if (tv.length > 0) {
+          topVisitasSection.style.display = '';
+          renderTopVisitas(tv);
+        } else {
+          topVisitasSection.style.display = 'none';
+        }
+      } else if (topVisitasSection) {
+        topVisitasSection.style.display = 'none';
+      }
 
     } catch (err) {
       console.error('dashboard loadStats:', err);
@@ -236,6 +260,19 @@ document.addEventListener('DOMContentLoaded', () => {
           <td>${fecha}</td>
         </tr>`;
     }).join('');
+  }
+
+  function renderTopVisitas(rows) {
+    if (!topVisitasList) return;
+    topVisitasList.innerHTML = rows.map((row, i) => `
+      <li class="top-visitas-item">
+        <span class="top-visitas-rank">${i + 1}</span>
+        <span class="top-visitas-info">
+          <span class="top-visitas-title">${escHtml(row.titulo)}</span>
+          <span class="top-visitas-artist">${escHtml(row.artista)}</span>
+        </span>
+        <span class="top-visitas-count">${row.visitas} visita${row.visitas !== 1 ? 's' : ''}</span>
+      </li>`).join('');
   }
 
   function renderError() {

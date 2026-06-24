@@ -329,6 +329,19 @@ export const api = {
   },
 
   /**
+   * Registrar visita a una obra (fire-and-forget, sin datos personales)
+   * Inserta en obra_visitas con la fecha actual. No espera respuesta — la UI no debe
+   * depender de este resultado. Llamar con .catch(() => {}) en el punto de uso.
+   * @param {string} obraId - UUID de la obra
+   */
+  async recordVisit(obraId) {
+    if (!obraId) return;
+    try {
+      await supabase.from('obra_visitas').insert([{ obra_id: obraId }]);
+    } catch { /* silencioso — no bloquea la UI */ }
+  },
+
+  /**
    * Obtener todos los tags
    */
   async getTags() {

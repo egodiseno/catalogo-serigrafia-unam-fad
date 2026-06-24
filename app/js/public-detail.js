@@ -40,6 +40,9 @@ export class PublicDetail {
       this.setupGallery(data);
       this.loadRelatedWorks();
 
+      // Registrar visita (fire-and-forget — no bloquea la carga)
+      api.recordVisit(data.id).catch(() => {});
+
       console.log(`✅ Obra cargada: ${data.titulo}`);
     } catch (err) {
       console.error('❌ Excepción en init:', err);
