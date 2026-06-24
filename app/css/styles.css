@@ -1467,6 +1467,61 @@ body.is-scrolled .filters {
   text-align: center;
 }
 
+/* ── Botón volver arriba ─────────────────────────────────────────────────── */
+.btn-back-top {
+  position: fixed;
+  bottom: 2rem;
+  right: 1.5rem;
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--color-blue);
+  color: var(--color-white);
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(1, 59, 117, 0.32);
+  /* Oculto por defecto: sin visibilidad ni interacción */
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(10px);
+  transition: opacity 240ms var(--ease), transform 240ms var(--ease),
+              background 180ms var(--ease), box-shadow 180ms var(--ease);
+}
+
+.btn-back-top.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.btn-back-top:hover {
+  background: var(--color-blue-deep);
+  box-shadow: 0 6px 20px rgba(1, 59, 117, 0.44);
+  transform: translateY(-2px);
+}
+
+.btn-back-top.is-visible:hover {
+  transform: translateY(-2px);
+}
+
+.btn-back-top:focus-visible {
+  outline: 2px solid var(--color-blue);
+  outline-offset: 3px;
+}
+
+.btn-back-top svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
 /* ============================================================
    Footer
    ============================================================ */

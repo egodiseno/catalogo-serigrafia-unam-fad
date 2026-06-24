@@ -103,6 +103,9 @@ export class PublicCatalog {
       // Attach event listeners
       this.attachEventListeners();
 
+      // Botón volver arriba
+      this.initBackToTop();
+
       // Toggle acordeón de filtros (mobile)
       this.initFilterToggle();
 
@@ -167,6 +170,30 @@ export class PublicCatalog {
       if (label) {
         label.textContent = isOpen ? 'Ocultar filtros' : 'Mostrar filtros';
       }
+    });
+  }
+
+  /**
+   * Botón "Volver arriba" — aparece cuando el usuario scrollea más de 400px.
+   * Visibilidad controlada exclusivamente con la clase CSS .is-visible (no hidden)
+   * para que las transiciones de opacidad funcionen sin interrupciones.
+   */
+  initBackToTop() {
+    const btn = document.getElementById('backToTopBtn');
+    if (!btn) return;
+
+    const THRESHOLD = 400;
+
+    // Scroll listener con debounce de 80ms (suficiente para scroll fluido)
+    const onScroll = this.debounce(() => {
+      btn.classList.toggle('is-visible', window.scrollY > THRESHOLD);
+    }, 80);
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+
+    // Clic → scroll suave al top
+    btn.addEventListener('click', () => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     });
   }
 
