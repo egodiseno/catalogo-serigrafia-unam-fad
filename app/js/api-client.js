@@ -54,6 +54,11 @@ export const api = {
         query = query.eq('tecnica_id', technique);
       }
 
+      // Filtro por IDs de favoritos guardados en localStorage
+      if (filters.favIds && filters.favIds.length > 0) {
+        query = query.in('id', filters.favIds);
+      }
+
       if (search && search.trim()) {
         const s = search.trim();
         query = query.or(`titulo.ilike.%${s}%,artista.ilike.%${s}%`);

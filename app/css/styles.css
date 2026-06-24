@@ -1090,6 +1090,104 @@ body.is-scrolled .filters {
 .artworks > li {
   display: flex;
   height: 100%;
+  position: relative; /* permite posicionar .artwork-fav-btn en esquina */
+}
+
+/* ── Botón favorito (corazón) sobre la card ─────────────────────────────── */
+.artwork-fav-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  color: var(--color-muted);
+  cursor: pointer;
+  transition: background 160ms ease, color 160ms ease, transform 120ms ease,
+              box-shadow 160ms ease;
+  box-shadow: 0 1px 4px rgba(16, 27, 45, 0.12);
+  pointer-events: auto;
+}
+
+.artwork-fav-btn:hover {
+  background: var(--color-white);
+  color: var(--color-gold);
+  transform: scale(1.12);
+  box-shadow: 0 2px 8px rgba(16, 27, 45, 0.18);
+}
+
+.artwork-fav-btn.is-fav {
+  background: var(--color-white);
+  color: var(--color-gold);
+}
+
+.artwork-fav-btn.is-fav:hover {
+  color: var(--color-gold-deep);
+}
+
+.artwork-fav-btn:focus-visible {
+  outline: 2px solid var(--color-blue);
+  outline-offset: 2px;
+}
+
+@keyframes fav-pop {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(1.40); }
+  68%  { transform: scale(0.87); }
+  100% { transform: scale(1); }
+}
+
+.artwork-fav-btn.fav-pop {
+  animation: fav-pop 300ms cubic-bezier(0.36, 0.07, 0.19, 0.97);
+}
+
+/* ── Botón "Mis favoritos" en la barra de filtros ───────────────────────── */
+.btn-fav-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0 1rem;
+  height: 44px;
+  background: transparent;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-ui);
+  color: var(--color-blue);
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-family: inherit;
+  white-space: nowrap;
+  transition: background 200ms var(--ease), border-color 200ms var(--ease),
+              color 200ms var(--ease);
+}
+
+.btn-fav-filter:hover {
+  background: var(--color-blue-soft);
+  border-color: var(--color-blue);
+}
+
+.btn-fav-filter.is-active {
+  background: rgba(217, 165, 0, 0.10);
+  border-color: var(--color-gold);
+  color: var(--color-gold-deep);
+}
+
+.btn-fav-filter.is-active:hover {
+  background: rgba(217, 165, 0, 0.17);
+}
+
+.btn-fav-filter:focus-visible {
+  outline: 2px solid var(--color-blue);
+  outline-offset: 2px;
 }
 
 @media (min-width: 481px) {

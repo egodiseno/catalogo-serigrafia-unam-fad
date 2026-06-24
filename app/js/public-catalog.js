@@ -4,6 +4,51 @@
 import { api } from './api-client.js';
 import { i18n } from './i18n.js';
 
+// ── Módulo de Favoritos ────────────────────────────────────────────────────
+// Lee y escribe en localStorage bajo la clave 'catalogo_favoritos'.
+// No requiere cuenta ni login — todo es local al navegador.
+const Favoritos = (() => {
+  const LS_KEY = 'catalogo_favoritos';
+  let _set = null;
+
+  function _load() {
+    if (_set) return _set;
+    try {
+      const raw = localStorage.getItem(LS_KEY);
+      _set = new Set(raw ? JSON.parse(raw) : []);
+    } catch {
+      _set = new Set();
+    }
+    return _set;
+  }
+
+  function _save() {
+    try {
+      localStorage.setItem(LS_KEY, JSON.stringify([..._set]));
+    } catch { /* quota exceeded — silencioso */ }
+  }
+
+  return {
+    /** @param {string} id UUID de la obra */
+    has(id)    { return _load().has(id); },
+    add(id)    { _load().add(id);    _save(); },
+    remove(id) { _load().delete(id); _save(); },
+    /**
+     * Alterna el estado del favorito.
+     * @returns {boolean} true si quedó marcado como favorito
+     */
+    toggle(id) {
+      const s = _load();
+      s.has(id) ? s.delete(id) : s.add(id);
+      _save();
+      return s.has(id);
+    },
+    /** @returns {string[]} array de UUIDs */
+    getAll()   { return [..._load()]; },
+    count()    { return _load().size; },
+  };
+})();
+
 export class PublicCatalog {
   constructor() {
     this.works = [];
@@ -20,12 +65,16 @@ export class PublicCatalog {
       year: '',
       technique: '',
       tags: [],
-      search: ''
+      search: '',
+      onlyFav: false
     };
 
     this.yearOptions = [];
     this.techniqueOptions = [];
     this.tagOptions = [];
+
+    // Exponer Favoritos al nivel de instancia (útil para tests/consola)
+    this.Favoritos = Favoritos;
   }
 
   async init() {
@@ -264,6 +313,56 @@ export class PublicCatalog {
       }, 300));
     }
 
+    // ── Delegación de eventos para botones de favorito ───────────────────────
+    // Único listener en el grid persiste entre re-renderizados del innerHTML.
+    const grid = document.querySelector('[data-grid]');
+    if (grid) {
+      grid.addEventListener('click', (e) => {
+        const btn = e.target.closest('.artwork-fav-btn');
+        if (!btn) return;
+        e.preventDefault(); // evitar activar el link de la card
+
+        const id = btn.dataset.favId;
+        const isNowFav = Favoritos.toggle(id);
+
+        // Actualizar estado visual del botón
+        btn.classList.toggle('is-fav', isNowFav);
+        btn.setAttribute('aria-pressed', String(isNowFav));
+        btn.setAttribute('aria-label',
+          i18n.currentLang === 'en'
+            ? (isNowFav ? 'Remove from favorites' : 'Add to favorites')
+            : (isNowFav ? 'Quitar de favoritos'   : 'Agregar a favoritos')
+        );
+
+        // Animación pop (re-trigger forzando reflow)
+        btn.classList.remove('fav-pop');
+        void btn.offsetWidth;
+        btn.classList.add('fav-pop');
+        btn.addEventListener('animationend', () => btn.classList.remove('fav-pop'), { once: true });
+
+        // Si estamos viendo solo favoritos y se desmarca uno → recargar sin él
+        if (this.filters.onlyFav && !isNowFav) {
+          this.page = 1;
+          this.appendMode = false;
+          this.loadWorks();
+        }
+      });
+    }
+
+    // ── Filtro de favoritos ──────────────────────────────────────────────────
+    const favFilterBtn = document.getElementById('favFilterBtn');
+    if (favFilterBtn) {
+      favFilterBtn.addEventListener('click', () => {
+        this.filters.onlyFav = !this.filters.onlyFav;
+        favFilterBtn.setAttribute('aria-pressed', String(this.filters.onlyFav));
+        favFilterBtn.classList.toggle('is-active', this.filters.onlyFav);
+        this.page = 1;
+        this.appendMode = false;
+        this.loadWorks();
+        this.updateActiveFilterChips();
+      });
+    }
+
   }
 
   /**
@@ -288,27 +387,46 @@ export class PublicCatalog {
   }
 
   /**
-   * Cargar obras desde Supabase
+   * Cargar obras desde Supabase.
+   * Si onlyFav=true, pasa los UUIDs de favoritos como filtro.
    */
   async loadWorks() {
     this.isLoading = true;
     this.showLoadingSpinner();
 
+    // En modo favoritos, si no hay ninguno guardado, mostrar estado vacío
+    // sin hacer ninguna query.
+    if (this.filters.onlyFav) {
+      const favIds = Favoritos.getAll();
+      if (favIds.length === 0) {
+        this.isLoading = false;
+        this.hideLoadingSpinner();
+        this.showEmptyState(true);
+        return;
+      }
+    }
+
     try {
+      // Construir parámetros: si onlyFav, añadir favIds
+      const filterParams = { ...this.filters };
+      if (filterParams.onlyFav) {
+        filterParams.favIds = Favoritos.getAll();
+      }
+
       const { data, total, error } = await api.filterWorks(
-        this.filters,
+        filterParams,
         this.page,
         this.pageSize
       );
 
       if (error) {
         console.error('❌ Error cargando obras:', error);
-        this.showEmptyState();
+        this.showEmptyState(this.filters.onlyFav);
         return;
       }
 
       if (data.length === 0 && this.page === 1) {
-        this.showEmptyState();
+        this.showEmptyState(this.filters.onlyFav);
         return;
       } else if (data.length === 0 && this.page > 1) {
         this.hideLoadingSpinner();
@@ -321,7 +439,7 @@ export class PublicCatalog {
       this.renderGrid();
     } catch (error) {
       console.error('❌ Error:', error);
-      this.showEmptyState();
+      this.showEmptyState(this.filters.onlyFav);
     } finally {
       this.isLoading = false;
       this.hideLoadingSpinner();
@@ -334,6 +452,10 @@ export class PublicCatalog {
   renderGrid() {
     const grid = document.querySelector('[data-grid]');
     if (!grid) return;
+
+    // Ocultar el empty state cuando hay resultados
+    const emptyState = document.querySelector('[data-empty]');
+    if (emptyState) emptyState.setAttribute('hidden', '');
 
     grid.innerHTML = this.works
       .map(work => this.createArtworkCard(work))
@@ -361,7 +483,10 @@ export class PublicCatalog {
   }
 
   /**
-   * Crear HTML de una card de obra
+   * Crear HTML de una card de obra.
+   * El botón de corazón se coloca como hermano del <a> dentro de <li>
+   * para evitar anidar un <button> interactivo dentro de otro elemento
+   * interactivo (el enlace).
    */
   createArtworkCard(work) {
     // imagenes.principal es boolean (true = imagen principal)
@@ -378,6 +503,11 @@ export class PublicCatalog {
       .map(n => i18n.translate(n));
 
     const ctaLabel = i18n.currentLang === 'en' ? 'View work' : 'Ver obra';
+
+    const isFav       = Favoritos.has(work.id);
+    const favLabel    = i18n.currentLang === 'en'
+      ? (isFav ? 'Remove from favorites' : 'Add to favorites')
+      : (isFav ? 'Quitar de favoritos'   : 'Agregar a favoritos');
 
     return `
       <li>
@@ -405,6 +535,13 @@ export class PublicCatalog {
             </button>
           </div>
         </a>
+        <button type="button"
+                class="artwork-fav-btn${isFav ? ' is-fav' : ''}"
+                data-fav-id="${work.id}"
+                aria-label="${favLabel}"
+                aria-pressed="${isFav}">
+          <i data-lucide="heart" style="width:16px;height:16px;" aria-hidden="true"></i>
+        </button>
       </li>
     `;
   }
@@ -451,13 +588,28 @@ export class PublicCatalog {
   }
 
   /**
-   * Mostrar empty state
+   * Mostrar empty state con mensaje contextual.
+   * @param {boolean} [isFavMode=false] - true cuando el modo "Solo favoritos" está activo
    */
-  showEmptyState() {
+  showEmptyState(isFavMode = false) {
     const emptyState = document.querySelector('[data-empty]');
     const grid = document.querySelector('[data-grid]');
 
     if (emptyState) {
+      // Actualizar texto e i18n attrs según contexto
+      if (isFavMode) {
+        const esMsg = 'Aún no tienes obras guardadas como favoritas.';
+        const enMsg = "You haven't saved any favorites yet.";
+        emptyState.setAttribute('data-es', esMsg);
+        emptyState.setAttribute('data-en', enMsg);
+        emptyState.textContent = i18n.currentLang === 'en' ? enMsg : esMsg;
+      } else {
+        const esMsg = 'No encontramos obras con esos filtros.';
+        const enMsg = 'No works found with those filters.';
+        emptyState.setAttribute('data-es', esMsg);
+        emptyState.setAttribute('data-en', enMsg);
+        emptyState.textContent = i18n.currentLang === 'en' ? enMsg : esMsg;
+      }
       emptyState.removeAttribute('hidden');
     }
     if (grid) {
@@ -483,10 +635,10 @@ export class PublicCatalog {
   }
 
   /**
-   * Actualizar chips de filtros activos (año, técnica) y chips inline de tags
+   * Actualizar chips de filtros activos (año, técnica, favoritos) y chips inline de tags
    */
   updateActiveFilterChips() {
-    // ── 1. Chips de año y técnica en la barra [data-active-filters] ──────────
+    // ── 1. Chips de año, técnica y favoritos en [data-active-filters] ─────────
     const container = document.querySelector('[data-active-filters]');
     if (container) {
       const chips = [];
@@ -500,6 +652,13 @@ export class PublicCatalog {
         if (tech) {
           chips.push({ label: `Técnica: ${tech.nombre}`, type: 'technique' });
         }
+      }
+
+      if (this.filters.onlyFav) {
+        chips.push({
+          label: i18n.currentLang === 'en' ? 'My favorites' : 'Mis favoritos',
+          type: 'fav'
+        });
       }
 
       if (chips.length === 0) {
@@ -525,10 +684,22 @@ export class PublicCatalog {
             const type = btn.getAttribute('data-remove');
             if (type === 'year') {
               document.querySelector('[data-filter="year"]').value = '';
+              this.handleFilterChange();
             } else if (type === 'technique') {
               document.querySelector('[data-filter="technique"]').value = '';
+              this.handleFilterChange();
+            } else if (type === 'fav') {
+              this.filters.onlyFav = false;
+              const favBtn = document.getElementById('favFilterBtn');
+              if (favBtn) {
+                favBtn.setAttribute('aria-pressed', 'false');
+                favBtn.classList.remove('is-active');
+              }
+              this.page = 1;
+              this.appendMode = false;
+              this.loadWorks();
+              this.updateActiveFilterChips();
             }
-            this.handleFilterChange();
           });
         });
 
@@ -602,14 +773,15 @@ export class PublicCatalog {
   }
 
   /**
-   * Limpiar filtros
+   * Limpiar todos los filtros (incluyendo favoritos)
    */
   clearFilters() {
     this.filters = {
       year: '',
       technique: '',
       tags: [],
-      search: ''
+      search: '',
+      onlyFav: false
     };
 
     // Reset form
@@ -617,6 +789,13 @@ export class PublicCatalog {
     document.querySelector('[data-filter="technique"]').value = '';
     document.querySelectorAll('[data-tag-id]').forEach(cb => { cb.checked = false; });
     document.getElementById('searchInput').value = '';
+
+    // Reset botón de favoritos
+    const favFilterBtn = document.getElementById('favFilterBtn');
+    if (favFilterBtn) {
+      favFilterBtn.setAttribute('aria-pressed', 'false');
+      favFilterBtn.classList.remove('is-active');
+    }
 
     this.page = 1;
     this.appendMode = false;
