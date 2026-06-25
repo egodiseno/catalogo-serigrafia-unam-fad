@@ -4,6 +4,59 @@
 import { api } from './api-client.js';
 import { i18n } from './i18n.js';
 
+// ── Módulo de Favoritos ────────────────────────────────────────────────────
+// Misma lógica y SESSION_KEY que en public-catalog.js y public-techniques.js.
+// El estado de favoritos es consistente entre todas las páginas públicas.
+const Favoritos = (() => {
+  const SESSION_KEY = 'catalogo_session_id';
+  let _set = new Set();
+  let _api = null;
+
+  function _getSessionId() {
+    let id;
+    try { id = localStorage.getItem(SESSION_KEY); } catch { id = null; }
+    if (!id) {
+      id = typeof crypto.randomUUID === 'function'
+        ? crypto.randomUUID()
+        : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
+      try { localStorage.setItem(SESSION_KEY, id); } catch { /* silencioso */ }
+    }
+    return id;
+  }
+
+  return {
+    async init(apiInstance) {
+      _api = apiInstance;
+      try {
+        const ids = await _api.getFavorites(_getSessionId());
+        _set = new Set(ids);
+        console.log(`❤️ Favoritos cargados (ficha): ${_set.size}`);
+      } catch {
+        _set = new Set();
+      }
+    },
+    has(id)  { return _set.has(id); },
+    toggle(id) {
+      const isNowFav = !_set.has(id);
+      isNowFav ? _set.add(id) : _set.delete(id);
+      if (!_api) return isNowFav;
+      const sessionId = _getSessionId();
+      if (isNowFav) {
+        _api.addFavorite(sessionId, id).then(ok => {
+          if (!ok) { _set.delete(id); console.warn('⚠️ No se pudo guardar el favorito en Supabase'); }
+        });
+      } else {
+        _api.removeFavorite(sessionId, id).then(ok => {
+          if (!ok) { _set.add(id); console.warn('⚠️ No se pudo eliminar el favorito de Supabase'); }
+        });
+      }
+      return isNowFav;
+    },
+    getAll() { return [..._set]; },
+    count()  { return _set.size; },
+  };
+})();
+
 export class PublicDetail {
   constructor() {
     // Leer ?slug= de la URL
@@ -33,7 +86,11 @@ export class PublicDetail {
     }
 
     try {
-      const { data, error } = await api.getWorkBySlug(this.workSlug);
+      // Cargar obra y favoritos en paralelo para minimizar latencia
+      const [{ data, error }] = await Promise.all([
+        api.getWorkBySlug(this.workSlug),
+        Favoritos.init(api),
+      ]);
 
       if (error || !data) {
         console.error('❌ Error al cargar obra:', error);
@@ -130,7 +187,45 @@ export class PublicDetail {
     this.hideLoading();
     document.getElementById('workDetail')?.removeAttribute('hidden');
 
-    // ── Lucide icons ──────────────────────────────────────
+    // ── Botón favorito en figura principal ────────────────
+    // Se inyecta en .work-hero__figure (position:relative en CSS).
+    // e.stopPropagation() evita que el clic propague al listener del lightbox.
+    const figureEl = document.querySelector('.work-hero__figure');
+    if (figureEl) {
+      const isFav    = Favoritos.has(work.id);
+      const favLabel = i18n.currentLang === 'en'
+        ? (isFav ? 'Remove from favorites' : 'Add to favorites')
+        : (isFav ? 'Quitar de favoritos'   : 'Agregar a favoritos');
+
+      figureEl.querySelector('.artwork-fav-btn')?.remove(); // evitar duplicados
+      const favBtn = document.createElement('button');
+      favBtn.type = 'button';
+      favBtn.className = `artwork-fav-btn${isFav ? ' is-fav' : ''}`;
+      favBtn.dataset.favId = work.id;
+      favBtn.setAttribute('aria-label', favLabel);
+      favBtn.setAttribute('aria-pressed', String(isFav));
+      favBtn.innerHTML = `<i data-lucide="heart" style="width:16px;height:16px;" aria-hidden="true"></i>`;
+      figureEl.appendChild(favBtn);
+
+      favBtn.addEventListener('click', (e) => {
+        e.stopPropagation(); // no abrir lightbox
+        const isNowFav = Favoritos.toggle(work.id);
+        favBtn.classList.toggle('is-fav', isNowFav);
+        favBtn.setAttribute('aria-pressed', String(isNowFav));
+        favBtn.setAttribute('aria-label',
+          i18n.currentLang === 'en'
+            ? (isNowFav ? 'Remove from favorites' : 'Add to favorites')
+            : (isNowFav ? 'Quitar de favoritos'   : 'Agregar a favoritos')
+        );
+        if (isNowFav && navigator.vibrate) navigator.vibrate(40);
+        favBtn.classList.remove('fav-pop');
+        void favBtn.offsetWidth;
+        favBtn.classList.add('fav-pop');
+        favBtn.addEventListener('animationend', () => favBtn.classList.remove('fav-pop'), { once: true });
+      });
+    }
+
+    // ── Lucide icons (incluye el heart del botón favorito) ────────────────
     if (window.lucide) window.lucide.createIcons();
   }
 
@@ -617,6 +712,26 @@ export class PublicDetail {
       // Renderizar cards
       gridEl.innerHTML = shuffled.map(obra => this._renderRelatedCard(obra)).join('');
 
+      // ── Delegación de click para favoritos en obras relacionadas ──────
+      gridEl.addEventListener('click', (e) => {
+        const btn = e.target.closest('.artwork-fav-btn');
+        if (!btn) return;
+        const id = btn.dataset.favId;
+        const isNowFav = Favoritos.toggle(id);
+        btn.classList.toggle('is-fav', isNowFav);
+        btn.setAttribute('aria-pressed', String(isNowFav));
+        btn.setAttribute('aria-label',
+          i18n.currentLang === 'en'
+            ? (isNowFav ? 'Remove from favorites' : 'Add to favorites')
+            : (isNowFav ? 'Quitar de favoritos'   : 'Agregar a favoritos')
+        );
+        if (isNowFav && navigator.vibrate) navigator.vibrate(40);
+        btn.classList.remove('fav-pop');
+        void btn.offsetWidth;
+        btn.classList.add('fav-pop');
+        btn.addEventListener('animationend', () => btn.classList.remove('fav-pop'), { once: true });
+      });
+
       sectionEl.removeAttribute('hidden');
 
       // Activar Lucide icons en las nuevas cards
@@ -650,6 +765,11 @@ export class PublicDetail {
       .filter(Boolean)
       .slice(0, 2)
       .map(n => i18n.translate(n));
+
+    const isFav    = Favoritos.has(obra.id);
+    const favLabel = i18n.currentLang === 'en'
+      ? (isFav ? 'Remove from favorites' : 'Add to favorites')
+      : (isFav ? 'Quitar de favoritos'   : 'Agregar a favoritos');
 
     return `
       <li>
@@ -688,6 +808,13 @@ export class PublicDetail {
           </div>
 
         </a>
+        <button type="button"
+                class="artwork-fav-btn${isFav ? ' is-fav' : ''}"
+                data-fav-id="${this.escapeHtml(obra.id)}"
+                aria-label="${this.escapeHtml(favLabel)}"
+                aria-pressed="${isFav}">
+          <i data-lucide="heart" style="width:16px;height:16px;" aria-hidden="true"></i>
+        </button>
       </li>`;
   }
 
