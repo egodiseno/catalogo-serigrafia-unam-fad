@@ -1262,12 +1262,12 @@ body.is-scrolled .filters {
   }
 
   /* Grid de 4 columnas: AÑO | TÉCNICA | TAGS | BOTÓN
-     align-items: start → items arrancan arriba; margin-top en botón da la alineación exacta */
+     align-items: center → selects y botones centrados en la misma línea vertical */
   [data-filters] {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr auto;
     gap: 1rem;
-    align-items: start;
+    align-items: center;
     padding-block: 1.25rem;
     /* reset de propiedades flex del base mobile */
     flex-direction: unset;
