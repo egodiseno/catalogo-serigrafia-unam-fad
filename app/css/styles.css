@@ -1285,7 +1285,7 @@ body.is-scrolled .filters {
     flex-direction: row;
     align-items: center;
     gap: 0.75rem;
-    margin-top: 1.4rem;
+    margin-top: .8rem;
   }
 
   .filter-actions [data-clear] {
