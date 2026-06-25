@@ -968,8 +968,13 @@ export class PublicCatalog {
 
       if (changed) {
         await this.loadWorks();
-        const grid = document.querySelector('[data-grid]');
-        if (grid) grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        // Esperar un frame extra para que el navegador haya pintado las nuevas
+        // obras antes de hacer scroll. Así el título "Obras" + contador y la
+        // primera fila completa quedan visibles sin cortes.
+        setTimeout(() => {
+          const head = document.querySelector('.catalog__head');
+          if (head) head.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 50);
       }
     });
   }
