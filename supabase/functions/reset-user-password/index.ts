@@ -9,7 +9,7 @@
  *   - Busca el usuario en usuarios_admin por email.
  *   - Genera un token seguro (crypto.randomUUID) y lo guarda en
  *     password_reset_tokens con expiración de 30 min.
- *   - Envía el link de reset por email vía Brevo SMTP.
+ *   - Envía el link de reset por email vía Brevo HTTP API v3.
  *   - Siempre responde { success: true } para no revelar si el email existe.
  *
  * ── PASO B ── POST /functions/v1/reset-user-password/confirm
@@ -20,17 +20,13 @@
  *
  * Variables de entorno requeridas:
  *   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY (automáticas en Supabase)
- *   SITE_URL        — URL del panel admin (ej: https://…netlify.app/admin/)
- *   BREVO_SMTP_HOST — smtp-relay.brevo.com
- *   BREVO_SMTP_PORT — 587
- *   BREVO_SMTP_USER — login de Brevo (email de cuenta)
- *   BREVO_SMTP_PASS — clave SMTP generada en Brevo
+ *   SITE_URL      — URL del panel admin (ej: https://…netlify.app/admin/)
+ *   BREVO_API_KEY — clave API de Brevo (Configuración → SMTP y API → Claves API)
  * ──────────────────────────────────────────────────────────────────────────────
  */
 
 import { serve }        from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { SMTPClient }   from 'https://deno.land/x/denomailer@1.6.0/mod.ts';
 
 // ── CORS ──────────────────────────────────────────────────────────────────────
 const CORS: Record<string, string> = {
@@ -184,39 +180,36 @@ function buildResetHtml(nombre: string, email: string, resetLink: string): strin
   `.trim();
 }
 
-// ── Enviar email vía Brevo SMTP ───────────────────────────────────────────────
+// ── Enviar email vía Brevo HTTP API v3 ───────────────────────────────────────
+// Usa HTTP (no TCP/SMTP) — compatible con Supabase Edge Functions (Deno Deploy).
 async function sendResetEmail(params: {
   to:        string;
   nombre:    string;
   resetLink: string;
 }): Promise<void> {
-  const host = Deno.env.get('BREVO_SMTP_HOST') ?? 'smtp-relay.brevo.com';
-  const port = parseInt(Deno.env.get('BREVO_SMTP_PORT') ?? '587', 10);
-  const user = Deno.env.get('BREVO_SMTP_USER') ?? '';
-  const pass = Deno.env.get('BREVO_SMTP_PASS') ?? '';
+  const apiKey = Deno.env.get('BREVO_API_KEY') ?? '';
 
-  if (!user || !pass) {
-    throw new Error('BREVO_SMTP_USER o BREVO_SMTP_PASS no están configurados como secrets de la Edge Function.');
+  if (!apiKey) {
+    throw new Error('BREVO_API_KEY no está configurado como secret de la Edge Function.');
   }
 
-  const client = new SMTPClient({
-    connection: {
-      hostname: host,
-      port,
-      tls:  port === 465,   // SSL directo en 465; STARTTLS en 587
-      auth: { username: user, password: pass },
+  const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+    method:  'POST',
+    headers: {
+      'api-key':      apiKey,
+      'Content-Type': 'application/json',
     },
+    body: JSON.stringify({
+      sender:      { name: 'Catálogo UNAM/FAD', email: 'egodiseno@gmail.com' },
+      to:          [{ email: params.to }],
+      subject:     'Restablece tu contraseña — Catálogo de Obra Serigráfica UNAM',
+      htmlContent: buildResetHtml(params.nombre, params.to, params.resetLink),
+    }),
   });
 
-  try {
-    await client.send({
-      from:    'Catálogo UNAM/FAD <egodiseno@gmail.com>',
-      to:      params.to,
-      subject: 'Restablece tu contraseña — Catálogo de Obra Serigráfica UNAM',
-      html:    buildResetHtml(params.nombre, params.to, params.resetLink),
-    });
-  } finally {
-    await client.close().catch(() => { /* ignorar error de cierre */ });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({})) as Record<string, unknown>;
+    throw new Error(`Brevo API error ${res.status}: ${body.message ?? JSON.stringify(body)}`);
   }
 }
 
@@ -281,7 +274,7 @@ async function handleRequestReset(req: Request): Promise<Response> {
 
   console.log(`[reset/request] Token generado para ${email}. Link: ${resetLink}`);
 
-  // 6. Enviar email vía Brevo SMTP
+  // 6. Enviar email vía Brevo HTTP API v3
   try {
     await sendResetEmail({
       to:        email,
@@ -289,12 +282,12 @@ async function handleRequestReset(req: Request): Promise<Response> {
       resetLink,
     });
     console.log(`[reset/request] ✓ Email enviado a: ${email}`);
-  } catch (smtpErr) {
-    const msg = smtpErr instanceof Error ? smtpErr.message : String(smtpErr);
-    console.error('[reset/request] Error SMTP:', msg);
+  } catch (emailErr) {
+    const msg = emailErr instanceof Error ? emailErr.message : String(emailErr);
+    console.error('[reset/request] Error al enviar email:', msg);
     // Limpiar token si el email no se pudo enviar
     await db.from('password_reset_tokens').delete().eq('token', token).catch(() => {});
-    return fail({ success: false, error: `Error al enviar el email: ${msg}`, code: 'SMTP_ERROR' }, 500);
+    return fail({ success: false, error: `Error al enviar el email: ${msg}`, code: 'EMAIL_ERROR' }, 500);
   }
 
   return ok({
