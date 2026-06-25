@@ -949,20 +949,27 @@ export class PublicCatalog {
     const nav = document.querySelector('[data-pagination]');
     if (!nav) return;
 
-    nav.addEventListener('click', (e) => {
+    nav.addEventListener('click', async (e) => {
       const btn = e.target.closest('[data-page]');
       if (!btn || btn.disabled) return;
 
       const target = btn.getAttribute('data-page');
       const totalPages = Math.ceil(this.totalWorks / this.pageSize);
 
+      let changed = false;
       if (target === 'prev') {
-        if (this.page > 1) { this.page--; this.loadWorks(); }
+        if (this.page > 1) { this.page--; changed = true; }
       } else if (target === 'next') {
-        if (this.page < totalPages) { this.page++; this.loadWorks(); }
+        if (this.page < totalPages) { this.page++; changed = true; }
       } else {
         const p = parseInt(target, 10);
-        if (!isNaN(p) && p !== this.page) { this.page = p; this.loadWorks(); }
+        if (!isNaN(p) && p !== this.page) { this.page = p; changed = true; }
+      }
+
+      if (changed) {
+        await this.loadWorks();
+        const grid = document.querySelector('[data-grid]');
+        if (grid) grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
     });
   }
