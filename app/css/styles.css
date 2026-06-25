@@ -2038,6 +2038,16 @@ body.is-scrolled .filters {
   gap: 0.375rem;
 }
 
+/* Botón favorito inline — debajo de tags, antes de descripción */
+.work-meta__fav {
+  padding-block: var(--space-2, 0.5rem);
+}
+
+/* Resetear posición absoluta del grid: aquí fluye en línea */
+.work-meta__fav .artwork-fav-btn {
+  position: static;
+}
+
 /* Descripción */
 .work-meta__description,
 .work-description {
