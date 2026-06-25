@@ -20,3 +20,6 @@ enable_signup = true
 
 [functions]
 # Edge Functions se despliegan con: supabase functions deploy create-admin-user
+
+[functions.reset-user-password]
+verify_jwt = false   # Acceso público: no requiere Bearer token del caller
