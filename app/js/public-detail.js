@@ -228,42 +228,7 @@ export class PublicDetail {
       });
     }
 
-    // ── Botón favorito en panel de metadatos ──────────────────
-    // #workFavBtn está en obra.html como botón estático; aquí se le asigna
-    // data-fav-id, estado inicial y click handler sincronizado con el de figura.
-    const metaFavBtn = document.getElementById('workFavBtn');
-    if (metaFavBtn) {
-      const isFavMeta = Favoritos.has(work.id);
-      const metaLabel = i18n.currentLang === 'en'
-        ? (isFavMeta ? 'Remove from favorites' : 'Add to favorites')
-        : (isFavMeta ? 'Quitar de favoritos'   : 'Agregar a favoritos');
-
-      metaFavBtn.dataset.favId = work.id;
-      metaFavBtn.classList.toggle('is-fav', isFavMeta);
-      metaFavBtn.setAttribute('aria-pressed', String(isFavMeta));
-      metaFavBtn.setAttribute('aria-label', metaLabel);
-
-      metaFavBtn.addEventListener('click', () => {
-        const isNowFav = Favoritos.toggle(work.id);
-        const label = i18n.currentLang === 'en'
-          ? (isNowFav ? 'Remove from favorites' : 'Add to favorites')
-          : (isNowFav ? 'Quitar de favoritos'   : 'Agregar a favoritos');
-        // Sincronizar metadatos + botón de figura
-        document.querySelectorAll(`.artwork-fav-btn[data-fav-id="${work.id}"]`)
-          .forEach(btn => {
-            btn.classList.toggle('is-fav', isNowFav);
-            btn.setAttribute('aria-pressed', String(isNowFav));
-            btn.setAttribute('aria-label', label);
-          });
-        if (isNowFav && navigator.vibrate) navigator.vibrate(40);
-        metaFavBtn.classList.remove('fav-pop');
-        void metaFavBtn.offsetWidth;
-        metaFavBtn.classList.add('fav-pop');
-        metaFavBtn.addEventListener('animationend', () => metaFavBtn.classList.remove('fav-pop'), { once: true });
-      });
-    }
-
-    // ── Lucide icons (incluye los hearts de ambos botones favorito) ───────
+    // ── Lucide icons (incluye el heart del botón favorito) ───────────────
     if (window.lucide) window.lucide.createIcons();
   }
 
