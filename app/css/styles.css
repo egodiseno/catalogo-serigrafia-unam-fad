@@ -1236,14 +1236,6 @@ body.is-scrolled .filters {
     padding-block: 1rem;
   }
 
-  /* Botón en segunda fila, ancho total (cohesión visual con los inputs) */
-  .filter-actions {
-    align-self: stretch;
-  }
-
-  .filter-actions [data-clear] {
-    width: 100%;
-  }
 }
 
 /* Desktop (≥ 1200px): acordeón desaparece, CSS Grid de 4 columnas */
@@ -1289,7 +1281,6 @@ body.is-scrolled .filters {
   .filter-actions {
     grid-column: 4;
     margin: 0;
-    flex-shrink: unset;
     display: flex;
     flex-direction: row;
     align-items: center;
