@@ -368,11 +368,14 @@ async function handleConfirmReset(req: Request): Promise<Response> {
   }
 
   // 5. Marcar token como usado (idempotente — no falla si ya está usado)
-  await db
-    .from('password_reset_tokens')
-    .update({ used: true })
-    .eq('token', token)
-    .catch((e: unknown) => console.warn('[reset/confirm] Error marcando token como usado:', e));
+  try {
+    await db
+      .from('password_reset_tokens')
+      .update({ used: true })
+      .eq('token', token);
+  } catch (e: unknown) {
+    console.warn('[reset/confirm] Error marcando token como usado:', e);
+  }
 
   console.log(`[reset/confirm] ✓ Contraseña actualizada para user_id: ${userId}`);
 
