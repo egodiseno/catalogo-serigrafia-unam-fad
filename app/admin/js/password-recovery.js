@@ -67,10 +67,17 @@ const PasswordRecovery = (() => {
     if (forgotLink) {
       forgotLink.addEventListener('click', e => {
         e.preventDefault();
+        // Capturar email del login ANTES de resetear el formulario
+        const loginEmail = getEl('email')?.value.trim() ?? '';
         getEl('forgotForm')?.reset();
         setForgotMsg('', '');
         hideForgotWarning();
         showSection('forgotSection');
+        // Pre-llenar el input de recuperación si el usuario ya había escrito su email
+        if (loginEmail) {
+          const forgotInput = getEl('forgotEmailInput');
+          if (forgotInput) forgotInput.value = loginEmail;
+        }
       });
     }
 
