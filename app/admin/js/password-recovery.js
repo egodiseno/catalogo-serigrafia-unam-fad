@@ -118,7 +118,8 @@ const PasswordRecovery = (() => {
         method:  'POST',
         headers: {
           'Content-Type': 'application/json',
-          'apikey':       window.supabaseConfig.anonKey,
+          'apikey':        window.supabaseConfig.anonKey,
+          'Authorization': `Bearer ${window.supabaseConfig.anonKey}`,
         },
         body: JSON.stringify({ email }),
       });
@@ -350,7 +351,8 @@ const PasswordRecovery = (() => {
         method:  'POST',
         headers: {
           'Content-Type': 'application/json',
-          'apikey':       window.supabaseConfig.anonKey,
+          'apikey':        window.supabaseConfig.anonKey,
+          'Authorization': `Bearer ${window.supabaseConfig.anonKey}`,
         },
         body: JSON.stringify({ token: _activeResetToken, new_password: newPwd }),
       });
