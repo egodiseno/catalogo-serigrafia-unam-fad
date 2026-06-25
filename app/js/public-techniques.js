@@ -4,6 +4,59 @@
 import { api } from './api-client.js';
 import { i18n } from './i18n.js';
 
+// ── Módulo de Favoritos ────────────────────────────────────────────────────
+// Misma lógica que en public-catalog.js. Comparte SESSION_KEY → el estado de
+// favoritos es consistente entre la página de catálogo y la de técnicas.
+const Favoritos = (() => {
+  const SESSION_KEY = 'catalogo_session_id';
+  let _set = new Set();
+  let _api = null;
+
+  function _getSessionId() {
+    let id;
+    try { id = localStorage.getItem(SESSION_KEY); } catch { id = null; }
+    if (!id) {
+      id = typeof crypto.randomUUID === 'function'
+        ? crypto.randomUUID()
+        : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
+      try { localStorage.setItem(SESSION_KEY, id); } catch { /* silencioso */ }
+    }
+    return id;
+  }
+
+  return {
+    async init(apiInstance) {
+      _api = apiInstance;
+      try {
+        const ids = await _api.getFavorites(_getSessionId());
+        _set = new Set(ids);
+        console.log(`❤️ Favoritos cargados (técnicas): ${_set.size}`);
+      } catch {
+        _set = new Set();
+      }
+    },
+    has(id)  { return _set.has(id); },
+    toggle(id) {
+      const isNowFav = !_set.has(id);
+      isNowFav ? _set.add(id) : _set.delete(id);
+      if (!_api) return isNowFav;
+      const sessionId = _getSessionId();
+      if (isNowFav) {
+        _api.addFavorite(sessionId, id).then(ok => {
+          if (!ok) { _set.delete(id); console.warn('⚠️ No se pudo guardar el favorito en Supabase'); }
+        });
+      } else {
+        _api.removeFavorite(sessionId, id).then(ok => {
+          if (!ok) { _set.add(id); console.warn('⚠️ No se pudo eliminar el favorito de Supabase'); }
+        });
+      }
+      return isNowFav;
+    },
+    getAll() { return [..._set]; },
+    count()  { return _set.size; },
+  };
+})();
+
 export class PublicTechniques {
   constructor() {
     this.techniques = [];
@@ -20,10 +73,11 @@ export class PublicTechniques {
     try {
       console.log('🚀 Inicializando Técnicas...');
 
-      // Cargar técnicas y conteos en paralelo
+      // Cargar técnicas, conteos y favoritos en paralelo
       const [techniques, counts] = await Promise.all([
         api.getTechniques(),
-        api.getWorkCountsByTechnique()
+        api.getWorkCountsByTechnique(),
+        Favoritos.init(api),
       ]);
 
       this.techniques = techniques;
@@ -152,6 +206,11 @@ export class PublicTechniques {
         .map(t => t?.tag?.nombre)
         .filter(Boolean);
 
+      const isFav    = Favoritos.has(work.id);
+      const favLabel = i18n.currentLang === 'en'
+        ? (isFav ? 'Remove from favorites' : 'Add to favorites')
+        : (isFav ? 'Quitar de favoritos'   : 'Agregar a favoritos');
+
       return `
         <li>
           <a href="obra.html?slug=${work.slug || work.id}" class="artwork-card" aria-label="${work.titulo} — ${work.artista}">
@@ -178,6 +237,13 @@ export class PublicTechniques {
               </button>
             </div>
           </a>
+          <button type="button"
+                  class="artwork-fav-btn${isFav ? ' is-fav' : ''}"
+                  data-fav-id="${work.id}"
+                  aria-label="${favLabel}"
+                  aria-pressed="${isFav}">
+            <i data-lucide="heart" style="width:16px;height:16px;" aria-hidden="true"></i>
+          </button>
         </li>
       `;
     }).join('');
@@ -217,6 +283,37 @@ export class PublicTechniques {
       const grid = document.querySelector('[data-works-grid]');
       if (grid) grid.innerHTML = '';
     });
+
+    // ── Delegación de click para botones de favorito ───────────────────────
+    // Único listener en el grid — persiste entre re-renderizados del innerHTML.
+    const worksGrid = document.querySelector('[data-works-grid]');
+    if (worksGrid) {
+      worksGrid.addEventListener('click', (e) => {
+        const btn = e.target.closest('.artwork-fav-btn');
+        if (!btn) return;
+
+        const id = btn.dataset.favId;
+        const isNowFav = Favoritos.toggle(id);
+
+        // Actualizar estado visual
+        btn.classList.toggle('is-fav', isNowFav);
+        btn.setAttribute('aria-pressed', String(isNowFav));
+        btn.setAttribute('aria-label',
+          i18n.currentLang === 'en'
+            ? (isNowFav ? 'Remove from favorites' : 'Add to favorites')
+            : (isNowFav ? 'Quitar de favoritos'   : 'Agregar a favoritos')
+        );
+
+        // Vibración táctil al activar
+        if (isNowFav && navigator.vibrate) navigator.vibrate(40);
+
+        // Animación pop (re-trigger forzando reflow)
+        btn.classList.remove('fav-pop');
+        void btn.offsetWidth;
+        btn.classList.add('fav-pop');
+        btn.addEventListener('animationend', () => btn.classList.remove('fav-pop'), { once: true });
+      });
+    }
 
     // Botón "Cargar más"
     document.querySelector('[data-loadmore]')?.addEventListener('click', async () => {
