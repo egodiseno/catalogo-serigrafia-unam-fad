@@ -642,11 +642,6 @@ body.is-scrolled .filters {
   gap: 1rem;
 }
 
-/* Spacer invisible — oculto en mobile, activo solo en desktop */
-.filter-actions__spacer {
-  display: none;
-}
-
 .filter-actions [data-clear] {
   width: 100%;
 }
@@ -1289,23 +1284,17 @@ body.is-scrolled .filters {
     flex: unset;
   }
 
-  /* Botón en columna 4: flex-column con spacer invisible alinea los botones
-     con los selects — el spacer ocupa exactamente la altura del label */
+  /* Botón en columna 4: fila horizontal con margin-top que compensa
+     la altura del label (0.72rem) + su gap inferior (0.625rem) ≈ 1.4rem */
   .filter-actions {
     grid-column: 4;
     margin: 0;
     flex-shrink: unset;
     display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-  }
-
-  /* Spacer: misma altura que .filter-field label (font-size × line-height = 0.72rem) */
-  .filter-actions__spacer {
-    display: block;
-    font-size: 0.72rem;
-    line-height: 1;
-    visibility: hidden;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 1.4rem;
   }
 
   .filter-actions [data-clear] {
