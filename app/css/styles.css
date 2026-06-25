@@ -1262,12 +1262,12 @@ body.is-scrolled .filters {
   }
 
   /* Grid de 4 columnas: AÑO | TÉCNICA | TAGS | BOTÓN
-     align-items: start → cada celda arranca en la parte superior de la fila */
+     align-items: center → cada celda centrada verticalmente en la fila */
   [data-filters] {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr auto;
     gap: 1rem;
-    align-items: start;
+    align-items: center;
     padding-block: 1.25rem;
     /* reset de propiedades flex del base mobile */
     flex-direction: unset;
@@ -1284,13 +1284,13 @@ body.is-scrolled .filters {
     flex: unset;
   }
 
-  /* Botón en columna 4: align-self: end lo lleva al borde inferior de su celda,
-     coincidiendo exactamente con el borde inferior de los selects */
+  /* Botón en columna 4: padding-top compensa label (0.72rem) + gap (0.625rem)
+     para que los botones queden centrados respecto al select, no al filter-field */
   .filter-actions {
     grid-column: 4;
     margin: 0;
     flex-shrink: unset;
-    align-self: end;
+    padding-top: 1.35rem;
   }
 
   .filter-actions [data-clear] {
