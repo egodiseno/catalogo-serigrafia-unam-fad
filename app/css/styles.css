@@ -638,6 +638,8 @@ body.is-scrolled .filters {
 /* Mobile base: botón full-width */
 .filter-actions {
   display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
 .filter-actions [data-clear] {
@@ -1291,9 +1293,6 @@ body.is-scrolled .filters {
 
   .filter-actions [data-clear] {
     width: auto;
-    /* empuja el botón hacia abajo exactamente la altura del label + gap,
-       alineándolo con la parte superior de los inputs */
-    margin-top: 1.4375rem; /* 0.8125rem (label) + 0.625rem (gap) */
   }
 }
 
