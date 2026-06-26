@@ -34,6 +34,10 @@ app/
 ├─ tecnicas.html            # Techniques listing
 ├─ creditos.html            # Institutional credits
 ├─ registro.html            # Student self-registration form
+├─ 404.html                 # Custom 404 error page (Netlify redirect)
+├─ manifest.json            # PWA web app manifest
+├─ robots.txt               # Search engine crawl directives
+├─ sitemap.xml              # XML sitemap for SEO
 ├─ css/
 │   └─ styles.css           # Public design system (tokens + components)
 ├─ js/
@@ -55,6 +59,7 @@ app/
         ├─ permisos.js          # Role-based permission checks → window.tienePermiso()
         ├─ navigation.js        # Section show/hide + sidebar
         ├─ dashboard.js         # Stats cards, recent obras, stale-review alert, top visitas
+        ├─ estadisticas.js      # Full all-time visit history: infinite scroll + ASC/DESC toggle — exposes window.EstadisticasManager
         ├─ obras-list.js        # Obra table, diff modal, approve/reject flow
         ├─ obras-form.js        # Obra create/edit modal, snapshot on publish
         ├─ portafolio.js        # Editor's own portfolio view + rejection notice
@@ -90,11 +95,11 @@ supabase/
 └─ functions/               # Edge Functions (TypeScript / Deno)
     ├─ create-admin-user/       # Creates a new auth user and inserts into usuarios_admin
     ├─ delete-users-batch/      # Batch-deletes auth users (called from UI)
-    ├─ reset-user-password/     # Admin-triggered password reset
+    ├─ reset-user-password/     # Self-service password reset (two steps): Step A generates token → sends email via Brevo HTTP API v3 (POST api.brevo.com/v3/smtp/email); Step B (/confirm) validates token → updates password via db.auth.admin.updateUserById. Deployed with verify_jwt = false.
     ├─ validate-registro/       # Approves a student registration → creates auth user
-    ├─ reject-registro/         # Rejects a student registration
+    ├─ reject-registro/         # Rejects a pending student registration request
     ├─ send-welcome-email/      # Sends onboarding email after validation
-    ├─ save-registro-alumno/    # Saves a new student self-registration
+    ├─ save-registro-alumno/    # Saves the public student self-registration form to registro_alumnos
     ├─ convert-webp/            # Converts uploaded images to WebP (optional, graceful fallback)
     └─ notify-obra-approval/    # Emails the editor when their obra is approved or rejected
 ```
@@ -118,6 +123,8 @@ supabase/
 | `creditos` | Named institutional credits shown on public page |
 | `redes_sociales` | Social network links shown in public footer |
 | `obra_visitas` | Visit log — one row per artwork page view (obra_id UUID, fecha TIMESTAMPTZ). No personal data, no IP. |
+| `obra_favoritos` | Anonymous favorites — `session_id` TEXT (UUID v4 from `crypto.randomUUID()`, persisted in `localStorage` as `catalogo_session_id`) + `obra_id` UUID + `created_at`. UNIQUE constraint on `(session_id, obra_id)`. RLS allows anon + authenticated for INSERT/SELECT/DELETE. |
+| `password_reset_tokens` | Single-use tokens for self-service password reset — `user_id` UUID (→ auth.users), `token` TEXT UNIQUE, `expires_at` TIMESTAMPTZ (30 min), `used` BOOLEAN DEFAULT false. RLS enabled; only service_role client accesses it. |
 
 Supabase Storage bucket: `artworks` — stores obra images. Path convention: `{obraId}/{timestamp}-{random}.{ext}`.
 
@@ -128,15 +135,28 @@ Supabase Storage bucket: `artworks` — stores obra images. Path convention: `{o
 | `visitas_insert_public` | `anon`, `authenticated` | INSERT (no restriction) |
 | `visitas_select_authenticated` | `authenticated` | SELECT |
 
-### `obra_visitas` — RPC function
+### `obra_visitas` / `obra_favoritos` — RPC functions
 
 ```sql
-get_top_obras_visitas_mes(p_limit INT DEFAULT 5)
--- Returns: obra_id, titulo, artista, visitas (BIGINT)
--- Groups by obra in the current calendar month, ordered by visit count DESC
+get_top_obras_visitas_mes(p_limit INT DEFAULT 10)
+-- Returns: obra_id, titulo, artista, visitas BIGINT, favoritos BIGINT
+-- Groups obra_visitas by obra in the current calendar month, ordered by visitas DESC.
+-- favoritos = total accumulated favorites from obra_favoritos (no date filter).
+-- p_limit default changed to 10 (was 5 in original version).
+-- GRANT EXECUTE TO authenticated.
 ```
 
-Called from dashboard.js via `client.rpc('get_top_obras_visitas_mes', { p_limit: 5 })`.
+Called from `dashboard.js` and `estadisticas.js` via `client.rpc('get_top_obras_visitas_mes', { p_limit: 10 })`.
+
+```sql
+get_historial_obras_visitas(p_ascending BOOLEAN DEFAULT false, p_limit INT DEFAULT 20, p_offset INT DEFAULT 0)
+-- Returns: obra_id, titulo, artista, visitas BIGINT, favoritos BIGINT
+-- All-time visit history (no date filter), paginated. Supports ASC/DESC toggle via p_ascending.
+-- Uses CASE WHEN trick for conditional ORDER BY without PL/pgSQL.
+-- GRANT EXECUTE TO authenticated.
+```
+
+Called from `estadisticas.js` (infinite scroll with IntersectionObserver).
 
 ---
 
@@ -255,9 +275,8 @@ CSS mirrors this at `@media (min-width: 1200px)` for the filter panel and `@medi
 
 Implemented as a self-contained IIFE module `Favoritos` inside `public-catalog.js`:
 
-- **Storage:** `localStorage` key `catalogo_favoritos` — JSON array of UUID strings.
-- **No account or login required** — purely browser-local.
-- **API:** `has(id)`, `add(id)`, `remove(id)`, `toggle(id) → bool`, `getAll() → string[]`, `count() → number`.
+- **Storage:** Supabase table `obra_favoritos` — **not** localStorage. An anonymous `session_id` (UUID v4 generated via `crypto.randomUUID()`) is persisted in `localStorage` under the key `catalogo_session_id` as the visitor identifier. No user account or login required.
+- **API (async):** `init(api)` loads the visitor's obra_ids from Supabase into an in-memory `Set` before the first grid render. `has(id)` (sync, O(1) from in-memory Set). `toggle(id) → bool` — optimistic update to the Set immediately (UI responds instantly), then fires a background `api.addFavorite` / `api.removeFavorite` call; silent rollback on Supabase error. `getAll() → string[]`, `count() → number`.
 - Each artwork card gets a `<button class="artwork-fav-btn">` rendered as a sibling to the `<a>` card link (not nested inside it — invalid HTML). Positioned absolute via `position: relative` on the `<li>`.
 - Heart button uses `@keyframes fav-pop` scale animation on toggle.
 - `#favFilterBtn` in the filter bar toggles `filters.onlyFav`. When active, `filterWorks()` is called with `favIds: Favoritos.getAll()`, which passes an `.in('id', favIds)` filter to Supabase.
@@ -401,3 +420,42 @@ Local by Flywheel manages PHP and MySQL for other sites in this home directory, 
 To develop: open `app/admin/index.html` via a local server (not `file://` — Supabase JS requires HTTP). A simple option: `python -m http.server 8080` from the project root, then open `http://localhost:8080/app/admin/`.
 
 **SQL migrations:** Files in `supabase/migrations/` are reference copies only — they must be manually executed in the Supabase SQL Editor for the hosted project. There is no `supabase` CLI linked to this project.
+
+---
+
+## Password reset flow (`reset-user-password` Edge Function)
+
+Self-service flow for admin panel users. Two HTTP endpoints in one deployed function. No Supabase magic links — uses a custom token table.
+
+### Step A — Request reset (`POST /functions/v1/reset-user-password`)
+
+1. Body: `{ email: string }`.
+2. Looks up user in `usuarios_admin` by email.
+3. Generates a secure token (`crypto.randomUUID()`) and inserts into `password_reset_tokens` with `expires_at = now() + 30 min`.
+4. Sends the reset link via **Brevo HTTP API v3** (`POST https://api.brevo.com/v3/smtp/email`) — not TCP/SMTP, not Nodemailer; pure HTTP fetch, compatible with Deno Deploy.
+5. Always responds `{ success: true }` — never reveals whether the email exists (anti-enumeration).
+
+### Step B — Confirm reset (`POST /functions/v1/reset-user-password/confirm`)
+
+1. Body: `{ token: string, new_password: string }`.
+2. Validates token: exists in `password_reset_tokens`, `used = false`, `expires_at > now()`.
+3. Updates password via `db.auth.admin.updateUserById(userId, { password })` (service_role client).
+4. Marks token `used = true` (idempotent).
+
+### Deployment
+
+- `verify_jwt = false` in `supabase/config.toml` — the function is publicly callable; the email + token are the credentials, no Bearer token required from the caller.
+- Required env secrets: `BREVO_API_KEY`, `SITE_URL` (panel URL, e.g. `https://…netlify.app/admin/`).
+
+### `password_reset_tokens` table
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | UUID PK | `gen_random_uuid()` |
+| `user_id` | UUID → auth.users | ON DELETE CASCADE |
+| `token` | TEXT UNIQUE | UUID v4 from `crypto.randomUUID()` |
+| `expires_at` | TIMESTAMPTZ | now() + 30 min |
+| `used` | BOOLEAN | DEFAULT false; set to true after Step B |
+| `created_at` | TIMESTAMPTZ | now() |
+
+Index on `(token) WHERE used = false` for fast Step B lookups. RLS enabled; no public policies — only service_role accesses this table.
