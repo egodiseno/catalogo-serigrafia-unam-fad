@@ -52,3 +52,9 @@ appcatalogo_/
 # Temporales
 *.tmp
 *.bak
+
+# Next.js
+.next/
+out/
+*.tsbuildinfo
+next-env.d.ts
