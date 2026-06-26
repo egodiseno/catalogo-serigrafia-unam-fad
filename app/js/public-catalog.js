@@ -968,12 +968,18 @@ export class PublicCatalog {
 
       if (changed) {
         await this.loadWorks();
-        // Esperar un frame extra para que el navegador haya pintado las nuevas
-        // obras antes de hacer scroll. Así el título "Obras" + contador y la
-        // primera fila completa quedan visibles sin cortes.
+        // Esperar a que el navegador pinte las obras antes de hacer scroll.
+        // Usamos window.scrollTo con el offsetTop absoluto del encabezado del
+        // grid menos la altura real del header sticky (más un margen de 16 px)
+        // para que el título "Obras" y el contador queden completamente visibles
+        // en la parte superior del viewport, sin quedar tapados por el header.
         setTimeout(() => {
-          const head = document.querySelector('.catalog__head');
-          if (head) head.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          const head     = document.querySelector('.catalog__head');
+          if (!head) return;
+          const headerEl = document.querySelector('.site-header');
+          const headerH  = headerEl ? headerEl.offsetHeight : 80;
+          const top      = head.getBoundingClientRect().top + window.scrollY - headerH - 16;
+          window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
         }, 50);
       }
     });
