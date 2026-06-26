@@ -978,7 +978,7 @@ export class PublicCatalog {
           if (!head) return;
           const headerEl = document.querySelector('.site-header');
           const headerH  = headerEl ? headerEl.offsetHeight : 80;
-          const top      = head.getBoundingClientRect().top + window.scrollY - headerH - 16;
+          const top      = head.getBoundingClientRect().top + window.scrollY - headerH - 24;
           window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
         }, 50);
       }
