@@ -140,6 +140,12 @@
 
     .cerrada-fechas-label { opacity: 0.8; font-weight: 400; }
 
+    .cerrada-proximo-aviso {
+      font-size:     0.9rem;
+      opacity:       0.85;
+      margin-bottom: 2rem;
+    }
+
     .btn-catalogo-ghost {
       display: inline-flex;
       align-items: center;
@@ -589,6 +595,9 @@
         <span class="cerrada-fechas-label">Próximo período:</span>
         <span id="cerrada-fechas-texto">Consulta con el administrador</span>
       </div>
+      <p id="cerrada-proximo-aviso" class="cerrada-proximo-aviso" style="display:none">
+        Las fechas del próximo período se anunciarán próximamente.
+      </p>
       <br>
       <a href="index.html" class="btn-catalogo-ghost">
         ← Ver el Catálogo
@@ -720,8 +729,9 @@
     const $cargando   = document.getElementById('pantalla-cargando');
     const $cerrada    = document.getElementById('pantalla-cerrada');
     const $abierta    = document.getElementById('pantalla-abierta');
-    const $cerradaTxt = document.getElementById('cerrada-fechas-texto');
-    const $abiertaTxt = document.getElementById('abierto-fechas-texto');
+    const $cerradaTxt   = document.getElementById('cerrada-fechas-texto');
+    const $cerradaAviso = document.getElementById('cerrada-proximo-aviso');
+    const $abiertaTxt   = document.getElementById('abierto-fechas-texto');
     const $form       = document.getElementById('form-registro');
     const $btnReg     = document.getElementById('btn-registrar');
     const $msgExito   = document.getElementById('msg-exito');
@@ -802,8 +812,17 @@
           // Mostrar pantalla cerrada (toggle apagado o fecha fuera de rango)
           $cerrada.classList.add('visible');
           if (data?.fecha_inicio && data?.fecha_fin) {
-            $cerradaTxt.textContent =
-              `${fmtFecha(data.fecha_inicio)} al ${fmtFecha(data.fecha_fin)}`;
+            if (data.fecha_fin < _hoyISO()) {
+              // Las fechas configuradas ya expiraron — ocultar el bloque
+              // "Próximo período" y mostrar un aviso genérico hasta que el
+              // administrador configure las fechas del nuevo período.
+              document.querySelector('.cerrada-fechas').style.display = 'none';
+              if ($cerradaAviso) $cerradaAviso.style.display = '';
+            } else {
+              // Hay fechas futuras o vigentes — mostrar el bloque con las fechas
+              $cerradaTxt.textContent =
+                `${fmtFecha(data.fecha_inicio)} al ${fmtFecha(data.fecha_fin)}`;
+            }
           }
         }
 
