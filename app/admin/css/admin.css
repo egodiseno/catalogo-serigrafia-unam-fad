@@ -6942,16 +6942,18 @@ input[type="file"]:hover {
 }
 
 .search-field__icon {
-  position:   absolute;
-  left:       0.6rem;
-  color:      var(--color-text-muted, #6b7280);
-  pointer-events: none;
-  flex-shrink: 0;
+  position:        absolute;
+  left:            0.6rem;
+  top:             50%;
+  transform:       translateY(-50%);
+  color:           var(--color-text-muted, #6b7280);
+  pointer-events:  none;
+  flex-shrink:     0;
 }
 
 .search-field__input {
   width:          100%;
-  padding:        0 0.75rem 0 2rem;         /* centrado vertical lo da height:40px */
+  padding:        0 0.75rem 0 2.5rem;       /* 2.5rem deja margen suficiente al ícono de 15 px */
   border:         1px solid #e5e7eb;
   border-radius:  6px;
   font-family:    inherit;
