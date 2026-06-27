@@ -2884,3 +2884,103 @@ body.is-scrolled .filters {
   font-size: 0.875rem;
   user-select: none;
 }
+
+/* ─────────────────────────────────────────────────────────────
+   PÁGINA 404 (.error-page)
+   Migrado desde inline <style> de 404.html
+   ───────────────────────────────────────────────────────────── */
+.error-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100dvh - 220px);
+  padding: var(--space-10, 4rem) 0;
+  text-align: center;
+}
+
+.error-page__inner {
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+.error-page__code {
+  font-family: 'Lora', Georgia, serif;
+  font-size: clamp(5rem, 15vw, 9rem);
+  font-weight: 700;
+  line-height: 1;
+  color: var(--color-blue, #013B75);
+  margin: 0 0 var(--space-4, 1rem);
+  letter-spacing: -0.02em;
+  opacity: 0.12;
+  user-select: none;
+}
+
+.error-page__title {
+  font-family: 'Lora', Georgia, serif;
+  font-size: clamp(1.5rem, 4vw, 2.25rem);
+  font-weight: 600;
+  color: var(--color-blue, #013B75);
+  margin: 0 0 var(--space-4, 1rem);
+  line-height: 1.2;
+}
+
+.error-page__lead {
+  font-size: 1rem;
+  color: var(--color-muted, #6B7280);
+  line-height: 1.6;
+  margin: 0 0 var(--space-8, 2.5rem);
+}
+
+.error-page__actions {
+  display: flex;
+  gap: var(--space-3, 0.75rem);
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.error-page__actions .btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: var(--color-blue, #013B75);
+  color: #fff;
+  border-radius: var(--radius-md, 8px);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.18s ease, transform 0.12s ease;
+}
+
+.error-page__actions .btn-primary:hover {
+  background: #012a58;
+  transform: translateY(-1px);
+}
+
+.error-page__actions .btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: transparent;
+  color: var(--color-blue, #013B75);
+  border: 1.5px solid var(--color-blue, #013B75);
+  border-radius: var(--radius-md, 8px);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.18s ease, color 0.18s ease, transform 0.12s ease;
+}
+
+.error-page__actions .btn-secondary:hover {
+  background: var(--color-blue, #013B75);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .error-page__actions .btn-primary,
+  .error-page__actions .btn-secondary {
+    transition: none;
+  }
+}
