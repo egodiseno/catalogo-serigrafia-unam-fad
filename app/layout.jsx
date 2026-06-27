@@ -6,6 +6,11 @@ import { LangProvider } from '@/contexts/LangContext';
 import Header from '@/components/public/Header';
 import Footer from '@/components/public/Footer';
 
+// themeColor va en viewport export separado (Next.js 14 — evita warning de metadata)
+export const viewport = {
+  themeColor: '#013B75',
+};
+
 export const metadata = {
   title: 'Catálogo de Obra Serigráfica | FAD-UNAM',
   description:
@@ -33,7 +38,6 @@ export const metadata = {
     ],
     apple: '/logos/cropped-icon-180x180.png',
   },
-  themeColor: '#013B75',
 };
 
 export default function RootLayout({ children }) {
