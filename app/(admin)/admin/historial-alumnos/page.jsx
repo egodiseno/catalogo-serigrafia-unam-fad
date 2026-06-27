@@ -34,7 +34,8 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { usePermisos } from '@/hooks/usePermisos';
-import { X, Eye, RefreshCw } from 'lucide-react';
+import ConfirmModal from '@/components/admin/ConfirmModal';
+import { Trash2, RefreshCw } from 'lucide-react';
 
 const PAGE_SIZE = 20;
 
@@ -118,117 +119,6 @@ function Paginacion({ page, totalPages, onChange }) {
   );
 }
 
-// ── Modal detalle del registro ────────────────────────────────────────────────
-function DetalleModal({ registro, onClose }) {
-  useEffect(() => {
-    const onKey = (e) => { if (e.key === 'Escape') onClose?.(); };
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, [onClose]);
-
-  const estadoStyle = getEstadoBadgeStyle(registro.estado);
-  const estadoLabel = getEstadoLabel(registro.estado);
-
-  return (
-    <div
-      className="modal-overlay"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="detalleModalTitle"
-      style={{ display: 'flex' }}
-      onClick={(e) => { if (e.target === e.currentTarget) onClose?.(); }}
-    >
-      <div className="modal-dialog">
-        <div className="modal-header">
-          <h3 id="detalleModalTitle">Detalle del Registro</h3>
-          <button type="button" className="modal-close" onClick={onClose} aria-label="Cerrar">
-            <X size={16} aria-hidden="true" />
-          </button>
-        </div>
-
-        <div className="modal-body">
-          {/* Estado */}
-          <div className="form-group">
-            <label>Estado</label>
-            <div>
-              <span className="badge" style={estadoStyle}>{estadoLabel}</span>
-            </div>
-          </div>
-
-          {/* Datos personales */}
-          <div className="form-group">
-            <label>Nombre</label>
-            <p style={{ margin: 0, fontWeight: 600 }}>{registro.nombre}</p>
-          </div>
-          <div className="form-group">
-            <label>Email</label>
-            <p style={{ margin: 0 }}>
-              <a href={`mailto:${registro.email}`} style={{ color: 'var(--color-primary)' }}>
-                {registro.email}
-              </a>
-            </p>
-          </div>
-          <div className="form-group">
-            <label>Número de cuenta</label>
-            <p style={{ margin: 0, fontFamily: 'monospace', fontSize: '1rem', letterSpacing: '0.05em' }}>
-              {registro.numero_cuenta}
-            </p>
-          </div>
-
-          {/* Teléfono */}
-          {registro.telefono && (
-            <div className="form-group">
-              <label>Teléfono</label>
-              <p style={{ margin: 0 }}>
-                {registro.telefono}
-                {registro.tiene_whatsapp && (
-                  <span style={{ marginLeft: 8, fontSize: '0.8rem', color: '#15803D' }}>✓ WhatsApp</span>
-                )}
-              </p>
-            </div>
-          )}
-
-          {/* Fechas */}
-          <div className="form-group">
-            <label>Fecha de solicitud</label>
-            <p style={{ margin: 0 }}>{fmtDate(registro.fecha_registro)}</p>
-          </div>
-          {registro.fecha_activacion && (
-            <div className="form-group">
-              <label>Fecha de activación</label>
-              <p style={{ margin: 0 }}>{fmtDate(registro.fecha_activacion)}</p>
-            </div>
-          )}
-
-          {/* Notas del admin — solo si fue rechazado */}
-          {registro.estado === 'rechazado' && registro.notas_admin && (
-            <div className="form-group">
-              <label>Motivo del rechazo</label>
-              <p style={{
-                margin: 0,
-                padding: '0.75rem',
-                background: '#FEF2F2',
-                border: '1px solid #FECACA',
-                borderRadius: 'var(--radius-sm)',
-                fontSize: '0.875rem',
-                color: '#DC2626',
-              }}>
-                {registro.notas_admin}
-              </p>
-            </div>
-          )}
-        </div>
-
-        <div className="modal-footer">
-          <button type="button" className="btn btn-secondary" onClick={onClose}>
-            Cerrar
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // ── Página principal ──────────────────────────────────────────────────────────
 export default function HistorialAlumnosPage() {
   const client = createClient();
@@ -249,8 +139,9 @@ export default function HistorialAlumnosPage() {
   const [page,            setPage]            = useState(1);
   const searchTimerRef = useRef(null);
 
-  // Modal detalle
-  const [detalleTarget, setDetalleTarget] = useState(null);
+  // Modal eliminar
+  const [deleteTarget, setDeleteTarget] = useState(null); // { id, nombre }
+  const [deleting,     setDeleting]     = useState(false);
 
   const [lastRefresh, setLastRefresh] = useState(null);
 
@@ -334,6 +225,27 @@ export default function HistorialAlumnosPage() {
   }, [client, currentUser, page, estadoFiltro, debouncedSearch]);
 
   useEffect(() => { loadRegistros(); }, [loadRegistros]);
+
+  // ── Eliminar registro ─────────────────────────────────────────────────────────
+  async function handleDelete() {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      const { error } = await client
+        .from('registro_alumnos')
+        .delete()
+        .eq('id', deleteTarget.id);
+      if (error) throw error;
+      setDeleteTarget(null);
+      await loadRegistros();
+    } catch (err) {
+      console.error('[HistorialAlumnos] delete:', err);
+      // ConfirmModal maneja el re-throw → muestra "Procesando…" sin cerrar
+      throw err;
+    } finally {
+      setDeleting(false);
+    }
+  }
 
   // Auto-refresh cada 60 s
   useEffect(() => {
@@ -464,12 +376,13 @@ export default function HistorialAlumnosPage() {
                     <div className="action-buttons">
                       <button
                         type="button"
-                        className="btn btn-sm btn-secondary btn--icon-only"
-                        onClick={() => setDetalleTarget(reg)}
-                        title="Ver detalle"
-                        aria-label={`Ver detalle de ${reg.nombre}`}
+                        className="btn btn-sm btn-danger btn--icon-only"
+                        onClick={() => setDeleteTarget({ id: reg.id, nombre: reg.nombre })}
+                        title="Eliminar registro"
+                        aria-label={`Eliminar registro de ${reg.nombre}`}
+                        disabled={deleting}
                       >
-                        <Eye size={14} aria-hidden="true" />
+                        <Trash2 size={14} aria-hidden="true" />
                       </button>
                     </div>
                   </td>
@@ -501,9 +414,17 @@ export default function HistorialAlumnosPage() {
         </div>
       )}
 
-      {/* ── Modal detalle ────────────────────────────────────────────────────── */}
-      {detalleTarget && (
-        <DetalleModal registro={detalleTarget} onClose={() => setDetalleTarget(null)} />
+      {/* ── Modal confirmar eliminación ──────────────────────────────────────── */}
+      {deleteTarget && (
+        <ConfirmModal
+          title="Eliminar registro"
+          message={`¿Eliminar el registro de ${deleteTarget.nombre}? Esta acción no se puede deshacer.`}
+          confirmLabel="Eliminar"
+          cancelLabel="Cancelar"
+          confirmVariant="danger"
+          onConfirm={handleDelete}
+          onCancel={() => setDeleteTarget(null)}
+        />
       )}
     </div>
   );

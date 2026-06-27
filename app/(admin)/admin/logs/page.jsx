@@ -176,10 +176,11 @@ export default function LogsPage() {
   const [currentUser,  setCurrentUser]  = useState(null);
   const { tienePermiso } = usePermisos(currentUser?.rol ?? null);
 
-  const [logs,        setLogs]        = useState([]);
-  const [totalCount,  setTotalCount]  = useState(0);
-  const [loading,     setLoading]     = useState(true);
-  const [loadError,   setLoadError]   = useState(false);
+  const [logs,         setLogs]         = useState([]);
+  const [totalCount,   setTotalCount]   = useState(0);
+  const [loading,      setLoading]      = useState(true);
+  const [loadError,    setLoadError]    = useState(false);
+  const [loadErrorMsg, setLoadErrorMsg] = useState('');
 
   // Filtros
   const [search,          setSearch]          = useState('');
@@ -265,8 +266,15 @@ export default function LogsPage() {
       setLogs(data ?? []);
       setTotalCount(count ?? 0);
     } catch (err) {
-      console.error('[Logs] load:', err);
+      // Detalle completo para diagnosticar: nombre tabla, columnas, RLS
+      console.error('[Logs] load — error completo:', err);
+      console.error('[Logs] mensaje:', err?.message);
+      console.error('[Logs] código Supabase:', err?.code);
+      console.error('[Logs] detalles:', err?.details);
+      console.error('[Logs] hint:', err?.hint);
+      console.error('[Logs] statusCode:', err?.status ?? err?.statusCode);
       setLoadError(true);
+      setLoadErrorMsg(err?.message ?? 'Error desconocido');
     } finally {
       setLoading(false);
     }
@@ -346,32 +354,47 @@ export default function LogsPage() {
         </div>
       </div>
 
-      {/* ── Filtros ──────────────────────────────────────────────────────────── */}
+      {/* ── Filtros — todos en una fila horizontal ───────────────────────────── */}
+      {/*
+          Estructura CSS (verificada en styles/admin.css):
+          .logs-filters          → display:flex; flex-wrap:wrap; align-items:flex-end
+          .logs-filter-group     → flex-direction:column; gap:4px; min-width:160px
+          .logs-filter-group--dates → flex:1 1 auto; min-width:260px (se usa para búsqueda y período)
+          .logs-date-range       → display:flex; align-items:center; gap:var(--spacing-sm)
+          .logs-date-sep         → separador "—" entre las fechas
+          .logs-filter-actions   → display:flex; align-items:flex-end; gap:var(--spacing-sm)
+          .search-input          → aplicado en date inputs para que reciban flex:1 1 0 de logs-date-range
+      */}
       <div className="logs-filters">
-        {/* Fila 1: búsqueda + acción */}
-        <div className="logs-filter-group">
-          {/* Búsqueda */}
-          <div className="search-field" style={{ flex: 1, minWidth: 200 }}>
+
+        {/* Grupo 1: Búsqueda (crece con flex:1 1 auto via --dates) */}
+        <div className="logs-filter-group logs-filter-group--dates">
+          <label htmlFor="logsSearch">Buscar</label>
+          <div className="search-field">
             <span className="search-field__icon" aria-hidden="true">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
               </svg>
             </span>
             <input
+              id="logsSearch"
               type="search"
               className="search-field__input"
-              placeholder="Buscar por descripción o usuario…"
+              placeholder="Descripción o usuario…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               aria-label="Buscar en logs"
             />
           </div>
+        </div>
 
-          {/* Acción */}
+        {/* Grupo 2: Acción */}
+        <div className="logs-filter-group">
+          <label htmlFor="logsAccion">Acción</label>
           <select
+            id="logsAccion"
             value={accionFiltro}
             onChange={(e) => setAccionFiltro(e.target.value)}
-            style={{ height: 40, padding: '0 0.75rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)', fontSize: '0.875rem', cursor: 'pointer', minWidth: 160 }}
             aria-label="Filtrar por acción"
           >
             <option value="">Todas las acciones</option>
@@ -385,10 +408,10 @@ export default function LogsPage() {
           </select>
         </div>
 
-        {/* Fila 2: rango de fechas */}
+        {/* Grupo 3: Período (fecha desde — fecha hasta en la misma fila via logs-date-range) */}
         <div className="logs-filter-group logs-filter-group--dates">
+          <label>Período</label>
           <div className="logs-date-range">
-            <label htmlFor="logsFechaDesde" style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginBottom: 4 }}>Desde</label>
             <input
               id="logsFechaDesde"
               type="date"
@@ -398,10 +421,7 @@ export default function LogsPage() {
               max={fechaHasta || undefined}
               aria-label="Fecha desde"
             />
-          </div>
-          <span className="logs-date-sep" aria-hidden="true">—</span>
-          <div className="logs-date-range">
-            <label htmlFor="logsFechaHasta" style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginBottom: 4 }}>Hasta</label>
+            <span className="logs-date-sep" aria-hidden="true">—</span>
             <input
               id="logsFechaHasta"
               type="date"
@@ -431,8 +451,13 @@ export default function LogsPage() {
       {/* ── Error ────────────────────────────────────────────────────────────── */}
       {loadError && (
         <div className="form-alert error" role="alert" style={{ marginBottom: 'var(--spacing-lg)' }}>
-          Error al cargar los logs.{' '}
-          <button type="button" className="btn btn-secondary btn-sm" onClick={loadLogs} style={{ marginLeft: 8 }}>
+          <strong>Error al cargar los logs.</strong>
+          {loadErrorMsg && (
+            <code style={{ display: 'block', marginTop: 4, fontSize: '0.8rem', opacity: 0.85 }}>
+              {loadErrorMsg}
+            </code>
+          )}
+          <button type="button" className="btn btn-secondary btn-sm" onClick={loadLogs} style={{ marginTop: 8 }}>
             Reintentar
           </button>
         </div>
