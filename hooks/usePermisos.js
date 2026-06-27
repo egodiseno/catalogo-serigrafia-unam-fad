@@ -59,6 +59,9 @@ const PERMISOS = {
     // Logs
     'logs.ver': true,
 
+    // Estadísticas — admin + super_editor
+    'estadisticas.ver': true,
+
     // Configuración — solo ADMIN
     'configuracion.ver':    true,
     'configuracion.editar': true,
@@ -114,6 +117,9 @@ const PERMISOS = {
 
     // Logs — solo ADMIN
     'logs.ver': false,
+
+    // Estadísticas — admin + super_editor
+    'estadisticas.ver': true,
 
     // Configuración — solo ADMIN
     'configuracion.ver':    false,
@@ -171,6 +177,9 @@ const PERMISOS = {
 
     // Logs — sin acceso
     'logs.ver': false,
+
+    // Estadísticas — sin acceso
+    'estadisticas.ver': false,
 
     // Configuración — sin acceso
     'configuracion.ver':    false,
