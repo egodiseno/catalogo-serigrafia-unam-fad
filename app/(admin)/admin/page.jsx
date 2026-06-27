@@ -3,41 +3,35 @@
 /**
  * app/(admin)/admin/page.jsx — /admin (Dashboard)
  *
+ * Auth obtenida directamente con supabase.auth.getUser() dentro de loadStats()
+ * — sin useAuth(), sin instancia GoTrueClient duplicada, sin estado authLoading.
+ *
+ * Flujo:
+ *   montar → loadStats() → getUser() → usuarios_admin lookup → 10 queries
+ *   Si getUser() falla → error inmediato (no espera timeout)
+ *   Auto-refresh cada 30 s
+ *
  * Estructura HTML idéntica al VanillaJS dashboardSection:
- *
- *   .section-header
- *     div > h2 "Dashboard" + p "Resumen del catálogo"
- *     button "+ Nueva Obra"  (solo con permiso obras.crear)
- *
- *   .stats-grid
- *     .stat-card               → Obras Totales
- *     .stat-card--warning      → Pendientes de Revisión  (admin/super_editor)
- *     .stat-card               → Técnicas
- *     .stat-card               → Tags
- *     .stat-card               → Usuarios Admin
- *     .stat-card--warning      → Registros Pendientes    (admin/super_editor)
- *     .stat-card--stale        → Estancadas > 7 días     (admin/super_editor, solo si > 0)
- *
- *   .recent-section            → Últimas Obras (tabla .recent-table)
- *   .recent-section            → Top Visitas este mes    (admin/super_editor, solo si hay datos)
+ *   .section-header → h2 + p + botón Nueva Obra (si permiso)
+ *   .stats-grid     → tarjetas de estadísticas
+ *   .recent-section → Últimas Obras (tabla)
+ *   .recent-section → Top Visitas (solo admin/super_editor, si hay datos)
  *
  * Columnas verificadas contra supabase/migrations/:
  *   obras:            id, titulo, artista, año, estado, created_at, updated_at, motivo_reapertura
- *   tecnicas:         id, nombre, slug
- *   tags:             id, nombre, slug
+ *   tecnicas/tags:    count(*)
  *   usuarios_admin:   rol, nombre, email, estado
- *   registro_alumnos: estado  ('pendiente_validacion' | 'activo' | 'rechazado')
+ *   registro_alumnos: estado ('pendiente_validacion' | 'activo' | 'rechazado')
  *   RPC:              get_top_obras_visitas_mes(p_limit) → obra_id, titulo, artista, visitas, favoritos
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
 import { usePermisos } from '@/hooks/usePermisos';
 import { Plus, Clock, Eye, Heart, TrendingUp, BarChart2, AlertCircle } from 'lucide-react';
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
+// ── Helpers ───────────────────────────────────────────────────────────────────
 function escHtml(str) {
   if (!str) return '—';
   return String(str)
@@ -54,7 +48,6 @@ function formatFecha(isoStr) {
   });
 }
 
-// Mapa estado → clase badge (idéntico a dashboard.js BADGE_CLS)
 const BADGE_CLS = {
   'Publicado':   'badge-publicado',
   'Borrador':    'badge-borrador',
@@ -62,21 +55,22 @@ const BADGE_CLS = {
   'Archivado':   'badge-archivado',
 };
 
-// ── Helpers de Promise.allSettled ─────────────────────────────────────────────
-// Extrae el valor de un resultado settled; null si fue rejected.
+// Extrae el valor de un settled result; null + log si fue rejected.
 function settled(result, label) {
-  if (result.status === 'fulfilled') {
-    return result.value;
-  }
+  if (result.status === 'fulfilled') return result.value;
   console.error(`[Dashboard] Query "${label}" falló:`, result.reason);
   return null;
 }
 
 // ── Componente principal ──────────────────────────────────────────────────────
 export default function DashboardPage() {
-  const router  = useRouter();
-  const { user, rol, email, loading: authLoading } = useAuth();
-  const { tienePermiso } = usePermisos(rol);
+  const router = useRouter();
+
+  // currentUser almacena { id, email, rol, nombre } tras getUser() + lookup
+  const [currentUser, setCurrentUser] = useState(null);
+
+  // usePermisos depende de currentUser.rol; mientras null retorna false para todo
+  const { tienePermiso } = usePermisos(currentUser?.rol ?? null);
 
   const [stats,       setStats]       = useState(null);
   const [loadingData, setLoadingData] = useState(true);
@@ -84,14 +78,13 @@ export default function DashboardPage() {
   const [errorMsg,    setErrorMsg]    = useState('');
   const intervalRef                   = useRef(null);
 
-  // ── Timeout de seguridad: si a los 8 s seguimos "Cargando…" → mostrar error ─
-  // Cubre el caso donde authLoading nunca resuelve (Supabase no responde)
-  // o loadStats cuelga sin lanzar excepción.
+  // ── Timeout de seguridad: 8 s máximo incluyendo la llamada getUser() ────────
+  // Solo necesario si loadStats() se cuelga sin lanzar excepción.
   useEffect(() => {
     const t = setTimeout(() => {
       setLoadingData(prev => {
         if (prev) {
-          console.error('[Dashboard] timeout 8s: auth o queries no resolvieron.');
+          console.error('[Dashboard] timeout 8s: getUser() o queries no resolvieron');
           setDataError(true);
           setErrorMsg('La conexión tardó demasiado. Verifica tu red y recarga la página.');
           return false;
@@ -100,21 +93,73 @@ export default function DashboardPage() {
       });
     }, 8_000);
     return () => clearTimeout(t);
-  }, []); // solo al montar
+  }, []);
 
-  // ── loadStats — cada query individual en try-catch con logging ────────────
+  // ── loadStats — self-contained: obtiene auth aquí mismo ──────────────────
   const loadStats = useCallback(async () => {
-    if (!user || !rol) return;
-
     const supabase = createClient();
-    const esAdmin  = rol !== 'editor';
-    const artista  = email; // editor filtra por artista (= email), igual que dashboard.js
 
+    // ── 1. getUser() — sin sesión → error inmediato ──────────────────────────
+    let authUser;
+    try {
+      const { data, error } = await supabase.auth.getUser();
+      if (error || !data?.user) {
+        console.error('[Dashboard] getUser() sin sesión o con error:', error);
+        setDataError(true);
+        setErrorMsg('No hay sesión activa. Inicia sesión nuevamente.');
+        setLoadingData(false);
+        return;
+      }
+      authUser = data.user;
+    } catch (err) {
+      console.error('[Dashboard] getUser() lanzó excepción:', err);
+      setDataError(true);
+      setErrorMsg('Error de conexión al verificar sesión. Verifica tu red.');
+      setLoadingData(false);
+      return;
+    }
+
+    // ── 2. Lookup en usuarios_admin → obtener rol ────────────────────────────
+    let rol, artista, esAdmin;
+    try {
+      const { data: adminUser, error: adminError } = await supabase
+        .from('usuarios_admin')
+        .select('rol, nombre, email')
+        .eq('email', authUser.email)
+        .single();
+
+      if (adminError || !adminUser) {
+        console.error('[Dashboard] usuarios_admin lookup falló:', adminError);
+        setDataError(true);
+        setErrorMsg('Usuario no encontrado en el sistema. Contacta al administrador.');
+        setLoadingData(false);
+        return;
+      }
+
+      rol     = adminUser.rol;
+      artista = adminUser.email; // editor filtra obras por email (campo artista en obras)
+      esAdmin = rol !== 'editor';
+
+      // Actualizar currentUser para usePermisos (puede diferir entre refreshes si el rol cambia)
+      setCurrentUser({
+        id:     authUser.id,
+        email:  adminUser.email,
+        rol:    adminUser.rol,
+        nombre: adminUser.nombre,
+      });
+    } catch (err) {
+      console.error('[Dashboard] usuarios_admin lookup lanzó excepción:', err);
+      setDataError(true);
+      setErrorMsg('Error obteniendo permisos del usuario.');
+      setLoadingData(false);
+      return;
+    }
+
+    // ── 3. Queries de estadísticas (10 en paralelo) ──────────────────────────
     console.log(`[Dashboard] loadStats iniciado — rol: ${rol}, esAdmin: ${esAdmin}`);
     const t0 = performance.now();
 
-    // ── Construir queries base ─────────────────────────────────────────────────
-    // Columnas verificadas: obras(id,titulo,artista,año,estado,created_at,updated_at,motivo_reapertura)
+    // Construir queries filtradas por rol
     let obrasCountQ = supabase.from('obras').select('*', { count: 'exact', head: true });
     let obrasListQ  = supabase
       .from('obras')
@@ -127,11 +172,9 @@ export default function DashboardPage() {
       obrasListQ  = obrasListQ.eq('artista', artista);
     }
 
-    // Corte temporal para obras estancadas (> 7 días sin actividad)
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
-    // ── Wrappear cada query en try-catch individual ─────────────────────────
-    // Si una falla se registra el error y continúa con las demás.
+    // Wrapper try-catch por query individual
     async function safeQuery(label, queryPromise) {
       try {
         const result = await queryPromise;
@@ -145,8 +188,7 @@ export default function DashboardPage() {
       }
     }
 
-    // ── Ejecutar las 10 queries en paralelo con Promise.allSettled ────────────
-    // allSettled nunca cancela las demás si una falla.
+    // Promise.allSettled: una falla no cancela las demás
     const [
       r_obras,
       r_tecnicas,
@@ -159,28 +201,18 @@ export default function DashboardPage() {
       r_estancadas,
       r_topVisitas,
     ] = await Promise.allSettled([
-      /* 1 */ safeQuery('obras count',
-        obrasCountQ
-      ),
-      /* 2 */ safeQuery('tecnicas count',
-        supabase.from('tecnicas').select('*', { count: 'exact', head: true })
-      ),
-      /* 3 */ safeQuery('tags count',
-        supabase.from('tags').select('*', { count: 'exact', head: true })
-      ),
-      /* 4 */ safeQuery('usuarios_admin count',
-        supabase.from('usuarios_admin').select('*', { count: 'exact', head: true })
-      ),
-      /* 5 */ safeQuery('obras recientes',
-        obrasListQ
-      ),
+      /* 1 */ safeQuery('obras count',      obrasCountQ),
+      /* 2 */ safeQuery('tecnicas count',   supabase.from('tecnicas').select('*', { count: 'exact', head: true })),
+      /* 3 */ safeQuery('tags count',       supabase.from('tags').select('*', { count: 'exact', head: true })),
+      /* 4 */ safeQuery('usuarios count',   supabase.from('usuarios_admin').select('*', { count: 'exact', head: true })),
+      /* 5 */ safeQuery('obras recientes',  obrasListQ),
       /* 6 */ esAdmin
         ? safeQuery('pendientes revision',
             supabase.from('obras').select('*', { count: 'exact', head: true }).eq('estado', 'En Revisión')
           )
         : Promise.resolve({ count: 0, data: null, error: null }),
       /* 7 */ esAdmin
-        ? safeQuery('con cambios (reaperturas)',
+        ? safeQuery('con cambios',
             supabase
               .from('obras')
               .select('*', { count: 'exact', head: true })
@@ -189,7 +221,7 @@ export default function DashboardPage() {
           )
         : Promise.resolve({ count: 0, data: null, error: null }),
       /* 8 */ esAdmin
-        ? safeQuery('registro_alumnos pendientes',
+        ? safeQuery('registros pendientes',
             supabase
               .from('registro_alumnos')
               .select('*', { count: 'exact', head: true })
@@ -212,7 +244,7 @@ export default function DashboardPage() {
         : Promise.resolve({ data: [], error: null }),
     ]);
 
-    // ── Timing warning ────────────────────────────────────────────────────────
+    // ── 4. Timing ────────────────────────────────────────────────────────────
     const elapsed = performance.now() - t0;
     if (elapsed > 3_000) {
       console.warn(`[Dashboard] loadStats tardó más de 3s (${elapsed.toFixed(0)}ms)`);
@@ -220,15 +252,15 @@ export default function DashboardPage() {
       console.log(`[Dashboard] loadStats completado en ${elapsed.toFixed(0)}ms`);
     }
 
-    // ── Extraer valores de los settled results ────────────────────────────────
+    // ── 5. Extraer valores ───────────────────────────────────────────────────
     const v_obras        = settled(r_obras,        'obras count');
     const v_tecnicas     = settled(r_tecnicas,     'tecnicas count');
     const v_tags         = settled(r_tags,         'tags count');
-    const v_usuarios     = settled(r_usuarios,     'usuarios_admin count');
+    const v_usuarios     = settled(r_usuarios,     'usuarios count');
     const v_recientes    = settled(r_recientes,    'obras recientes');
     const v_pendientes   = settled(r_pendientes,   'pendientes revision');
     const v_conCambios   = settled(r_conCambios,   'con cambios');
-    const v_regPend      = settled(r_regPendientes,'registro_alumnos pendientes');
+    const v_regPend      = settled(r_regPendientes,'registros pendientes');
     const v_estancadas   = settled(r_estancadas,   'obras estancadas');
     const v_topVisitas   = settled(r_topVisitas,   'top visitas mes');
 
@@ -246,9 +278,9 @@ export default function DashboardPage() {
       esAdmin,
     };
 
-    // ── Warn si algún campo quedó undefined/null (query falló) ───────────────
+    // ── 6. Warn si algún campo quedó nulo (query fallida) ───────────────────
     const camposNulos = Object.entries(newStats)
-      .filter(([k, v]) => v === null || v === undefined)
+      .filter(([, v]) => v === null || v === undefined)
       .map(([k]) => k);
     if (camposNulos.length > 0) {
       console.warn('[Dashboard] Stats incompleto — campos nulos:', camposNulos, newStats);
@@ -257,21 +289,18 @@ export default function DashboardPage() {
     setStats(newStats);
     setDataError(false);
     setLoadingData(false);
+  }, []); // self-contained — sin dependencias de estado externo
 
-  }, [user, rol, email]);
-
-  // ── Carga inicial + auto-refresh 30 s ────────────────────────────────────────
+  // ── Carga inicial + auto-refresh 30 s ─────────────────────────────────────
   useEffect(() => {
-    if (authLoading || !user) return;
     loadStats();
     intervalRef.current = setInterval(loadStats, 30_000);
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [authLoading, user, loadStats]);
+  }, [loadStats]);
 
-  // ── Render: estado de error (incluye timeout) ─────────────────────────────
-  // Mostrar el error AUNQUE authLoading siga true (timeout cubrió eso)
+  // ── Render: error (timeout o fallo inmediato de auth) ─────────────────────
   if (dataError) {
     return (
       <div>
@@ -320,8 +349,8 @@ export default function DashboardPage() {
     );
   }
 
-  // ── Render: cargando ──────────────────────────────────────────────────────
-  if (authLoading || loadingData) {
+  // ── Render: cargando ───────────────────────────────────────────────────────
+  if (loadingData) {
     return (
       <div>
         <div className="section-header">
@@ -335,7 +364,7 @@ export default function DashboardPage() {
     );
   }
 
-  if (!user) return null; // layout server-side ya redirige — fallback defensivo
+  if (!stats) return null; // fallback defensivo (no debería ocurrir)
 
   const {
     obras, tecnicas, tags, usuarios,
@@ -346,7 +375,7 @@ export default function DashboardPage() {
   return (
     <div>
 
-      {/* ── Section header — idéntico al VanillaJS ──────────────────────── */}
+      {/* ── Section header ─────────────────────────────────────────────────── */}
       <div className="section-header">
         <div>
           <h2>Dashboard</h2>
@@ -364,10 +393,10 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* ── Stats Grid ───────────────────────────────────────────────────── */}
+      {/* ── Stats Grid ─────────────────────────────────────────────────────── */}
       <div className="stats-grid">
 
-        {/* 1. Obras Totales — siempre visible */}
+        {/* 1. Obras Totales */}
         <div className="stat-card">
           <div className="stat-value" id="totalObras">{obras}</div>
           <div className="stat-label">Obras Totales</div>
@@ -399,19 +428,19 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* 3. Técnicas — siempre visible */}
+        {/* 3. Técnicas */}
         <div className="stat-card">
           <div className="stat-value" id="totalTecnicas">{tecnicas}</div>
           <div className="stat-label">Técnicas</div>
         </div>
 
-        {/* 4. Tags — siempre visible */}
+        {/* 4. Tags */}
         <div className="stat-card">
           <div className="stat-value" id="totalTags">{tags}</div>
           <div className="stat-label">Tags</div>
         </div>
 
-        {/* 5. Usuarios Admin — siempre visible */}
+        {/* 5. Usuarios Admin */}
         <div className="stat-card">
           <div className="stat-value" id="totalUsuarios">{usuarios}</div>
           <div className="stat-label">Usuarios Admin</div>
@@ -439,7 +468,7 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* 7. Obras estancadas — admin/super_editor Y solo si count > 0 */}
+        {/* 7. Obras estancadas — admin/super_editor, solo si > 0 */}
         {esAdmin && estancadas > 0 && (
           <div
             className="stat-card stat-card--stale"
@@ -465,7 +494,7 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* ── Últimas Obras — idéntico al VanillaJS (va ANTES de top visitas) ─ */}
+      {/* ── Últimas Obras (va PRIMERO) ─────────────────────────────────────── */}
       <div className="recent-section">
         <h3>Últimas Obras</h3>
         <div className="table-wrapper">
@@ -513,7 +542,11 @@ export default function DashboardPage() {
             <TrendingUp size={18} style={{ verticalAlign: '-3px', marginRight: 6 }} aria-hidden="true" />
             Obras más visitadas este mes
           </h3>
-          <ol className="top-visitas-list" id="topVisitasList" aria-label="Ranking de obras más visitadas del mes">
+          <ol
+            className="top-visitas-list"
+            id="topVisitasList"
+            aria-label="Ranking de obras más visitadas del mes"
+          >
             {topVisitas.map((row, i) => (
               <li key={row.obra_id ?? i} className="top-visitas-item">
                 <span className={`top-visitas-rank${i === 0 ? ' top-visitas-rank--gold' : ''}`}>
@@ -528,7 +561,7 @@ export default function DashboardPage() {
                     <Eye size={12} aria-hidden="true" />
                     {row.visitas}
                   </span>
-                  <span className="top-visitas-stat top-visitas-stat--fav" title="Corazones totales">
+                  <span className="top-visitas-stat top-visitas-stat--fav" title="Favoritos">
                     <Heart size={12} aria-hidden="true" />
                     {row.favoritos ?? 0}
                   </span>
