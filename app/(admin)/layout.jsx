@@ -22,47 +22,12 @@
  */
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
+import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import '../../styles/admin.css';
 import LogoutButton from '@/components/admin/LogoutButton';
-import {
-  LayoutDashboard, ImageIcon, Brush, Tag, Users, UserCheck,
-  ToggleRight, Archive, Activity, BarChart2, Settings2,
-  LayoutGrid, User, Menu,
-} from 'lucide-react';
-
-// ── Nav items — orden exacto del HTML original ──────────────────────────────
-const NAV_ITEMS = [
-  { section: 'dashboard',            label: 'Dashboard',         Icon: LayoutDashboard, roles: ['admin', 'super_editor'] },
-  { section: 'obras',                label: 'Obras',             Icon: ImageIcon,        roles: ['admin', 'super_editor'] },
-  { section: 'tecnicas',             label: 'Técnicas',          Icon: Brush,            roles: ['admin', 'super_editor'] },
-  { section: 'tags',                 label: 'Tags',              Icon: Tag,              roles: ['admin', 'super_editor'] },
-  { section: 'usuarios',             label: 'Usuarios',          Icon: Users,            roles: ['admin', 'super_editor'] },
-  { section: 'registros-pendientes', label: 'Registros',         Icon: UserCheck,        roles: ['admin', 'super_editor'] },
-  { section: 'control-registro',     label: 'Control Registro',  Icon: ToggleRight,      roles: ['admin', 'super_editor'] },
-  { section: 'historial-alumnos',    label: 'Historial Alumnos', Icon: Archive,          roles: ['admin'] },
-  { section: 'logs',                 label: 'Logs',              Icon: Activity,         roles: ['admin'] },
-  { section: 'estadisticas',         label: 'Estadísticas',      Icon: BarChart2,        roles: ['admin', 'super_editor'] },
-  { section: 'configuracion',        label: 'Configuración',     Icon: Settings2,        roles: ['admin'] },
-  { section: 'mi-portafolio',        label: 'Mi Portafolio',     Icon: LayoutGrid,       roles: ['editor'] },
-];
-
-// ── Rutas Next.js por sección ────────────────────────────────────────────────
-const SECTION_ROUTES = {
-  'dashboard':            '/admin',
-  'obras':                '/admin/obras',
-  'tecnicas':             '/admin/tecnicas',
-  'tags':                 '/admin/tags',
-  'usuarios':             '/admin/usuarios',
-  'registros-pendientes': '/admin/registros-pendientes',
-  'control-registro':     '/admin/control-registro',
-  'historial-alumnos':    '/admin/historial-alumnos',
-  'logs':                 '/admin/logs',
-  'estadisticas':         '/admin/estadisticas',
-  'configuracion':        '/admin/configuracion',
-  'mi-portafolio':        '/admin/portafolio',
-  'mi-perfil':            '/admin/perfil',
-};
+import SidebarNav from '@/components/admin/SidebarNav';
+import { User, Menu } from 'lucide-react';
 
 export default async function AdminLayout({ children }) {
   // Pathname inyectado por middleware.js → distingue /admin/login del resto
@@ -143,26 +108,8 @@ export default async function AdminLayout({ children }) {
             </div>
           </div>
 
-          {/* Nav principal */}
-          <nav className="sidebar-nav" aria-label="Secciones del admin">
-            {NAV_ITEMS.map(({ section, label, Icon, roles }) => {
-              if (!roles.includes(rol)) return null;
-              const href     = SECTION_ROUTES[section] || '/admin';
-              const isActive = pathname === href || (section === 'dashboard' && pathname === '/admin');
-              return (
-                <a
-                  key={section}
-                  href={href}
-                  className={`nav-item${isActive ? ' active' : ''}`}
-                  data-section={section}
-                  aria-current={isActive ? 'page' : undefined}
-                >
-                  <Icon size={18} aria-hidden="true" />
-                  <span className="nav-label">{label}</span>
-                </a>
-              );
-            })}
-          </nav>
+          {/* Nav principal — Client Component (usePathname + <Link> SPA) */}
+          <SidebarNav rol={rol} />
 
           {/* Footer del sidebar: avatar + acciones — idéntico a VanillaJS */}
           <div className="sidebar-footer">
@@ -178,13 +125,13 @@ export default async function AdminLayout({ children }) {
 
             {/* Botones: Mi Perfil y Cerrar Sesión */}
             <div className="sidebar-footer-actions">
-              <a
+              <Link
                 href="/admin/perfil"
                 className="btn btn-tertiary btn-block"
                 id="userProfileMobileBtn"
               >
                 <User size={16} aria-hidden="true" /> Mi Perfil
-              </a>
+              </Link>
               <LogoutButton />
             </div>
           </div>
