@@ -492,7 +492,7 @@ export default function CatalogPage() {
             id="filterPanel"
             className={`filter-panel${filterPanelOpen ? ' is-open' : ''}`}
           >
-            <form onSubmit={(e) => e.preventDefault()}>
+            <form data-filters onSubmit={(e) => e.preventDefault()}>
               <div className="filter-grid">
 
                 {/* AÑO */}
@@ -609,7 +609,7 @@ export default function CatalogPage() {
                   <Heart size={15} aria-hidden="true" />
                   <span>{lang === 'en' ? 'My favorites' : 'Mis favoritos'}</span>
                 </button>
-                <button type="button" onClick={clearFilters}>
+                <button type="button" data-clear onClick={clearFilters}>
                   {lang === 'en' ? 'Clear filters' : 'Limpiar filtros'}
                 </button>
               </div>
