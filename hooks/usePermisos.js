@@ -49,6 +49,9 @@ const PERMISOS = {
     'registros.validar':  true,
     'registros.rechazar': true,
 
+    // Historial de alumnos — admin + super_editor
+    'historial_alumnos.ver': true,
+
     // Control de registro — solo ADMIN
     'control_registro.ver':    true,
     'control_registro.editar': true,
@@ -101,6 +104,9 @@ const PERMISOS = {
     'registros.ver':      true,
     'registros.validar':  true,
     'registros.rechazar': true,
+
+    // Historial de alumnos — admin + super_editor
+    'historial_alumnos.ver': true,
 
     // Control de registro — solo ADMIN
     'control_registro.ver':    false,
@@ -155,6 +161,9 @@ const PERMISOS = {
     'registros.ver':      false,
     'registros.validar':  false,
     'registros.rechazar': false,
+
+    // Historial de alumnos — sin acceso
+    'historial_alumnos.ver': false,
 
     // Control de registro — sin acceso
     'control_registro.ver':    false,

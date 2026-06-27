@@ -40,7 +40,7 @@ const NAV_ITEMS = [
   { section: 'usuarios', label: 'Usuarios', href: '/admin/usuarios', Icon: Users, roles: ['admin', 'super_editor'] },
   { section: 'registros-pendientes', label: 'Registros', href: '/admin/registros', Icon: UserCheck, roles: ['admin', 'super_editor'] },
   { section: 'control-registro', label: 'Control Registro', href: '/admin/control-registro', Icon: ToggleRight, roles: ['admin'] },
-  { section: 'historial-alumnos', label: 'Historial Alumnos', href: '/admin/historial-alumnos', Icon: Archive, roles: ['admin'] },
+  { section: 'historial-alumnos', label: 'Historial Alumnos', href: '/admin/historial-alumnos', Icon: Archive, roles: ['admin', 'super_editor'] },
   { section: 'logs', label: 'Logs', href: '/admin/logs', Icon: Activity, roles: ['admin'] },
   { section: 'estadisticas', label: 'Estadísticas', href: '/admin/estadisticas', Icon: BarChart2, roles: ['admin', 'super_editor'] },
   { section: 'configuracion', label: 'Configuración', href: '/admin/configuracion', Icon: Settings2, roles: ['admin'] },
