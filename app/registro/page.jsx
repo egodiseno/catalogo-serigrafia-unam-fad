@@ -11,9 +11,8 @@
 //   4. Submit → llama Edge Function save-registro-alumno via fetch
 //   5. Errores conocidos: DUPLICATE_EMAIL, DUPLICATE_CUENTA, REGISTRO_CERRADO
 //
-// No usa styles/globals.css para los estilos de la card; los estilos específicos
-// de esta pantalla (variables, .cerrada-*, .reg-*) se inyectan inline para
-// mantener el look original sin contaminar el design system público.
+// CSS: todos los estilos específicos de esta pantalla (--reg-*, .cerrada-*, .reg-*)
+// viven en styles/globals.css bajo la sección "=== Registro público ===".
 
 import { useState, useEffect } from 'react';
 import { getRegistroConfig } from '@/lib/supabase/api';
@@ -60,86 +59,6 @@ const validate = {
                : !CUENTA_RE.test(v) ? { ok: false, msg: 'Debe tener exactamente 9 dígitos numéricos' }
                : { ok: true },
 };
-
-// ── CSS específico de la pantalla de registro ─────────────────────────────────
-// Extraído a constante de módulo para reutilizarlo tanto en el early-return
-// (SSR / pre-mount) como en el render principal, sin duplicar la cadena.
-const REGISTRO_STYLES = `
-  :root {
-    --reg-blue:#013B75; --reg-blue-dark:#002A55; --reg-blue-light:#EEF4FB;
-    --reg-gold:#D9A500; --reg-gold-light:#FFF8E1; --reg-surface:#fff;
-    --reg-bg:#F4F6F9; --reg-text:#1F2937; --reg-muted:#6B7280;
-    --reg-border:#E5E7EB; --reg-success:#059669; --reg-error:#DC2626;
-    --reg-radius:10px; --reg-radius-sm:6px;
-  }
-  #registro-page { min-height: calc(100dvh - 140px); background: var(--reg-bg); }
-  .reg-skeleton { display:flex; align-items:center; justify-content:center; min-height:60vh; }
-  .reg-skeleton__dot { width:10px; height:10px; border-radius:50%; background:var(--reg-blue); animation:dotPulse 1.2s ease-in-out infinite; margin:0 4px; }
-  .reg-skeleton__dot:nth-child(2){ animation-delay:.2s; }
-  .reg-skeleton__dot:nth-child(3){ animation-delay:.4s; }
-  @keyframes dotPulse { 0%,80%,100%{ transform:scale(.6); opacity:.4; } 40%{ transform:scale(1); opacity:1; } }
-  #pantalla-cerrada { display:flex; min-height:60vh; background:linear-gradient(145deg,var(--reg-blue) 0%,var(--reg-blue-dark) 60%,#001A3A 100%); align-items:center; justify-content:center; padding:2rem 1rem; }
-  .cerrada-card { background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.15); border-radius:16px; padding:3rem 2.5rem; max-width:520px; width:100%; text-align:center; backdrop-filter:blur(8px); }
-  .cerrada-logos { display:flex; align-items:center; justify-content:center; gap:.75rem; background:rgba(255,255,255,.92); border-radius:999px; padding:.7rem 1.5rem; margin:0 auto 1.5rem; width:fit-content; }
-  .cerrada-logo--unam { width:42px; height:auto; }
-  .cerrada-logo--fad  { width:54px; height:auto; }
-  .cerrada-logos-sep  { width:1px; height:22px; background:rgba(1,59,117,.25); flex-shrink:0; display:block; }
-  .cerrada-card h1 { font-family:'Lora',serif; font-size:2rem; font-weight:700; color:#fff; margin:0 0 1rem; }
-  .cerrada-card p  { color:rgba(255,255,255,.8); font-size:1rem; line-height:1.65; margin:0 0 1.5rem; }
-  .cerrada-fechas { display:inline-flex; align-items:center; gap:.5rem; background:rgba(217,165,0,.15); border:1px solid rgba(217,165,0,.4); border-radius:999px; padding:.45rem 1.25rem; font-size:.875rem; font-weight:600; color:var(--reg-gold); margin-bottom:2rem; }
-  .cerrada-fechas-label { opacity:.8; font-weight:400; }
-  .cerrada-proximo-aviso { font-size:.9rem; opacity:.85; margin-bottom:2rem; }
-  .btn-catalogo-ghost { display:inline-flex; align-items:center; gap:.5rem; padding:.75rem 1.75rem; border:2px solid rgba(255,255,255,.4); border-radius:var(--reg-radius-sm); color:#fff; font-size:.9rem; font-weight:600; text-decoration:none; transition:border-color 200ms,background 200ms; }
-  .btn-catalogo-ghost:hover { border-color:var(--reg-gold); background:rgba(217,165,0,.12); }
-  #pantalla-abierta { display:flex; min-height:60vh; align-items:flex-start; justify-content:center; padding:3rem 1rem 4rem; }
-  .reg-card { background:var(--reg-surface); border:1px solid var(--reg-border); border-radius:16px; box-shadow:0 4px 24px rgba(1,59,117,.08); width:100%; max-width:500px; overflow:hidden; }
-  .reg-card__logos { display:flex; align-items:center; justify-content:center; gap:1rem; padding:1.5rem 2rem 1.25rem; background:#fff; }
-  .reg-logo--unam { width:50px; height:auto; }
-  .reg-logo--fad  { width:64px; height:auto; }
-  .reg-logos-sep  { width:1px; height:28px; background:var(--reg-border); flex-shrink:0; display:block; }
-  .reg-card__header { background:var(--reg-blue); padding:2rem 2rem 1.5rem; text-align:center; }
-  .reg-badge { display:inline-block; background:rgba(217,165,0,.2); border:1px solid rgba(217,165,0,.5); border-radius:999px; padding:.25rem .875rem; font-size:.75rem; font-weight:600; color:var(--reg-gold); letter-spacing:.06em; text-transform:uppercase; margin-bottom:.875rem; }
-  .reg-card__header h1 { font-family:'Lora',serif; font-size:1.5rem; font-weight:700; color:#fff; margin:0 0 .5rem; line-height:1.25; }
-  .reg-card__header p  { color:rgba(255,255,255,.75); font-size:.875rem; margin:0; line-height:1.5; }
-  .reg-card__stripe { height:4px; background:linear-gradient(90deg,var(--reg-gold),#F5C842); }
-  .reg-card__body { padding:2rem; }
-  .reg-periodo { display:flex; align-items:center; gap:.5rem; background:var(--reg-blue-light); border:1px solid rgba(1,59,117,.15); border-radius:var(--reg-radius-sm); padding:.6rem .875rem; font-size:.8rem; color:var(--reg-blue); font-weight:500; margin-bottom:1.5rem; }
-  .reg-periodo span { opacity:.75; font-weight:400; }
-  .reg-field { margin-bottom:1.125rem; }
-  .reg-field label { display:block; font-size:.8rem; font-weight:600; color:var(--reg-text); margin-bottom:.35rem; letter-spacing:.01em; }
-  .reg-field label .req { color:var(--reg-error); margin-left:2px; }
-  .reg-input { display:block; width:100%; height:42px; padding:0 .875rem; border:1.5px solid var(--reg-border); border-radius:var(--reg-radius-sm); background:var(--reg-surface); color:var(--reg-text); font-family:inherit; font-size:.9rem; transition:border-color 180ms,box-shadow 180ms; outline:none; box-sizing:border-box; }
-  .reg-input::placeholder { color:#9CA3AF; }
-  .reg-input:hover  { border-color:#9CA3AF; }
-  .reg-input:focus  { border-color:var(--reg-blue); box-shadow:0 0 0 3px rgba(1,59,117,.10); }
-  .reg-input.error  { border-color:var(--reg-error); background:rgba(220,38,38,.02); }
-  .reg-input.error:focus { box-shadow:0 0 0 3px rgba(220,38,38,.10); }
-  .reg-input.success { border-color:var(--reg-success); }
-  .reg-hint { display:none; font-size:.75rem; margin-top:.3rem; line-height:1.4; }
-  .reg-hint.error { display:block; color:var(--reg-error); }
-  .reg-divider { border:none; border-top:1px solid var(--reg-border); margin:1.5rem 0 1.25rem; }
-  .reg-btn-primary { display:flex; align-items:center; justify-content:center; gap:.5rem; width:100%; height:44px; background:var(--reg-blue); color:#fff; border:none; border-radius:var(--reg-radius-sm); font-family:inherit; font-size:.9rem; font-weight:600; cursor:pointer; transition:background 200ms,box-shadow 200ms,transform 150ms; margin-bottom:.75rem; }
-  .reg-btn-primary:hover:not(:disabled) { background:var(--reg-blue-dark); box-shadow:0 4px 14px rgba(1,59,117,.25); transform:translateY(-1px); }
-  .reg-btn-primary:disabled { opacity:.65; cursor:not-allowed; }
-  #msg-exito { display:none; background:linear-gradient(135deg,#ECFDF5,#D1FAE5); border:1.5px solid #6EE7B7; border-radius:var(--reg-radius); padding:1.25rem 1.5rem; text-align:center; margin-top:1rem; }
-  #msg-exito.visible { display:block; }
-  .msg-exito__icono  { font-size:2rem; margin-bottom:.5rem; display:block; }
-  .msg-exito__titulo { font-size:1rem; font-weight:700; color:#065F46; margin:0 0 .35rem; }
-  .msg-exito__texto  { font-size:.85rem; color:#047857; margin:0; line-height:1.5; }
-  .btn-spinner { width:16px; height:16px; border:2px solid rgba(255,255,255,.35); border-top-color:#fff; border-radius:50%; animation:spin .7s linear infinite; flex-shrink:0; }
-  @keyframes spin { to { transform:rotate(360deg); } }
-  #reg-toast-container { position:fixed; bottom:1.5rem; right:1.5rem; z-index:9999; display:flex; flex-direction:column; gap:.5rem; }
-  .reg-toast { display:flex; align-items:center; gap:.6rem; padding:.75rem 1.125rem; border-radius:var(--reg-radius-sm); font-size:.875rem; font-weight:500; box-shadow:0 4px 16px rgba(0,0,0,.12); animation:toastIn 250ms ease; max-width:320px; }
-  .reg-toast--success { background:#065F46; color:#fff; }
-  .reg-toast--error   { background:#991B1B; color:#fff; }
-  .reg-toast--info    { background:var(--reg-blue); color:#fff; }
-  @keyframes toastIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
-  @media (max-width:540px) {
-    .reg-card__body,.reg-card__header { padding:1.5rem 1.25rem; }
-    .reg-card__logos { padding:1.25rem 1.25rem 1rem; }
-    .cerrada-card { padding:2rem 1.5rem; }
-  }
-`;
 
 // ── Componente principal ──────────────────────────────────────────────────────
 export default function RegistroPage() {
@@ -279,16 +198,13 @@ export default function RegistroPage() {
   // en servidor y cliente → sin riesgo de mismatch por new Date() o localStorage.
   if (!mounted) {
     return (
-      <>
-        <style>{REGISTRO_STYLES}</style>
-        <div id="registro-page">
-          <div className="reg-skeleton" aria-label="Cargando…">
-            <div className="reg-skeleton__dot" />
-            <div className="reg-skeleton__dot" />
-            <div className="reg-skeleton__dot" />
-          </div>
+      <div id="registro-page">
+        <div className="reg-skeleton" aria-label="Cargando…">
+          <div className="reg-skeleton__dot" />
+          <div className="reg-skeleton__dot" />
+          <div className="reg-skeleton__dot" />
         </div>
-      </>
+      </div>
     );
   }
 
@@ -299,9 +215,6 @@ export default function RegistroPage() {
 
   return (
     <>
-      {/* Estilos específicos de registro (igual que en registro.html) */}
-      <style>{REGISTRO_STYLES}</style>
-
       <div id="registro-page">
         {/* ── Cargando ─────────────────────────────────────────────────── */}
         {screen === 'loading' && (
