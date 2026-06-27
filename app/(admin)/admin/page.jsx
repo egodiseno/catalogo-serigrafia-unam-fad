@@ -21,13 +21,13 @@
  *   .recent-section            → Últimas Obras (tabla .recent-table)
  *   .recent-section            → Top Visitas este mes    (admin/super_editor, solo si hay datos)
  *
- * Clases — SOLO selectores reales encontrados en styles/admin.css:
- *   .section-header, .stats-grid, .stat-card, .stat-card--warning, .stat-card--stale,
- *   .stat-card__icon, .stat-card-action, .stat-value, .stat-label, .stat-detail,
- *   .recent-section, .table-wrapper, table.recent-table,
- *   .top-visitas-list, .top-visitas-item, .top-visitas-rank, .top-visitas-rank--gold,
- *   .top-visitas-info, .top-visitas-title, .top-visitas-artist,
- *   .top-visitas-stats, .top-visitas-stat, .top-visitas-stat--fav, .top-visitas-footer
+ * Columnas verificadas contra supabase/migrations/:
+ *   obras:            id, titulo, artista, año, estado, created_at, updated_at, motivo_reapertura
+ *   tecnicas:         id, nombre, slug
+ *   tags:             id, nombre, slug
+ *   usuarios_admin:   rol, nombre, email, estado
+ *   registro_alumnos: estado  ('pendiente_validacion' | 'activo' | 'rechazado')
+ *   RPC:              get_top_obras_visitas_mes(p_limit) → obra_id, titulo, artista, visitas, favoritos
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -35,7 +35,7 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { usePermisos } from '@/hooks/usePermisos';
-import { Plus, Clock, Eye, Heart, TrendingUp, BarChart2 } from 'lucide-react';
+import { Plus, Clock, Eye, Heart, TrendingUp, BarChart2, AlertCircle } from 'lucide-react';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 function escHtml(str) {
@@ -62,120 +62,205 @@ const BADGE_CLS = {
   'Archivado':   'badge-archivado',
 };
 
+// ── Helpers de Promise.allSettled ─────────────────────────────────────────────
+// Extrae el valor de un resultado settled; null si fue rejected.
+function settled(result, label) {
+  if (result.status === 'fulfilled') {
+    return result.value;
+  }
+  console.error(`[Dashboard] Query "${label}" falló:`, result.reason);
+  return null;
+}
+
 // ── Componente principal ──────────────────────────────────────────────────────
 export default function DashboardPage() {
-  const router = useRouter();
+  const router  = useRouter();
   const { user, rol, email, loading: authLoading } = useAuth();
   const { tienePermiso } = usePermisos(rol);
 
-  const [stats, setStats]           = useState(null);
+  const [stats,       setStats]       = useState(null);
   const [loadingData, setLoadingData] = useState(true);
-  const [dataError, setDataError]   = useState(false);
-  const intervalRef                 = useRef(null);
+  const [dataError,   setDataError]   = useState(false);
+  const [errorMsg,    setErrorMsg]    = useState('');
+  const intervalRef                   = useRef(null);
 
-  // ── Carga de datos — replica exactamente loadStats() de dashboard.js ────────
+  // ── Timeout de seguridad: si a los 8 s seguimos "Cargando…" → mostrar error ─
+  // Cubre el caso donde authLoading nunca resuelve (Supabase no responde)
+  // o loadStats cuelga sin lanzar excepción.
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setLoadingData(prev => {
+        if (prev) {
+          console.error('[Dashboard] timeout 8s: auth o queries no resolvieron.');
+          setDataError(true);
+          setErrorMsg('La conexión tardó demasiado. Verifica tu red y recarga la página.');
+          return false;
+        }
+        return prev;
+      });
+    }, 8_000);
+    return () => clearTimeout(t);
+  }, []); // solo al montar
+
+  // ── loadStats — cada query individual en try-catch con logging ────────────
   const loadStats = useCallback(async () => {
     if (!user || !rol) return;
 
     const supabase = createClient();
     const esAdmin  = rol !== 'editor';
-    // Editor filtra por artista (campo email, idéntico a dashboard.js)
-    const artista  = email;
+    const artista  = email; // editor filtra por artista (= email), igual que dashboard.js
 
-    try {
-      // Queries base — filtro por rol idéntico a dashboard.js
-      let obrasCountQ = supabase.from('obras').select('*', { count: 'exact', head: true });
-      let obrasListQ  = supabase
-        .from('obras')
-        .select('id, titulo, artista, año, estado, created_at')
-        .order('created_at', { ascending: false })
-        .limit(5);
+    console.log(`[Dashboard] loadStats iniciado — rol: ${rol}, esAdmin: ${esAdmin}`);
+    const t0 = performance.now();
 
-      if (rol === 'editor' && artista) {
-        obrasCountQ = obrasCountQ.eq('artista', artista);
-        obrasListQ  = obrasListQ.eq('artista', artista);
-      }
+    // ── Construir queries base ─────────────────────────────────────────────────
+    // Columnas verificadas: obras(id,titulo,artista,año,estado,created_at,updated_at,motivo_reapertura)
+    let obrasCountQ = supabase.from('obras').select('*', { count: 'exact', head: true });
+    let obrasListQ  = supabase
+      .from('obras')
+      .select('id, titulo, artista, año, estado, created_at')
+      .order('created_at', { ascending: false })
+      .limit(5);
 
-      // Fecha de corte: 7 días atrás (para obras estancadas)
-      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-
-      // Queries exclusivas de admin/super_editor
-      const pendientesQ = esAdmin
-        ? supabase.from('obras').select('*', { count: 'exact', head: true }).eq('estado', 'En Revisión')
-        : Promise.resolve({ count: 0 });
-
-      const conCambiosQ = esAdmin
-        ? supabase
-            .from('obras')
-            .select('*', { count: 'exact', head: true })
-            .eq('estado', 'En Revisión')
-            .not('motivo_reapertura', 'is', null)
-        : Promise.resolve({ count: 0 });
-
-      const regPendientesQ = esAdmin
-        ? supabase.from('registro_alumnos').select('*', { count: 'exact', head: true }).eq('estado', 'pendiente_validacion')
-        : Promise.resolve({ count: 0 });
-
-      const estancadasQ = esAdmin
-        ? supabase
-            .from('obras')
-            .select('*', { count: 'exact', head: true })
-            .eq('estado', 'En Revisión')
-            .lt('updated_at', sevenDaysAgo)
-        : Promise.resolve({ count: 0 });
-
-      // Top 10 obras más visitadas del mes (solo admin/super_editor)
-      const topVisitasQ = esAdmin
-        ? supabase.rpc('get_top_obras_visitas_mes', { p_limit: 10 })
-        : Promise.resolve({ data: [] });
-
-      const [
-        { count: obras         },
-        { count: tecnicas      },
-        { count: tags          },
-        { count: usuarios      },
-        { data:  recientes     },
-        { count: pendientes    },
-        { count: conCambios    },
-        { count: regPendientes },
-        { count: estancadas    },
-        { data:  topVisitas    },
-      ] = await Promise.all([
-        obrasCountQ,
-        supabase.from('tecnicas').select('*',       { count: 'exact', head: true }),
-        supabase.from('tags').select('*',           { count: 'exact', head: true }),
-        supabase.from('usuarios_admin').select('*', { count: 'exact', head: true }),
-        obrasListQ,
-        pendientesQ,
-        conCambiosQ,
-        regPendientesQ,
-        estancadasQ,
-        topVisitasQ,
-      ]);
-
-      setStats({
-        obras:         obras         ?? 0,
-        tecnicas:      tecnicas      ?? 0,
-        tags:          tags          ?? 0,
-        usuarios:      usuarios      ?? 0,
-        recientes:     recientes     ?? [],
-        pendientes:    pendientes    ?? 0,
-        conCambios:    conCambios    ?? 0,
-        regPendientes: regPendientes ?? 0,
-        estancadas:    estancadas    ?? 0,
-        topVisitas:    topVisitas    ?? [],
-        esAdmin,
-      });
-      setDataError(false);
-    } catch (err) {
-      console.error('[Dashboard] loadStats error:', err);
-      setDataError(true);
-    } finally {
-      setLoadingData(false);
+    if (rol === 'editor' && artista) {
+      obrasCountQ = obrasCountQ.eq('artista', artista);
+      obrasListQ  = obrasListQ.eq('artista', artista);
     }
+
+    // Corte temporal para obras estancadas (> 7 días sin actividad)
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+
+    // ── Wrappear cada query en try-catch individual ─────────────────────────
+    // Si una falla se registra el error y continúa con las demás.
+    async function safeQuery(label, queryPromise) {
+      try {
+        const result = await queryPromise;
+        if (result.error) {
+          console.error(`[Dashboard] Query "${label}" devolvió error:`, result.error);
+        }
+        return result;
+      } catch (err) {
+        console.error(`[Dashboard] Query "${label}" lanzó excepción:`, err);
+        return { data: null, count: null, error: err };
+      }
+    }
+
+    // ── Ejecutar las 10 queries en paralelo con Promise.allSettled ────────────
+    // allSettled nunca cancela las demás si una falla.
+    const [
+      r_obras,
+      r_tecnicas,
+      r_tags,
+      r_usuarios,
+      r_recientes,
+      r_pendientes,
+      r_conCambios,
+      r_regPendientes,
+      r_estancadas,
+      r_topVisitas,
+    ] = await Promise.allSettled([
+      /* 1 */ safeQuery('obras count',
+        obrasCountQ
+      ),
+      /* 2 */ safeQuery('tecnicas count',
+        supabase.from('tecnicas').select('*', { count: 'exact', head: true })
+      ),
+      /* 3 */ safeQuery('tags count',
+        supabase.from('tags').select('*', { count: 'exact', head: true })
+      ),
+      /* 4 */ safeQuery('usuarios_admin count',
+        supabase.from('usuarios_admin').select('*', { count: 'exact', head: true })
+      ),
+      /* 5 */ safeQuery('obras recientes',
+        obrasListQ
+      ),
+      /* 6 */ esAdmin
+        ? safeQuery('pendientes revision',
+            supabase.from('obras').select('*', { count: 'exact', head: true }).eq('estado', 'En Revisión')
+          )
+        : Promise.resolve({ count: 0, data: null, error: null }),
+      /* 7 */ esAdmin
+        ? safeQuery('con cambios (reaperturas)',
+            supabase
+              .from('obras')
+              .select('*', { count: 'exact', head: true })
+              .eq('estado', 'En Revisión')
+              .not('motivo_reapertura', 'is', null)
+          )
+        : Promise.resolve({ count: 0, data: null, error: null }),
+      /* 8 */ esAdmin
+        ? safeQuery('registro_alumnos pendientes',
+            supabase
+              .from('registro_alumnos')
+              .select('*', { count: 'exact', head: true })
+              .eq('estado', 'pendiente_validacion')
+          )
+        : Promise.resolve({ count: 0, data: null, error: null }),
+      /* 9 */ esAdmin
+        ? safeQuery('obras estancadas',
+            supabase
+              .from('obras')
+              .select('*', { count: 'exact', head: true })
+              .eq('estado', 'En Revisión')
+              .lt('updated_at', sevenDaysAgo)
+          )
+        : Promise.resolve({ count: 0, data: null, error: null }),
+      /* 10 */ esAdmin
+        ? safeQuery('top visitas mes',
+            supabase.rpc('get_top_obras_visitas_mes', { p_limit: 10 })
+          )
+        : Promise.resolve({ data: [], error: null }),
+    ]);
+
+    // ── Timing warning ────────────────────────────────────────────────────────
+    const elapsed = performance.now() - t0;
+    if (elapsed > 3_000) {
+      console.warn(`[Dashboard] loadStats tardó más de 3s (${elapsed.toFixed(0)}ms)`);
+    } else {
+      console.log(`[Dashboard] loadStats completado en ${elapsed.toFixed(0)}ms`);
+    }
+
+    // ── Extraer valores de los settled results ────────────────────────────────
+    const v_obras        = settled(r_obras,        'obras count');
+    const v_tecnicas     = settled(r_tecnicas,     'tecnicas count');
+    const v_tags         = settled(r_tags,         'tags count');
+    const v_usuarios     = settled(r_usuarios,     'usuarios_admin count');
+    const v_recientes    = settled(r_recientes,    'obras recientes');
+    const v_pendientes   = settled(r_pendientes,   'pendientes revision');
+    const v_conCambios   = settled(r_conCambios,   'con cambios');
+    const v_regPend      = settled(r_regPendientes,'registro_alumnos pendientes');
+    const v_estancadas   = settled(r_estancadas,   'obras estancadas');
+    const v_topVisitas   = settled(r_topVisitas,   'top visitas mes');
+
+    const newStats = {
+      obras:         v_obras?.count         ?? 0,
+      tecnicas:      v_tecnicas?.count      ?? 0,
+      tags:          v_tags?.count          ?? 0,
+      usuarios:      v_usuarios?.count      ?? 0,
+      recientes:     v_recientes?.data      ?? [],
+      pendientes:    v_pendientes?.count    ?? 0,
+      conCambios:    v_conCambios?.count    ?? 0,
+      regPendientes: v_regPend?.count       ?? 0,
+      estancadas:    v_estancadas?.count    ?? 0,
+      topVisitas:    v_topVisitas?.data     ?? [],
+      esAdmin,
+    };
+
+    // ── Warn si algún campo quedó undefined/null (query falló) ───────────────
+    const camposNulos = Object.entries(newStats)
+      .filter(([k, v]) => v === null || v === undefined)
+      .map(([k]) => k);
+    if (camposNulos.length > 0) {
+      console.warn('[Dashboard] Stats incompleto — campos nulos:', camposNulos, newStats);
+    }
+
+    setStats(newStats);
+    setDataError(false);
+    setLoadingData(false);
+
   }, [user, rol, email]);
 
-  // ── Carga inicial + auto-refresh 30 s — replica _iniciarRefresh() de dashboard.js
+  // ── Carga inicial + auto-refresh 30 s ────────────────────────────────────────
   useEffect(() => {
     if (authLoading || !user) return;
     loadStats();
@@ -185,23 +270,8 @@ export default function DashboardPage() {
     };
   }, [authLoading, user, loadStats]);
 
-  // ── Render: estados de carga / error ─────────────────────────────────────
-  if (authLoading || loadingData) {
-    return (
-      <div>
-        <div className="section-header">
-          <div>
-            <h2>Dashboard</h2>
-            <p>Resumen del catálogo</p>
-          </div>
-        </div>
-        <p style={{ color: 'var(--color-text-muted)' }}>Cargando…</p>
-      </div>
-    );
-  }
-
-  if (!user) return null; // layout redirige
-
+  // ── Render: estado de error (incluye timeout) ─────────────────────────────
+  // Mostrar el error AUNQUE authLoading siga true (timeout cubrió eso)
   if (dataError) {
     return (
       <div>
@@ -211,13 +281,61 @@ export default function DashboardPage() {
             <p>Resumen del catálogo</p>
           </div>
         </div>
-        <p style={{ color: 'var(--color-error)' }}>Error al cargar datos del dashboard.</p>
-        <button className="btn btn-secondary btn-sm" onClick={loadStats} type="button">
+        <div
+          role="alert"
+          style={{
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: 12,
+            background: '#FEF2F2',
+            border: '1px solid #FECACA',
+            borderRadius: 8,
+            padding: '16px 20px',
+            color: 'var(--color-error, #EF4444)',
+            marginBottom: 24,
+          }}
+        >
+          <AlertCircle size={20} style={{ flexShrink: 0, marginTop: 1 }} aria-hidden="true" />
+          <div>
+            <strong>Error cargando estadísticas.</strong>
+            <br />
+            <span style={{ fontSize: 13, opacity: 0.85 }}>
+              {errorMsg || 'Intenta recargar la página. Si el problema persiste, verifica tu conexión.'}
+            </span>
+          </div>
+        </div>
+        <button
+          className="btn btn-secondary btn-sm"
+          type="button"
+          onClick={() => {
+            setDataError(false);
+            setErrorMsg('');
+            setLoadingData(true);
+            loadStats();
+          }}
+        >
           Reintentar
         </button>
       </div>
     );
   }
+
+  // ── Render: cargando ──────────────────────────────────────────────────────
+  if (authLoading || loadingData) {
+    return (
+      <div>
+        <div className="section-header">
+          <div>
+            <h2>Dashboard</h2>
+            <p>Resumen del catálogo</p>
+          </div>
+        </div>
+        <p style={{ color: 'var(--color-text-muted)' }}>Cargando estadísticas…</p>
+      </div>
+    );
+  }
+
+  if (!user) return null; // layout server-side ya redirige — fallback defensivo
 
   const {
     obras, tecnicas, tags, usuarios,
@@ -246,7 +364,7 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* ── Stats Grid — display: grid; repeat(auto-fit, minmax(200px,1fr)) ─ */}
+      {/* ── Stats Grid ───────────────────────────────────────────────────── */}
       <div className="stats-grid">
 
         {/* 1. Obras Totales — siempre visible */}
@@ -255,7 +373,7 @@ export default function DashboardPage() {
           <div className="stat-label">Obras Totales</div>
         </div>
 
-        {/* 2. Pendientes de Revisión — solo admin/super_editor */}
+        {/* 2. Pendientes de Revisión — admin/super_editor */}
         {esAdmin && (
           <div
             className="stat-card stat-card--warning"
@@ -273,7 +391,6 @@ export default function DashboardPage() {
           >
             <div className="stat-value" id="totalPendientes">{pendientes}</div>
             <div className="stat-label">Pendientes de Revisión</div>
-            {/* Desglose — solo si > 0 (replica pendientesConCambios de dashboard.js) */}
             {conCambios > 0 && (
               <div className="stat-detail" id="pendientesConCambios">
                 {conCambios} con cambios sobre obra publicada
@@ -300,7 +417,7 @@ export default function DashboardPage() {
           <div className="stat-label">Usuarios Admin</div>
         </div>
 
-        {/* 6. Registros Pendientes — solo admin/super_editor */}
+        {/* 6. Registros Pendientes — admin/super_editor */}
         {esAdmin && (
           <div
             className="stat-card stat-card--warning"
@@ -322,7 +439,7 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* 7. Obras estancadas — admin/super_editor y SOLO si count > 0 */}
+        {/* 7. Obras estancadas — admin/super_editor Y solo si count > 0 */}
         {esAdmin && estancadas > 0 && (
           <div
             className="stat-card stat-card--stale"
@@ -348,7 +465,7 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* ── Últimas Obras PRIMERO (orden idéntico al VanillaJS) ─────────── */}
+      {/* ── Últimas Obras — idéntico al VanillaJS (va ANTES de top visitas) ─ */}
       <div className="recent-section">
         <h3>Últimas Obras</h3>
         <div className="table-wrapper">
@@ -389,7 +506,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* ── Top Visitas DESPUÉS — solo admin/super_editor y solo si hay datos ── */}
+      {/* ── Top Visitas — solo admin/super_editor y solo si hay datos ─────── */}
       {esAdmin && topVisitas.length > 0 && (
         <div className="recent-section" id="topVisitasSection">
           <h3>
