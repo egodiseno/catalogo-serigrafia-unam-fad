@@ -24,12 +24,12 @@ export default function LogoutButton() {
   return (
     <button
       onClick={handleLogout}
-      className="btn btn-secondary btn-sm"
+      className="btn btn-secondary btn-block"
+      id="logoutBtn"
       title="Cerrar sesión"
       type="button"
     >
-      <LogOut size={16} aria-hidden="true" />
-      Cerrar Sesión
+      <LogOut size={16} aria-hidden="true" /> Cerrar Sesión
     </button>
   );
 }

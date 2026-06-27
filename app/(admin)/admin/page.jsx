@@ -3,17 +3,28 @@
 /**
  * app/(admin)/admin/page.jsx — /admin (Dashboard)
  *
- * Client Component. Replica exactamente dashboard.js del VanillaJS:
- * - Carga datos en paralelo con Promise.all
- * - Visibilidad condicional por rol (editores no ven pendientes, top visitas, estancadas)
- * - Auto-refresh cada 30 segundos
- * - La tarjeta de obras estancadas solo aparece cuando count > 0
- * - Clic en estancadas navega a /admin/obras?estado=En+Revisión
+ * Estructura HTML idéntica al VanillaJS dashboardSection:
  *
- * Clases usadas — SOLO selectores reales de styles/admin.css:
- *   .dashboard-container, .stat-card, .stat-card--warning, .stat-card--stale,
- *   .stat-card-action, .stat-value, .stat-label, .stat-detail,
- *   .recent-section, table.recent-table,
+ *   .section-header
+ *     div > h2 "Dashboard" + p "Resumen del catálogo"
+ *     button "+ Nueva Obra"  (solo con permiso obras.crear)
+ *
+ *   .stats-grid
+ *     .stat-card               → Obras Totales
+ *     .stat-card--warning      → Pendientes de Revisión  (admin/super_editor)
+ *     .stat-card               → Técnicas
+ *     .stat-card               → Tags
+ *     .stat-card               → Usuarios Admin
+ *     .stat-card--warning      → Registros Pendientes    (admin/super_editor)
+ *     .stat-card--stale        → Estancadas > 7 días     (admin/super_editor, solo si > 0)
+ *
+ *   .recent-section            → Últimas Obras (tabla .recent-table)
+ *   .recent-section            → Top Visitas este mes    (admin/super_editor, solo si hay datos)
+ *
+ * Clases — SOLO selectores reales encontrados en styles/admin.css:
+ *   .section-header, .stats-grid, .stat-card, .stat-card--warning, .stat-card--stale,
+ *   .stat-card__icon, .stat-card-action, .stat-value, .stat-label, .stat-detail,
+ *   .recent-section, .table-wrapper, table.recent-table,
  *   .top-visitas-list, .top-visitas-item, .top-visitas-rank, .top-visitas-rank--gold,
  *   .top-visitas-info, .top-visitas-title, .top-visitas-artist,
  *   .top-visitas-stats, .top-visitas-stat, .top-visitas-stat--fav, .top-visitas-footer
@@ -23,10 +34,8 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import {
-  Image, Brush, Tag, Users, Clock, UserCheck,
-  AlertTriangle, Eye, Heart, TrendingUp,
-} from 'lucide-react';
+import { usePermisos } from '@/hooks/usePermisos';
+import { Plus, Clock, Eye, Heart, TrendingUp, BarChart2 } from 'lucide-react';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 function escHtml(str) {
@@ -45,7 +54,7 @@ function formatFecha(isoStr) {
   });
 }
 
-// Mapa estado → clase badge (igual que en dashboard.js)
+// Mapa estado → clase badge (idéntico a dashboard.js BADGE_CLS)
 const BADGE_CLS = {
   'Publicado':   'badge-publicado',
   'Borrador':    'badge-borrador',
@@ -56,25 +65,25 @@ const BADGE_CLS = {
 // ── Componente principal ──────────────────────────────────────────────────────
 export default function DashboardPage() {
   const router = useRouter();
-  const { user, rol, email, authId, loading: authLoading } = useAuth();
+  const { user, rol, email, loading: authLoading } = useAuth();
+  const { tienePermiso } = usePermisos(rol);
 
-  const [stats, setStats] = useState(null);
+  const [stats, setStats]           = useState(null);
   const [loadingData, setLoadingData] = useState(true);
-  const [dataError, setDataError] = useState(false);
+  const [dataError, setDataError]   = useState(false);
+  const intervalRef                 = useRef(null);
 
-  const intervalRef = useRef(null);
-
-  // ── Carga de datos ─────────────────────────────────────────────────────────
+  // ── Carga de datos — replica exactamente loadStats() de dashboard.js ────────
   const loadStats = useCallback(async () => {
     if (!user || !rol) return;
 
     const supabase = createClient();
     const esAdmin  = rol !== 'editor';
-    // Editor filtra por artista (campo email, igual que dashboard.js)
+    // Editor filtra por artista (campo email, idéntico a dashboard.js)
     const artista  = email;
 
     try {
-      // Queries base
+      // Queries base — filtro por rol idéntico a dashboard.js
       let obrasCountQ = supabase.from('obras').select('*', { count: 'exact', head: true });
       let obrasListQ  = supabase
         .from('obras')
@@ -87,7 +96,7 @@ export default function DashboardPage() {
         obrasListQ  = obrasListQ.eq('artista', artista);
       }
 
-      // Fecha hace 7 días (para obras estancadas)
+      // Fecha de corte: 7 días atrás (para obras estancadas)
       const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
       // Queries exclusivas de admin/super_editor
@@ -121,16 +130,16 @@ export default function DashboardPage() {
         : Promise.resolve({ data: [] });
 
       const [
-        { count: obras        },
-        { count: tecnicas     },
-        { count: tags         },
-        { count: usuarios     },
-        { data:  recientes    },
-        { count: pendientes   },
-        { count: conCambios   },
-        { count: regPendientes},
-        { count: estancadas   },
-        { data:  topVisitas   },
+        { count: obras         },
+        { count: tecnicas      },
+        { count: tags          },
+        { count: usuarios      },
+        { data:  recientes     },
+        { count: pendientes    },
+        { count: conCambios    },
+        { count: regPendientes },
+        { count: estancadas    },
+        { data:  topVisitas    },
       ] = await Promise.all([
         obrasCountQ,
         supabase.from('tecnicas').select('*',       { count: 'exact', head: true }),
@@ -145,16 +154,16 @@ export default function DashboardPage() {
       ]);
 
       setStats({
-        obras:        obras        ?? 0,
-        tecnicas:     tecnicas     ?? 0,
-        tags:         tags         ?? 0,
-        usuarios:     usuarios     ?? 0,
-        recientes:    recientes    ?? [],
-        pendientes:   pendientes   ?? 0,
-        conCambios:   conCambios   ?? 0,
-        regPendientes:regPendientes?? 0,
-        estancadas:   estancadas   ?? 0,
-        topVisitas:   topVisitas   ?? [],
+        obras:         obras         ?? 0,
+        tecnicas:      tecnicas      ?? 0,
+        tags:          tags          ?? 0,
+        usuarios:      usuarios      ?? 0,
+        recientes:     recientes     ?? [],
+        pendientes:    pendientes    ?? 0,
+        conCambios:    conCambios    ?? 0,
+        regPendientes: regPendientes ?? 0,
+        estancadas:    estancadas    ?? 0,
+        topVisitas:    topVisitas    ?? [],
         esAdmin,
       });
       setDataError(false);
@@ -166,33 +175,44 @@ export default function DashboardPage() {
     }
   }, [user, rol, email]);
 
-  // Carga inicial + auto-refresh 30s (replica el setInterval de dashboard.js)
+  // ── Carga inicial + auto-refresh 30 s — replica _iniciarRefresh() de dashboard.js
   useEffect(() => {
     if (authLoading || !user) return;
     loadStats();
-
     intervalRef.current = setInterval(loadStats, 30_000);
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
   }, [authLoading, user, loadStats]);
 
-  // ── Render ─────────────────────────────────────────────────────────────────
+  // ── Render: estados de carga / error ─────────────────────────────────────
   if (authLoading || loadingData) {
     return (
-      <div className="dashboard-container" style={{ padding: 32 }}>
+      <div>
+        <div className="section-header">
+          <div>
+            <h2>Dashboard</h2>
+            <p>Resumen del catálogo</p>
+          </div>
+        </div>
         <p style={{ color: 'var(--color-text-muted)' }}>Cargando…</p>
       </div>
     );
   }
 
-  if (!user) return null; // layout redirige si no hay sesión
+  if (!user) return null; // layout redirige
 
   if (dataError) {
     return (
-      <div className="dashboard-container" style={{ padding: 32 }}>
+      <div>
+        <div className="section-header">
+          <div>
+            <h2>Dashboard</h2>
+            <p>Resumen del catálogo</p>
+          </div>
+        </div>
         <p style={{ color: 'var(--color-error)' }}>Error al cargar datos del dashboard.</p>
-        <button className="btn btn-secondary btn-sm" onClick={loadStats}>
+        <button className="btn btn-secondary btn-sm" onClick={loadStats} type="button">
           Reintentar
         </button>
       </div>
@@ -206,158 +226,131 @@ export default function DashboardPage() {
   } = stats;
 
   return (
-    <div className="dashboard-container">
+    <div>
 
-      {/* ── Tarjetas de estadísticas base ───────────────────────────────── */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-          gap: 16,
-          marginBottom: 24,
-        }}
-      >
-        {/* Total Obras */}
-        <div className="stat-card" role="region" aria-label="Total de obras">
-          <div className="stat-card__icon"><Image size={22} aria-hidden="true" /></div>
+      {/* ── Section header — idéntico al VanillaJS ──────────────────────── */}
+      <div className="section-header">
+        <div>
+          <h2>Dashboard</h2>
+          <p>Resumen del catálogo</p>
+        </div>
+        {tienePermiso('obras.crear') && (
+          <button
+            className="btn btn-primary"
+            id="dashboardQuickNewObra"
+            type="button"
+            onClick={() => router.push('/admin/obras?nueva=1')}
+          >
+            <Plus size={16} aria-hidden="true" /> Nueva Obra
+          </button>
+        )}
+      </div>
+
+      {/* ── Stats Grid — display: grid; repeat(auto-fit, minmax(200px,1fr)) ─ */}
+      <div className="stats-grid">
+
+        {/* 1. Obras Totales — siempre visible */}
+        <div className="stat-card">
           <div className="stat-value" id="totalObras">{obras}</div>
-          <div className="stat-label">{rol === 'editor' ? 'Mis Obras' : 'Total Obras'}</div>
+          <div className="stat-label">Obras Totales</div>
         </div>
 
-        {/* Total Técnicas */}
-        <div className="stat-card" role="region" aria-label="Total de técnicas">
-          <div className="stat-card__icon"><Brush size={22} aria-hidden="true" /></div>
+        {/* 2. Pendientes de Revisión — solo admin/super_editor */}
+        {esAdmin && (
+          <div
+            className="stat-card stat-card--warning"
+            id="cardPendientesRevision"
+            role="button"
+            tabIndex={0}
+            title="Ver obras pendientes de revisión"
+            onClick={() => router.push('/admin/obras?estado=En+Revisi%C3%B3n')}
+            onKeyDown={e => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                router.push('/admin/obras?estado=En+Revisi%C3%B3n');
+              }
+            }}
+          >
+            <div className="stat-value" id="totalPendientes">{pendientes}</div>
+            <div className="stat-label">Pendientes de Revisión</div>
+            {/* Desglose — solo si > 0 (replica pendientesConCambios de dashboard.js) */}
+            {conCambios > 0 && (
+              <div className="stat-detail" id="pendientesConCambios">
+                {conCambios} con cambios sobre obra publicada
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* 3. Técnicas — siempre visible */}
+        <div className="stat-card">
           <div className="stat-value" id="totalTecnicas">{tecnicas}</div>
           <div className="stat-label">Técnicas</div>
         </div>
 
-        {/* Total Tags */}
-        <div className="stat-card" role="region" aria-label="Total de tags">
-          <div className="stat-card__icon"><Tag size={22} aria-hidden="true" /></div>
+        {/* 4. Tags — siempre visible */}
+        <div className="stat-card">
           <div className="stat-value" id="totalTags">{tags}</div>
           <div className="stat-label">Tags</div>
         </div>
 
-        {/* Total Usuarios */}
-        <div className="stat-card" role="region" aria-label="Total de usuarios">
-          <div className="stat-card__icon"><Users size={22} aria-hidden="true" /></div>
+        {/* 5. Usuarios Admin — siempre visible */}
+        <div className="stat-card">
           <div className="stat-value" id="totalUsuarios">{usuarios}</div>
-          <div className="stat-label">Usuarios</div>
+          <div className="stat-label">Usuarios Admin</div>
         </div>
 
-        {/* Pendientes de Revisión — solo admin/super_editor */}
+        {/* 6. Registros Pendientes — solo admin/super_editor */}
         {esAdmin && (
           <div
-            id="cardPendientesRevision"
             className="stat-card stat-card--warning"
-            role="button"
-            tabIndex={0}
-            aria-label={`${pendientes} obras pendientes de revisión`}
-            style={{ cursor: 'pointer' }}
-            onClick={() => router.push('/admin/obras?estado=En+Revisi%C3%B3n')}
-            onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); router.push('/admin/obras?estado=En+Revisi%C3%B3n'); } }}
-          >
-            <div className="stat-card__icon"><Clock size={22} aria-hidden="true" /></div>
-            <div className="stat-value" id="totalPendientes">{pendientes}</div>
-            <div className="stat-label">Pendientes de Revisión</div>
-            {conCambios > 0 && (
-              <div className="stat-detail" id="pendientesConCambios" style={{ display: '' }}>
-                {conCambios} con cambios sobre obra publicada
-              </div>
-            )}
-            <div className="stat-card-action">Ver obras →</div>
-          </div>
-        )}
-
-        {/* Registros Pendientes — solo admin/super_editor */}
-        {esAdmin && (
-          <div
             id="cardRegistrosPendientes"
-            className="stat-card stat-card--warning"
             role="button"
             tabIndex={0}
-            aria-label={`${regPendientes} registros pendientes de validación`}
-            style={{ cursor: 'pointer' }}
+            title="Ver registros pendientes de validación"
             onClick={() => router.push('/admin/registros-pendientes')}
-            onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); router.push('/admin/registros-pendientes'); } }}
+            onKeyDown={e => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                router.push('/admin/registros-pendientes');
+              }
+            }}
           >
-            <div className="stat-card__icon"><UserCheck size={22} aria-hidden="true" /></div>
             <div className="stat-value" id="totalRegistrosPendientes">{regPendientes}</div>
             <div className="stat-label">Registros Pendientes</div>
-            <div className="stat-card-action">Validar →</div>
+            <div className="stat-card-action">Ver registros →</div>
           </div>
         )}
 
-        {/* Obras Estancadas — solo admin/super_editor Y solo cuando count > 0 */}
+        {/* 7. Obras estancadas — admin/super_editor y SOLO si count > 0 */}
         {esAdmin && estancadas > 0 && (
           <div
-            id="cardObrasEstancadas"
             className="stat-card stat-card--stale"
+            id="cardObrasEstancadas"
             role="button"
             tabIndex={0}
-            aria-label={`${estancadas} obras estancadas en revisión`}
-            style={{ cursor: 'pointer' }}
+            title="Obras en revisión sin decisión por más de 7 días"
             onClick={() => router.push('/admin/obras?estado=En+Revisi%C3%B3n')}
-            onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); router.push('/admin/obras?estado=En+Revisi%C3%B3n'); } }}
+            onKeyDown={e => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                router.push('/admin/obras?estado=En+Revisi%C3%B3n');
+              }
+            }}
           >
-            <div className="stat-card__icon"><AlertTriangle size={22} aria-hidden="true" /></div>
+            <div className="stat-card__icon" aria-hidden="true">
+              <Clock size={20} />
+            </div>
             <div className="stat-value" id="totalObrasEstancadas">{estancadas}</div>
-            <div className="stat-label">En Revisión &gt; 7 días</div>
-            <div className="stat-card-action">Revisar →</div>
+            <div className="stat-label">obras llevan más de 7 días sin revisión</div>
+            <div className="stat-card-action">Revisar ahora →</div>
           </div>
         )}
       </div>
 
-      {/* ── Obras más visitadas del mes — solo admin/super_editor ─────────── */}
-      {esAdmin && topVisitas.length > 0 && (
-        <section
-          id="topVisitasSection"
-          className="recent-section"
-          aria-label="Obras más visitadas este mes"
-          style={{ marginBottom: 24 }}
-        >
-          <h3 style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <TrendingUp size={18} aria-hidden="true" />
-            Obras más visitadas este mes
-          </h3>
-          <ol className="top-visitas-list" id="topVisitasList">
-            {topVisitas.map((row, i) => (
-              <li key={row.obra_id ?? i} className="top-visitas-item">
-                <span className={`top-visitas-rank${i === 0 ? ' top-visitas-rank--gold' : ''}`}>
-                  {i + 1}
-                </span>
-                <span className="top-visitas-info">
-                  <span className="top-visitas-title">{escHtml(row.titulo)}</span>
-                  <span className="top-visitas-artist">{escHtml(row.artista)}</span>
-                </span>
-                <span className="top-visitas-stats">
-                  <span className="top-visitas-stat" title="Visitas este mes">
-                    <Eye size={12} aria-hidden="true" />
-                    {row.visitas}
-                  </span>
-                  <span className="top-visitas-stat top-visitas-stat--fav" title="Corazones totales">
-                    <Heart size={12} aria-hidden="true" />
-                    {row.favoritos ?? 0}
-                  </span>
-                </span>
-              </li>
-            ))}
-          </ol>
-          <div className="top-visitas-footer">
-            <a href="/admin/estadisticas" className="btn btn-secondary btn-sm">
-              <TrendingUp size={14} aria-hidden="true" />
-              Ver historial completo
-            </a>
-          </div>
-        </section>
-      )}
-
-      {/* ── Últimas obras ────────────────────────────────────────────────── */}
-      <section
-        className="recent-section"
-        aria-label={rol === 'editor' ? 'Mis últimas obras' : 'Últimas obras registradas'}
-      >
-        <h3>{rol === 'editor' ? 'Mis últimas obras' : 'Últimas obras'}</h3>
+      {/* ── Últimas Obras PRIMERO (orden idéntico al VanillaJS) ─────────── */}
+      <div className="recent-section">
+        <h3>Últimas Obras</h3>
         <div className="table-wrapper">
           <table className="recent-table" aria-label="Tabla de últimas obras">
             <thead>
@@ -394,7 +387,46 @@ export default function DashboardPage() {
             </tbody>
           </table>
         </div>
-      </section>
+      </div>
+
+      {/* ── Top Visitas DESPUÉS — solo admin/super_editor y solo si hay datos ── */}
+      {esAdmin && topVisitas.length > 0 && (
+        <div className="recent-section" id="topVisitasSection">
+          <h3>
+            <TrendingUp size={18} style={{ verticalAlign: '-3px', marginRight: 6 }} aria-hidden="true" />
+            Obras más visitadas este mes
+          </h3>
+          <ol className="top-visitas-list" id="topVisitasList" aria-label="Ranking de obras más visitadas del mes">
+            {topVisitas.map((row, i) => (
+              <li key={row.obra_id ?? i} className="top-visitas-item">
+                <span className={`top-visitas-rank${i === 0 ? ' top-visitas-rank--gold' : ''}`}>
+                  {i + 1}
+                </span>
+                <span className="top-visitas-info">
+                  <span className="top-visitas-title">{escHtml(row.titulo)}</span>
+                  <span className="top-visitas-artist">{escHtml(row.artista)}</span>
+                </span>
+                <span className="top-visitas-stats">
+                  <span className="top-visitas-stat" title="Visitas este mes">
+                    <Eye size={12} aria-hidden="true" />
+                    {row.visitas}
+                  </span>
+                  <span className="top-visitas-stat top-visitas-stat--fav" title="Corazones totales">
+                    <Heart size={12} aria-hidden="true" />
+                    {row.favoritos ?? 0}
+                  </span>
+                </span>
+              </li>
+            ))}
+          </ol>
+          <div className="top-visitas-footer">
+            <a href="/admin/estadisticas" className="btn btn-secondary btn-sm">
+              <BarChart2 size={14} aria-hidden="true" />
+              Ver historial completo
+            </a>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
