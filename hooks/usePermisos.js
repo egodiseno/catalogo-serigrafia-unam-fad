@@ -44,6 +44,15 @@ const PERMISOS = {
     'usuarios.editar': true,
     'usuarios.borrar': true,
 
+    // Registros pendientes — admin + super_editor
+    'registros.ver':      true,
+    'registros.validar':  true,
+    'registros.rechazar': true,
+
+    // Control de registro — solo ADMIN
+    'control_registro.ver':    true,
+    'control_registro.editar': true,
+
     // Logs
     'logs.ver': true,
 
@@ -87,6 +96,15 @@ const PERMISOS = {
     'usuarios.crear':  true,
     'usuarios.editar': true,
     'usuarios.borrar': true,
+
+    // Registros pendientes — admin + super_editor
+    'registros.ver':      true,
+    'registros.validar':  true,
+    'registros.rechazar': true,
+
+    // Control de registro — solo ADMIN
+    'control_registro.ver':    false,
+    'control_registro.editar': false,
 
     // Logs — solo ADMIN
     'logs.ver': false,
@@ -132,6 +150,15 @@ const PERMISOS = {
     'usuarios.crear':  false,
     'usuarios.editar': false,
     'usuarios.borrar': false,
+
+    // Registros — sin acceso
+    'registros.ver':      false,
+    'registros.validar':  false,
+    'registros.rechazar': false,
+
+    // Control de registro — sin acceso
+    'control_registro.ver':    false,
+    'control_registro.editar': false,
 
     // Logs — sin acceso
     'logs.ver': false,
