@@ -74,15 +74,19 @@ function exportarCSV(rows) {
   const header = ['Fecha/Hora', 'Usuario', 'Acción', 'Descripción', 'Datos adicionales', 'Entidad', 'ID Entidad'];
   const lines = [
     header.join(','),
-    ...rows.map((r) => [
-      `"${r.created_at ?? ''}"`,
-      `"${(r.user_email ?? '').replace(/"/g, '""')}"`,
-      `"${(r.accion ?? '').replace(/"/g, '""')}"`,
-      `"${(r.descripcion ?? '').replace(/"/g, '""')}"`,
-      `"${(serializeDatos(r.datos_adicionales) ?? '').replace(/"/g, '""').replace(/\n/g, ' ')}"`,
-      `"${(r.entidad_tipo ?? '').replace(/"/g, '""')}"`,
-      `"${(r.entidad_id ?? '').replace(/"/g, '""')}"`,
-    ].join(','))
+    ...rows.map((r) => {
+      // Tolerar columna 'usuario_email' (convención ES) o 'user_email' / 'email'
+      const email = r.usuario_email ?? r.user_email ?? r.email ?? '';
+      return [
+        `"${r.created_at ?? ''}"`,
+        `"${String(email).replace(/"/g, '""')}"`,
+        `"${(r.accion ?? '').replace(/"/g, '""')}"`,
+        `"${(r.descripcion ?? '').replace(/"/g, '""')}"`,
+        `"${(serializeDatos(r.datos_adicionales) ?? '').replace(/"/g, '""').replace(/\n/g, ' ')}"`,
+        `"${(r.entidad_tipo ?? '').replace(/"/g, '""')}"`,
+        `"${(r.entidad_id ?? '').replace(/"/g, '""')}"`,
+      ].join(',');
+    })
   ];
   const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
@@ -242,19 +246,20 @@ export default function LogsPage() {
     try {
       const offset = (page - 1) * PAGE_SIZE;
 
+      // SELECT * — no migration file para audit_logs en el repo; usar * evita
+      // fallo por nombres de columna incorrectos. El campo confirmado incorrecto
+      // era 'user_email'; la convención del proyecto usa 'usuario_email'.
       let query = client
         .from('audit_logs')
-        .select(
-          'id, created_at, user_email, accion, descripcion, datos_adicionales, entidad_tipo, entidad_id',
-          { count: 'exact' }
-        )
+        .select('*', { count: 'exact' })
         .order('created_at', { ascending: false })
         .range(offset, offset + PAGE_SIZE - 1);
 
       if (accionFiltro) query = query.eq('accion', accionFiltro);
       if (debouncedSearch) {
+        // 'usuario_email' — convención española del proyecto (no 'user_email')
         query = query.or(
-          `descripcion.ilike.%${debouncedSearch}%,user_email.ilike.%${debouncedSearch}%`
+          `descripcion.ilike.%${debouncedSearch}%,usuario_email.ilike.%${debouncedSearch}%`
         );
       }
       if (fechaDesde) query = query.gte('created_at', `${fechaDesde}T00:00:00`);
@@ -289,13 +294,13 @@ export default function LogsPage() {
     try {
       let query = client
         .from('audit_logs')
-        .select('id, created_at, user_email, accion, descripcion, datos_adicionales, entidad_tipo, entidad_id')
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (accionFiltro) query = query.eq('accion', accionFiltro);
       if (debouncedSearch) {
         query = query.or(
-          `descripcion.ilike.%${debouncedSearch}%,user_email.ilike.%${debouncedSearch}%`
+          `descripcion.ilike.%${debouncedSearch}%,usuario_email.ilike.%${debouncedSearch}%`
         );
       }
       if (fechaDesde) query = query.gte('created_at', `${fechaDesde}T00:00:00`);
@@ -495,10 +500,13 @@ export default function LogsPage() {
                     {fmtDateTime(log.created_at)}
                   </td>
                   <td data-label="Usuario" style={{ fontSize: '0.85rem', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {log.user_email
-                      ? <a href={`mailto:${log.user_email}`} style={{ color: 'var(--color-primary)', textDecoration: 'none' }}>{log.user_email}</a>
-                      : <span style={{ color: 'var(--color-text-muted)' }}>Sistema</span>
-                    }
+                    {(() => {
+                      // Tolerar 'usuario_email' (ES) o fallbacks 'user_email' / 'email'
+                      const ue = log.usuario_email ?? log.user_email ?? log.email ?? null;
+                      return ue
+                        ? <a href={`mailto:${ue}`} style={{ color: 'var(--color-primary)', textDecoration: 'none' }}>{ue}</a>
+                        : <span style={{ color: 'var(--color-text-muted)' }}>Sistema</span>;
+                    })()}
                   </td>
                   <td data-label="Acción">
                     <span className={getAccionBadgeClass(log.accion)}>
