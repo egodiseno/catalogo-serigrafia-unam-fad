@@ -109,6 +109,104 @@ h1, h2, h3 {
   top: 0;
 }
 
+/* ── Banner offline (OfflineIndicator.jsx) ───────────────────────────────── */
+/* Barra fija en la parte inferior — no desplaza el contenido del header.     */
+.offline-banner {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.25rem;
+  background: #1f2937;      /* slate-800 — neutral oscuro, no alarmista */
+  color: #f9fafb;            /* slate-50 */
+  font-size: 0.82rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.25);
+  animation: slideUp 250ms var(--ease) both;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+/* ── Página offline (app/offline/page.jsx) ───────────────────────────────── */
+.offline-page {
+  display: flex;
+  align-items: center;
+  min-height: 60vh;
+  padding: var(--space-6) 0;
+}
+
+.offline-page__box {
+  max-width: 480px;
+  margin: 0 auto;
+  text-align: center;
+  padding: var(--space-5);
+}
+
+.offline-page__icon {
+  color: var(--color-muted);
+  margin-bottom: var(--space-3);
+  opacity: 0.6;
+}
+
+.offline-page__title {
+  font-size: clamp(1.6rem, 4vw, 2.2rem);
+  font-weight: 700;
+  color: var(--color-ink);
+  margin-bottom: var(--space-2);
+}
+
+.offline-page__lead {
+  font-size: 1rem;
+  color: var(--color-muted);
+  line-height: 1.65;
+  margin-bottom: var(--space-2);
+}
+
+.offline-page__hint {
+  font-size: 0.85rem;
+  color: var(--color-muted);
+  opacity: 0.75;
+  margin-bottom: var(--space-4);
+}
+
+.offline-page__actions {
+  display: flex;
+  justify-content: center;
+}
+
+.offline-page__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.65rem 1.5rem;
+  background: var(--color-blue);
+  color: var(--color-white);
+  border-radius: var(--radius-ui);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 180ms var(--ease), transform 100ms var(--ease);
+}
+
+.offline-page__link:hover {
+  background: #012d5a;
+  transform: translateY(-1px);
+}
+
+.offline-page__link:focus-visible {
+  outline: 3px solid var(--focus-ring, #013B75);
+  outline-offset: 2px;
+}
+
 .container {
   max-width: var(--container);
   margin: 0 auto;

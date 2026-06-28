@@ -2,9 +2,10 @@
 // Server Component: no usa estado ni hooks del cliente
 
 import '../styles/globals.css';
-import { LangProvider } from '@/contexts/LangContext';
-import Header from '@/components/public/Header';
-import Footer from '@/components/public/Footer';
+import { LangProvider }      from '@/contexts/LangContext';
+import Header                from '@/components/public/Header';
+import Footer                from '@/components/public/Footer';
+import OfflineIndicator      from '@/components/OfflineIndicator';
 
 // themeColor va en viewport export separado (Next.js 14 — evita warning de metadata)
 export const viewport = {
@@ -15,6 +16,14 @@ export const metadata = {
   title: 'Catálogo de Obra Serigráfica | FAD-UNAM',
   description:
     'Catálogo digital de obra serigráfica de la Facultad de Artes y Diseño, UNAM. Explora la colección del Taller de Serigrafía.',
+  // ── PWA ──────────────────────────────────────────────────────────────────
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'Catálogo Serigrafía',
+  },
+  // ── Social ───────────────────────────────────────────────────────────────
   openGraph: {
     type: 'website',
     siteName: 'Catálogo de Obra Serigráfica — UNAM / FAD',
@@ -56,6 +65,8 @@ export default function RootLayout({ children }) {
           rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
         />
+        {/* PWA — meta tags adicionales no cubiertos por la API metadata de Next.js */}
+        <meta name="mobile-web-app-capable" content="yes" />
       </head>
       <body>
         {/* Skip link de accesibilidad */}
@@ -66,6 +77,8 @@ export default function RootLayout({ children }) {
         {/* LangProvider es Client Component que envuelve todo */}
         <LangProvider>
           <Header />
+          {/* Indicador offline (Client Component — también registra el SW) */}
+          <OfflineIndicator />
           {children}
           <Footer />
         </LangProvider>
