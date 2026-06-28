@@ -5,19 +5,31 @@
  *
  * Configuración del sitio — Client Component.
  * Tres pestañas:
- *   1. Acerca de  — singleton configuracion_acerca (ES / EN)
- *   2. Créditos   — CRUD tabla creditos, agrupado por seccion
- *   3. Redes Sociales — CRUD tabla redes_sociales (máx 5), icono Bootstrap Icons
+ *   1. Acerca de  — singleton configuracion_acerca (ES + EN, dos textareas verticales)
+ *   2. Créditos   — CRUD tabla creditos, agrupado por seccion, botones ↑↓ Editar Eliminar
+ *   3. Redes Sociales — CRUD tabla redes_sociales (máx 5), drag-handle, Bootstrap Icons
  *
  * Acceso: solo admin  (configuracion.ver)
  * Auth: createClient().auth.getUser() → usuarios_admin lookup (NO useAuth)
+ *
+ * CSS: únicamente selectores verificados en styles/admin.css
  */
 
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { usePermisos } from '@/hooks/usePermisos';
-import { Save, Trash2, Pencil, Plus, X, Check, Globe } from 'lucide-react';
+import {
+  Save,
+  Trash2,
+  Pencil,
+  Plus,
+  X,
+  Check,
+  ChevronUp,
+  ChevronDown,
+  GripVertical,
+} from 'lucide-react';
 
 /* ─── Constantes ──────────────────────────────────────────────────── */
 const ACERCA_ID   = '00000000-0000-0000-0000-000000000001';
@@ -29,7 +41,7 @@ const SECCION_LABEL = {
   webmaster: 'Webmaster',
 };
 
-/** Bootstrap Icons disponibles para redes sociales */
+/** Bootstrap Icons para redes sociales */
 const RRSS_ICONS = [
   'globe',
   'facebook',
@@ -126,9 +138,9 @@ export default function ConfiguracionPage() {
       {/* ── Pestañas ──────────────────────────────────────── */}
       <div className="config-tabs" role="tablist">
         {[
-          { key: 'acerca',  label: 'Acerca de'     },
-          { key: 'creditos', label: 'Créditos'      },
-          { key: 'rrss',    label: 'Redes Sociales' },
+          { key: 'acerca',   label: 'Acerca de'     },
+          { key: 'creditos', label: 'Créditos'       },
+          { key: 'rrss',     label: 'Redes Sociales' },
         ].map(({ key, label }) => (
           <button
             key={key}
@@ -146,22 +158,25 @@ export default function ConfiguracionPage() {
       </div>
 
       {/* ── Paneles ───────────────────────────────────────── */}
-      <TabAcerca   active={tab === 'acerca'}  />
+      <TabAcerca   active={tab === 'acerca'}   />
       <TabCreditos active={tab === 'creditos'} />
-      <TabRrss     active={tab === 'rrss'}    />
+      <TabRrss     active={tab === 'rrss'}     />
     </div>
   );
 }
 
 /* ═══════════════════════════════════════════════════════════════════
    TAB 1 — ACERCA DE
+   Singleton en configuracion_acerca. Usa .limit(1) para evitar el
+   error "Cannot coerce the result to a single JSON object" que
+   ocurre con .single() cuando la tabla tiene más de una fila.
+   UI: dos textareas verticales (ES + EN) sin mini-tabs.
    ═══════════════════════════════════════════════════════════════════ */
 function TabAcerca({ active }) {
-  const [lang,    setLang]    = useState('es');
   const [row,     setRow]     = useState(null);
+  const [titulo,  setTitulo]  = useState('');
   const [es,      setEs]      = useState('');
   const [en,      setEn]      = useState('');
-  const [titulo,  setTitulo]  = useState('');
   const [loading, setLoading] = useState(true);
   const [saving,  setSaving]  = useState(false);
   const [error,   setError]   = useState(null);
@@ -173,19 +188,24 @@ function TabAcerca({ active }) {
     (async () => {
       setLoading(true);
       setError(null);
+
+      /* Usar .limit(1) en lugar de .single() para evitar PGRST116
+         cuando la tabla tiene múltiples filas (tabla no está vacía
+         pero puede tener la fila singleton con un id diferente). */
       const { data, error: err } = await client
         .from('configuracion_acerca')
         .select('*')
         .eq('id', ACERCA_ID)
-        .single();
+        .limit(1);
 
       if (err) {
         setError(err.message);
-      } else if (data) {
-        setRow(data);
-        setTitulo(data.titulo ?? '');
-        setEs(data.contenido_es ?? '');
-        setEn(data.contenido_en ?? '');
+      } else {
+        const rowData = data?.[0] ?? null;
+        setRow(rowData);
+        setTitulo(rowData?.titulo     ?? '');
+        setEs(rowData?.contenido_es   ?? '');
+        setEn(rowData?.contenido_en   ?? '');
       }
       setLoading(false);
     })();
@@ -202,23 +222,23 @@ function TabAcerca({ active }) {
       const { error: err } = await client
         .from('configuracion_acerca')
         .update({
-          titulo:       titulo,
-          contenido_es: es,
-          contenido_en: en,
+          titulo,
+          contenido_es:    es,
+          contenido_en:    en,
           actualizado_por: user?.id ?? null,
         })
         .eq('id', ACERCA_ID);
 
       if (err) throw err;
 
-      // Recargar timestamp
+      /* Refrescar timestamp */
       const { data: refreshed } = await client
         .from('configuracion_acerca')
         .select('updated_at, actualizado_por')
         .eq('id', ACERCA_ID)
-        .single();
+        .limit(1);
 
-      if (refreshed) setRow(prev => ({ ...prev, ...refreshed }));
+      if (refreshed?.[0]) setRow(prev => ({ ...prev, ...refreshed[0] }));
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
     } catch (err) {
@@ -255,10 +275,8 @@ function TabAcerca({ active }) {
         {!loading && !error && (
           <>
             {/* Título */}
-            <div className="form-group" style={{ marginBottom: '1rem' }}>
-              <label className="form-label" htmlFor="acerca-titulo">
-                Título
-              </label>
+            <div className="form-group">
+              <label className="form-label" htmlFor="acerca-titulo">Título</label>
               <input
                 id="acerca-titulo"
                 type="text"
@@ -270,61 +288,39 @@ function TabAcerca({ active }) {
               />
             </div>
 
-            {/* Mini-tabs ES / EN */}
-            <div className="acerca-lang-tabs" role="tablist" aria-label="Idioma">
-              <button
-                type="button"
-                role="tab"
-                aria-selected={lang === 'es'}
-                className={`acerca-lang-btn${lang === 'es' ? ' acerca-lang-btn--active' : ''}`}
-                onClick={() => setLang('es')}
-              >
-                Español
-              </button>
-              <button
-                type="button"
-                role="tab"
-                aria-selected={lang === 'en'}
-                className={`acerca-lang-btn${lang === 'en' ? ' acerca-lang-btn--active' : ''}`}
-                onClick={() => setLang('en')}
-              >
-                English
-              </button>
-            </div>
-
-            {/* Panel ES */}
-            <div
-              className={`acerca-lang-panel${lang === 'es' ? ' acerca-lang-panel--active' : ''}`}
-              role="tabpanel"
-            >
+            {/* Textarea ES */}
+            <div className="form-group">
+              <label className="form-label" htmlFor="acerca-es">
+                Descripción (Español)
+              </label>
               <textarea
+                id="acerca-es"
                 className="form-textarea"
-                rows={12}
+                rows={10}
                 value={es}
                 onChange={e => setEs(e.target.value)}
                 disabled={saving}
                 placeholder="Texto en español…"
-                aria-label="Contenido en español"
               />
             </div>
 
-            {/* Panel EN */}
-            <div
-              className={`acerca-lang-panel${lang === 'en' ? ' acerca-lang-panel--active' : ''}`}
-              role="tabpanel"
-            >
+            {/* Textarea EN */}
+            <div className="form-group">
+              <label className="form-label" htmlFor="acerca-en">
+                Descripción (Inglés)
+              </label>
               <textarea
+                id="acerca-en"
                 className="form-textarea"
-                rows={12}
+                rows={10}
                 value={en}
                 onChange={e => setEn(e.target.value)}
                 disabled={saving}
                 placeholder="Content in English…"
-                aria-label="Contenido en inglés"
               />
             </div>
 
-            {/* Footer con timestamp + botón guardar */}
+            {/* Footer */}
             <div className="config-acerca-footer">
               {row?.updated_at && (
                 <span className="config-timestamp">
@@ -333,7 +329,7 @@ function TabAcerca({ active }) {
               )}
               <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
                 {saved && (
-                  <span style={{ color: 'var(--color-success, #16a34a)', fontSize: '0.875rem' }}>
+                  <span style={{ color: 'var(--color-success, #16a34a)', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                     <Check size={14} aria-hidden="true" /> Guardado
                   </span>
                 )}
@@ -358,15 +354,15 @@ function TabAcerca({ active }) {
 
 /* ═══════════════════════════════════════════════════════════════════
    TAB 2 — CRÉDITOS
+   Layout de cada fila: [visible] [info] ... [↑] [↓] [Editar] [Eliminar]
+   Botón "+ Agregar cargo" debajo de la lista de cada sección.
    ═══════════════════════════════════════════════════════════════════ */
 function TabCreditos({ active }) {
-  const [rows,    setRows]    = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error,   setError]   = useState(null);
-
-  /* Modal de edición */
-  const [editTarget, setEditTarget] = useState(null);  // row | null
-  const [addTarget,  setAddTarget]  = useState(null);  // { seccion } | null
+  const [rows,       setRows]       = useState([]);
+  const [loading,    setLoading]    = useState(true);
+  const [error,      setError]      = useState(null);
+  const [editTarget, setEditTarget] = useState(null);
+  const [addTarget,  setAddTarget]  = useState(null);  // { seccion }
 
   const load = useCallback(async () => {
     const client = createClient();
@@ -387,6 +383,7 @@ function TabCreditos({ active }) {
     if (active) load();
   }, [active, load]);
 
+  /** Alterna visibilidad en la base de datos */
   const handleToggleVisible = async (row) => {
     const client = createClient();
     await client
@@ -396,16 +393,42 @@ function TabCreditos({ active }) {
     load();
   };
 
-  const handleDelete = async (id) => {
-    if (!confirm('¿Eliminar este crédito?')) return;
+  /** Elimina un crédito (solo tipo custom/default) */
+  const handleDelete = async (id, nombre) => {
+    if (!confirm(`¿Eliminar "${nombre}"?`)) return;
     const client = createClient();
     await client.from('creditos').delete().eq('id', id);
     load();
   };
 
+  /**
+   * Mueve un ítem de una sección hacia arriba (dir = -1) o abajo (dir = +1)
+   * intercambiando los valores de `orden` con el ítem adyacente.
+   */
+  const handleMove = async (seccion, currentIdx, dir) => {
+    const sectionItems = rows
+      .filter(r => r.seccion === seccion)
+      .sort((a, b) => a.orden - b.orden);
+
+    const swapIdx = currentIdx + dir;
+    if (swapIdx < 0 || swapIdx >= sectionItems.length) return;
+
+    const current = sectionItems[currentIdx];
+    const other   = sectionItems[swapIdx];
+    const client  = createClient();
+
+    await Promise.all([
+      client.from('creditos').update({ orden: other.orden   }).eq('id', current.id),
+      client.from('creditos').update({ orden: current.orden }).eq('id', other.id),
+    ]);
+    load();
+  };
+
   const grouped = SECCIONES.map(sec => ({
     seccion: sec,
-    items: rows.filter(r => r.seccion === sec),
+    items: rows
+      .filter(r => r.seccion === sec)
+      .sort((a, b) => a.orden - b.orden),
   }));
 
   return (
@@ -434,34 +457,29 @@ function TabCreditos({ active }) {
 
         {!loading && !error && grouped.map(({ seccion, items }) => (
           <div key={seccion} className="credito-seccion">
+
+            {/* Cabecera: solo el título */}
             <div className="credito-seccion-header">
               <h3 className="credito-seccion-title">
                 {SECCION_LABEL[seccion] ?? seccion}
               </h3>
-              <button
-                type="button"
-                className="credito-add-btn"
-                onClick={() => setAddTarget({ seccion })}
-                aria-label={`Agregar crédito en ${SECCION_LABEL[seccion] ?? seccion}`}
-              >
-                <Plus size={15} aria-hidden="true" /> Agregar
-              </button>
             </div>
 
             {items.length === 0 && (
-              <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
+              <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>
                 Sin créditos en esta sección.
               </p>
             )}
 
+            {/* Lista de cards */}
             <ul className="credito-lista">
-              {items.map(row => (
+              {items.map((row, idx) => (
                 <li
                   key={row.id}
                   className={`credito-card${row.visible ? ' credito-card--visible' : ' credito-card--oculto'}`}
                 >
-                  {/* Visible toggle */}
-                  <label className="credito-visible-label">
+                  {/* Toggle visible */}
+                  <label className="credito-visible-label" title={row.visible ? 'Ocultar' : 'Mostrar'}>
                     <input
                       type="checkbox"
                       className="credito-visible-cb"
@@ -478,14 +496,39 @@ function TabCreditos({ active }) {
                   <div className="credito-card-info">
                     <div className="credito-nombres">
                       <span className="credito-nombre">{row.nombre}</span>
+                      <span className="credito-cargo">
+                        {row.cargo || <em style={{ opacity: 0.5 }}>Sin cargo</em>}
+                      </span>
                     </div>
-                    <span className="credito-cargo">
-                      {row.cargo || <em style={{ opacity: 0.5 }}>Sin cargo</em>}
-                    </span>
                   </div>
 
-                  {/* Acciones */}
+                  {/* Acciones: ↑ ↓ Editar Eliminar */}
                   <div className="credito-card-actions">
+                    {/* Subir */}
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-secondary btn--icon-only"
+                      onClick={() => handleMove(seccion, idx, -1)}
+                      disabled={idx === 0}
+                      aria-label={`Subir ${row.nombre}`}
+                      title="Subir"
+                    >
+                      <ChevronUp size={14} aria-hidden="true" />
+                    </button>
+
+                    {/* Bajar */}
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-secondary btn--icon-only"
+                      onClick={() => handleMove(seccion, idx, 1)}
+                      disabled={idx === items.length - 1}
+                      aria-label={`Bajar ${row.nombre}`}
+                      title="Bajar"
+                    >
+                      <ChevronDown size={14} aria-hidden="true" />
+                    </button>
+
+                    {/* Editar */}
                     <button
                       type="button"
                       className="btn btn-sm btn-secondary"
@@ -493,14 +536,17 @@ function TabCreditos({ active }) {
                       aria-label={`Editar ${row.nombre}`}
                     >
                       <Pencil size={13} aria-hidden="true" />
+                      Editar
                     </button>
-                    {/* Solo tipo custom/default pueden borrarse */}
+
+                    {/* Eliminar — solo tipo no-fijo */}
                     {row.tipo !== 'fijo' && (
                       <button
                         type="button"
-                        className="credito-del-btn"
-                        onClick={() => handleDelete(row.id)}
+                        className="btn btn-sm btn-danger credito-del-btn"
+                        onClick={() => handleDelete(row.id, row.nombre)}
                         aria-label={`Eliminar ${row.nombre}`}
+                        title="Eliminar"
                       >
                         <Trash2 size={13} aria-hidden="true" />
                       </button>
@@ -509,11 +555,21 @@ function TabCreditos({ active }) {
                 </li>
               ))}
             </ul>
+
+            {/* Agregar — debajo de la lista */}
+            <button
+              type="button"
+              className="btn btn-secondary btn-sm credito-add-btn"
+              onClick={() => setAddTarget({ seccion })}
+            >
+              <Plus size={14} aria-hidden="true" />
+              Agregar cargo
+            </button>
           </div>
         ))}
       </div>
 
-      {/* Modal edición */}
+      {/* Modal edición / creación */}
       {(editTarget || addTarget) && (
         <CreditoModal
           row={editTarget}
@@ -526,6 +582,7 @@ function TabCreditos({ active }) {
   );
 }
 
+/* ── Modal de crédito ─────────────────────────────────────────────── */
 function CreditoModal({ row, seccion, onClose, onSaved }) {
   const [nombre,  setNombre]  = useState(row?.nombre  ?? '');
   const [cargo,   setCargo]   = useState(row?.cargo   ?? '');
@@ -556,8 +613,13 @@ function CreditoModal({ row, seccion, onClose, onSaved }) {
         });
         if (err) throw err;
       } else {
-        const update = { nombre, visible, actualizado_por: user?.id ?? null };
+        const update = {
+          nombre,
+          visible,
+          actualizado_por: user?.id ?? null,
+        };
         if (editableCargo) update.cargo = cargo;
+
         const { error: err } = await client
           .from('creditos')
           .update(update)
@@ -575,7 +637,9 @@ function CreditoModal({ row, seccion, onClose, onSaved }) {
     <div className="modal-overlay" role="dialog" aria-modal="true" aria-label={isNew ? 'Agregar crédito' : 'Editar crédito'}>
       <div className="modal-dialog">
         <div className="modal-header">
-          <h3 className="modal-title">{isNew ? 'Agregar crédito' : 'Editar crédito'}</h3>
+          <h3 className="modal-title">
+            {isNew ? 'Agregar crédito' : 'Editar crédito'}
+          </h3>
           <button type="button" className="modal-close" onClick={onClose} aria-label="Cerrar">
             <X size={18} aria-hidden="true" />
           </button>
@@ -631,13 +695,24 @@ function CreditoModal({ row, seccion, onClose, onSaved }) {
           </div>
 
           <div className="modal-footer">
-            <button type="button" className="btn btn-secondary" onClick={onClose} disabled={saving}>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={onClose}
+              disabled={saving}
+            >
               Cancelar
             </button>
-            <button type="submit" className="btn btn-primary" disabled={saving || !nombre.trim()}>
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={saving || !nombre.trim()}
+            >
               {saving
                 ? <><div className="spinner spinner--sm" aria-hidden="true" /> Guardando…</>
-                : isNew ? <><Plus size={14} aria-hidden="true" /> Agregar</> : <><Save size={14} aria-hidden="true" /> Guardar</>}
+                : isNew
+                  ? <><Plus size={14} aria-hidden="true" /> Agregar</>
+                  : <><Save size={14} aria-hidden="true" /> Guardar</>}
             </button>
           </div>
         </form>
@@ -648,13 +723,16 @@ function CreditoModal({ row, seccion, onClose, onSaved }) {
 
 /* ═══════════════════════════════════════════════════════════════════
    TAB 3 — REDES SOCIALES
+   Drag-handle a la izquierda, checkbox visible a la derecha,
+   botones editar/eliminar con clases reales del CSS.
    ═══════════════════════════════════════════════════════════════════ */
 function TabRrss({ active }) {
-  const [rows,      setRows]      = useState([]);
-  const [loading,   setLoading]   = useState(true);
-  const [error,     setError]     = useState(null);
-  const [editRow,   setEditRow]   = useState(null);  // row | null
-  const [showAdd,   setShowAdd]   = useState(false);
+  const [rows,    setRows]    = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error,   setError]   = useState(null);
+  const [editRow, setEditRow] = useState(null);
+  const [showAdd, setShowAdd] = useState(false);
+  const [dragIdx, setDragIdx] = useState(null);
 
   const load = useCallback(async () => {
     const client = createClient();
@@ -687,6 +765,33 @@ function TabRrss({ active }) {
     if (!confirm(`¿Eliminar "${row.nombre}"?`)) return;
     const client = createClient();
     await client.from('redes_sociales').delete().eq('id', row.id);
+    load();
+  };
+
+  /* ── HTML5 Drag and Drop ──────────────────────────────────── */
+  const handleDragStart = (idx) => setDragIdx(idx);
+  const handleDragOver  = (e)   => e.preventDefault();
+
+  const handleDrop = async (e, targetIdx) => {
+    e.preventDefault();
+    if (dragIdx === null || dragIdx === targetIdx) {
+      setDragIdx(null);
+      return;
+    }
+
+    const reordered = [...rows];
+    const [moved] = reordered.splice(dragIdx, 1);
+    reordered.splice(targetIdx, 0, moved);
+
+    setRows(reordered);   // actualización optimista
+    setDragIdx(null);
+
+    const client = createClient();
+    await Promise.all(
+      reordered.map((r, i) =>
+        client.from('redes_sociales').update({ orden: i + 1 }).eq('id', r.id)
+      )
+    );
     load();
   };
 
@@ -732,18 +837,31 @@ function TabRrss({ active }) {
                 )}
 
                 <ul className="rrss-cards-list">
-                  {rows.map(row => (
+                  {rows.map((row, idx) => (
                     <li
                       key={row.id}
-                      className={`rrss-card${!row.visible ? ' rrss-card--hidden' : ''}`}
+                      className={`rrss-card${!row.visible ? ' rrss-card--hidden' : ''}${dragIdx === idx ? ' rrss-card--dragging' : ''}`}
+                      draggable
+                      onDragStart={() => handleDragStart(idx)}
+                      onDragOver={handleDragOver}
+                      onDrop={(e) => handleDrop(e, idx)}
                     >
+                      {/* Drag handle — izquierda */}
+                      <span
+                        className="rrss-drag-handle"
+                        aria-hidden="true"
+                        title="Arrastrar para reordenar"
+                      >
+                        <GripVertical size={16} />
+                      </span>
+
                       {/* Icono */}
                       <span
                         className="rrss-icon-bubble"
-                        style={{ background: row.color ?? '#013B75' }}
+                        style={{ background: row.color ?? '#013B75', color: '#fff' }}
                         aria-hidden="true"
                       >
-                        <i className={`bi bi-${row.icono ?? 'globe'}`} />
+                        <i className={`bi bi-${row.icono ?? 'globe'}`} style={{ fontSize: '1.1rem' }} />
                       </span>
 
                       {/* Info */}
@@ -752,32 +870,36 @@ function TabRrss({ active }) {
                         <span className="rrss-url">{row.url}</span>
                       </div>
 
-                      {/* Visible toggle */}
-                      <button
-                        type="button"
+                      {/* Visible toggle — derecha */}
+                      <label
                         className="rrss-visible-toggle"
-                        onClick={() => handleToggleVisible(row)}
-                        aria-label={row.visible ? `Ocultar ${row.nombre}` : `Mostrar ${row.nombre}`}
-                        title={row.visible ? 'Ocultar' : 'Mostrar'}
+                        title={row.visible ? 'Visible — click para ocultar' : 'Oculto — click para mostrar'}
                       >
-                        <i className={`bi bi-${row.visible ? 'eye' : 'eye-slash'}`} aria-hidden="true" />
-                      </button>
+                        <input
+                          type="checkbox"
+                          checked={!!row.visible}
+                          onChange={() => handleToggleVisible(row)}
+                          aria-label={row.visible ? `Ocultar ${row.nombre}` : `Mostrar ${row.nombre}`}
+                        />
+                      </label>
 
-                      {/* Acciones */}
+                      {/* Botones editar / eliminar */}
                       <div className="rrss-card-btns">
                         <button
                           type="button"
-                          className="rrss-edit-btn"
+                          className="rrss-edit-btn btn btn-sm btn-secondary btn--icon-only"
                           onClick={() => setEditRow(row)}
                           aria-label={`Editar ${row.nombre}`}
+                          title="Editar"
                         >
                           <Pencil size={13} aria-hidden="true" />
                         </button>
                         <button
                           type="button"
-                          className="rrss-del-btn"
+                          className="rrss-del-btn btn btn-sm btn-danger btn--icon-only"
                           onClick={() => handleDelete(row)}
                           aria-label={`Eliminar ${row.nombre}`}
+                          title="Eliminar"
                         >
                           <Trash2 size={13} aria-hidden="true" />
                         </button>
@@ -786,15 +908,17 @@ function TabRrss({ active }) {
                   ))}
                 </ul>
 
+                {/* Agregar — deshabilitado cuando hay 5 redes */}
                 <button
                   type="button"
-                  className="btn-rrss-agregar"
+                  className="btn btn-secondary btn-sm btn-rrss-agregar"
                   onClick={() => setShowAdd(true)}
                   disabled={maxReached}
                   aria-disabled={maxReached}
                   title={maxReached ? 'Máximo 5 redes sociales' : 'Agregar red social'}
                 >
-                  <Plus size={15} aria-hidden="true" /> Agregar red social
+                  <Plus size={15} aria-hidden="true" />
+                  Agregar red social
                 </button>
               </>
             )}
@@ -817,11 +941,15 @@ function TabRrss({ active }) {
                         target="_blank"
                         rel="noopener noreferrer"
                         className="rrss-preview-icon"
-                        style={{ background: row.color ?? '#013B75' }}
+                        style={{ background: row.color ?? '#013B75', color: '#fff' }}
                         title={row.nombre}
                         aria-label={row.nombre}
                       >
-                        <i className={`bi bi-${row.icono ?? 'globe'}`} aria-hidden="true" />
+                        <i
+                          className={`bi bi-${row.icono ?? 'globe'}`}
+                          style={{ fontSize: '1.25rem' }}
+                          aria-hidden="true"
+                        />
                       </a>
                     ))
               }
@@ -843,6 +971,7 @@ function TabRrss({ active }) {
   );
 }
 
+/* ── Modal de red social ──────────────────────────────────────────── */
 function RrssModal({ row, onClose, onSaved, nextOrden }) {
   const isNew = !row;
 
@@ -854,7 +983,7 @@ function RrssModal({ row, onClose, onSaved, nextOrden }) {
   const [saving,  setSaving]  = useState(false);
   const [error,   setError]   = useState(null);
 
-  const urlOk  = url.trim() === '' ? null : isValidUrl(url.trim());
+  const urlOk = url.trim() === '' ? null : isValidUrl(url.trim());
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -901,7 +1030,7 @@ function RrssModal({ row, onClose, onSaved, nextOrden }) {
 
   return (
     <div className="modal-overlay" role="dialog" aria-modal="true" aria-label={isNew ? 'Agregar red social' : 'Editar red social'}>
-      <div className={`modal-dialog modal-dialog--rrss`}>
+      <div className="modal-dialog modal-dialog--rrss">
         <div className="modal-header">
           <h3 className="modal-title">
             {isNew ? 'Agregar red social' : `Editar — ${row.nombre}`}
@@ -917,7 +1046,7 @@ function RrssModal({ row, onClose, onSaved, nextOrden }) {
             {/* ── Columna formulario ──────────────────── */}
             <div className="rrss-modal-form-col">
               {error && (
-                <div className="alert alert-error" role="alert" style={{ marginBottom: '0.75rem' }}>
+                <div className="alert alert-error" role="alert">
                   {error}
                 </div>
               )}
@@ -939,19 +1068,20 @@ function RrssModal({ row, onClose, onSaved, nextOrden }) {
               </div>
 
               {/* URL */}
-              <div className="form-group rrss-url-row" style={{ marginTop: '0.75rem' }}>
+              <div className="form-group">
                 <label className="form-label" htmlFor="rrss-url">URL</label>
-                <input
-                  id="rrss-url"
-                  type="url"
-                  className={`search-input${urlOk === false ? ' input--invalid' : urlOk === true ? ' input--valid' : ''}`}
-                  style={{ width: '100%' }}
-                  value={url}
-                  onChange={e => setUrl(e.target.value)}
-                  required
-                  disabled={saving}
-                  placeholder="https://…"
-                />
+                <div className="rrss-url-row">
+                  <input
+                    id="rrss-url"
+                    type="url"
+                    className={`search-input${urlOk === false ? ' input--invalid' : urlOk === true ? ' input--valid' : ''}`}
+                    value={url}
+                    onChange={e => setUrl(e.target.value)}
+                    required
+                    disabled={saving}
+                    placeholder="https://…"
+                  />
+                </div>
                 {urlOk === false && (
                   <span className="rrss-url-feedback rrss-url-feedback--err" aria-live="polite">
                     URL inválida
@@ -965,8 +1095,8 @@ function RrssModal({ row, onClose, onSaved, nextOrden }) {
               </div>
 
               {/* Color */}
-              <div className="rrss-color-row" style={{ marginTop: '0.75rem' }}>
-                <label className="rrss-color-label" htmlFor="rrss-color">Color del icono</label>
+              <div className="rrss-color-row">
+                <label className="rrss-color-label" htmlFor="rrss-color">Color</label>
                 <input
                   id="rrss-color"
                   type="color"
@@ -981,28 +1111,28 @@ function RrssModal({ row, onClose, onSaved, nextOrden }) {
               </div>
 
               {/* Visible */}
-              <div className="form-group" style={{ marginTop: '0.75rem' }}>
-                <label className="rrss-visible-label" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-                  <input
-                    type="checkbox"
-                    checked={visible}
-                    onChange={e => setVisible(e.target.checked)}
-                    disabled={saving}
-                  />
-                  <span>Visible en el sitio</span>
-                </label>
-              </div>
+              <label className="rrss-visible-label">
+                <input
+                  type="checkbox"
+                  checked={visible}
+                  onChange={e => setVisible(e.target.checked)}
+                  disabled={saving}
+                />
+                <span>Visible en el sitio</span>
+              </label>
 
-              {/* Preview burbuja */}
-              <div style={{ marginTop: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              {/* Preview */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginTop: '0.5rem' }}>
                 <span
                   className="rrss-icon-bubble"
-                  style={{ background: color }}
+                  style={{ background: color, color: '#fff' }}
                   aria-hidden="true"
                 >
-                  <i className={`bi bi-${icono}`} />
+                  <i className={`bi bi-${icono}`} style={{ fontSize: '1.1rem' }} />
                 </span>
-                <span style={{ fontSize: '0.875rem' }}>{nombre || 'Vista previa'}</span>
+                <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>
+                  {nombre || 'Vista previa'}
+                </span>
               </div>
             </div>
 
@@ -1024,7 +1154,13 @@ function RrssModal({ row, onClose, onSaved, nextOrden }) {
                     aria-pressed={icono === slug}
                     title={slug}
                   >
-                    <span className="rrss-icon-option-bubble">
+                    <span
+                      className="rrss-icon-option-bubble"
+                      style={{
+                        background: icono === slug ? color : 'var(--color-primary-light, #EEF4FB)',
+                        color:      icono === slug ? '#fff' : 'var(--color-primary, #013B75)',
+                      }}
+                    >
                       <i className={`bi bi-${slug}`} aria-hidden="true" />
                     </span>
                     <span className="rrss-icon-option-name">{slug}</span>
@@ -1035,7 +1171,12 @@ function RrssModal({ row, onClose, onSaved, nextOrden }) {
           </div>
 
           <div className="modal-footer">
-            <button type="button" className="btn btn-secondary" onClick={onClose} disabled={saving}>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={onClose}
+              disabled={saving}
+            >
               Cancelar
             </button>
             <button
