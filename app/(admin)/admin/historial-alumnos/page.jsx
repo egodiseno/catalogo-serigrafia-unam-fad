@@ -54,18 +54,16 @@ function fmtDateShort(iso) {
   } catch { return '—'; }
 }
 
-function getEstadoBadgeStyle(estado) {
-  switch (estado) {
-    case 'activo':                return { background: '#d1e7dd', color: '#0a3622' };
-    case 'rechazado':             return { background: '#FEE2E2', color: '#DC2626' };
-    case 'pendiente_validacion':  return { background: '#FEF3C7', color: '#92400E' };
-    default:                      return { background: '#e9ecef', color: '#495057' };
-  }
-}
+// Clases CSS de badge mapeadas igual que VanillaJS historial-alumnos.js
+const ESTADO_BADGE_CLS = {
+  validado:             'badge-publicado',
+  pendiente_validacion: 'badge-borrador',
+  rechazado:            'badge-archivado',
+};
 
 function getEstadoLabel(estado) {
   switch (estado) {
-    case 'activo':               return 'Validado';
+    case 'validado':             return 'Validado';
     case 'rechazado':            return 'Rechazado';
     case 'pendiente_validacion': return 'Pendiente';
     default:                     return estado ?? '—';
@@ -326,8 +324,8 @@ export default function HistorialAlumnosPage() {
           <thead>
             <tr>
               <th>Nombre</th>
-              <th>Email</th>
               <th>Nº Cuenta</th>
+              <th>Email</th>
               <th>Estado</th>
               <th>Fecha solicitud</th>
               <th>Fecha resolución</th>
@@ -350,19 +348,19 @@ export default function HistorialAlumnosPage() {
             ) : (
               registros.map((reg) => (
                 <tr key={reg.id}>
-                  <td data-label="Nombre"><strong>{reg.nombre}</strong></td>
-                  <td data-label="Email">
-                    <a href={`mailto:${reg.email}`} style={{ color: 'var(--color-primary)', textDecoration: 'none', fontSize: '0.875rem' }}>
+                  <td data-label="Nombre" className="td-nombre"><strong>{reg.nombre}</strong></td>
+                  <td data-label="Núm. Cuenta" className="td-cuenta">
+                    {reg.numero_cuenta
+                      ? <code className="cuenta-code">{reg.numero_cuenta}</code>
+                      : <span className="text-muted">—</span>}
+                  </td>
+                  <td data-label="Email" className="td-email">
+                    <a href={`mailto:${reg.email}`} className="email-link">
                       {reg.email}
                     </a>
                   </td>
-                  <td data-label="Nº Cuenta">
-                    <code style={{ fontSize: '0.85rem', background: 'var(--color-surface, #F9FAFB)', padding: '2px 6px', borderRadius: 4, border: '1px solid var(--color-border)', letterSpacing: '0.05em' }}>
-                      {reg.numero_cuenta}
-                    </code>
-                  </td>
-                  <td data-label="Estado">
-                    <span className="badge" style={getEstadoBadgeStyle(reg.estado)}>
+                  <td data-label="Estado" className="td-estado">
+                    <span className={`badge ${ESTADO_BADGE_CLS[reg.estado] ?? 'badge-archivado'}`}>
                       {getEstadoLabel(reg.estado)}
                     </span>
                   </td>

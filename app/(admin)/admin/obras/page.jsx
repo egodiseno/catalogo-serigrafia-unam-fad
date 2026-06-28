@@ -42,15 +42,6 @@ const OBRA_SELECT =
   'imagenes(id, url_storage, principal, orden, pendiente_borrado), ' +
   'obra_tags(tag_id, tags(id, nombre))';
 
-function formatFecha(isoStr) {
-  if (!isoStr) return '—';
-  return new Date(isoStr).toLocaleDateString('es-MX', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  });
-}
-
 export default function ObrasPage() {
   const client = createClient();
 
@@ -149,7 +140,7 @@ export default function ObrasPage() {
       let query = client
         .from('obras')
         .select(OBRA_SELECT, { count: 'exact' })
-        .order('updated_at', { ascending: false })
+        .order('created_at', { ascending: false })   // igual que VanillaJS obras-list.js
         .range(offset, offset + PAGE_SIZE - 1);
 
       if (debouncedSearch) query = query.ilike('titulo', `%${debouncedSearch}%`);
@@ -262,29 +253,28 @@ export default function ObrasPage() {
               <th>Imagen</th>
               <th>Título</th>
               <th>Artista</th>
-              <th>Año</th>
               <th>Técnica</th>
+              <th>Tags</th>
               <th>Estado</th>
-              <th>Actualización</th>
               <th>Acciones</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={8} className="empty-state">
+                <td colSpan={7} className="empty-state">
                   Cargando…
                 </td>
               </tr>
             ) : loadError ? (
               <tr>
-                <td colSpan={8} className="empty-state">
+                <td colSpan={7} className="empty-state">
                   Error al cargar obras.
                 </td>
               </tr>
             ) : obras.length === 0 ? (
               <tr>
-                <td colSpan={8} className="empty-state">
+                <td colSpan={7} className="empty-state">
                   No hay obras con ese criterio.
                 </td>
               </tr>
@@ -309,14 +299,19 @@ export default function ObrasPage() {
                     </td>
                     <td>{obra.titulo || '—'}</td>
                     <td>{obra.artista || '—'}</td>
-                    <td>{obra.año ?? '—'}</td>
                     <td>{obra.tecnicas?.nombre ?? '—'}</td>
+                    <td className="tags-cell">
+                      {tagNames.length > 0
+                        ? tagNames.map((name, i) => (
+                            <span key={i} className="tag-badge">{name}</span>
+                          ))
+                        : <span style={{ color: 'var(--color-text-muted)' }}>—</span>}
+                    </td>
                     <td>
                       <span className={`badge ${BADGE_CLS[obra.estado] || 'badge-borrador'}`}>
                         {obra.estado}
                       </span>
                     </td>
-                    <td>{formatFecha(obra.updated_at)}</td>
                     <td className="actions-cell">
                       <div className="action-buttons">
                         {esReapertura && (

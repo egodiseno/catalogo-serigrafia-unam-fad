@@ -456,9 +456,9 @@ export default function RegistrosPendientesPage() {
           <table className="registros-table" aria-label="Solicitudes de registro pendientes">
             <thead>
               <tr>
+                <th>Nº Cuenta</th>
                 <th>Nombre</th>
                 <th>Email</th>
-                <th>Nº Cuenta</th>
                 <th>Teléfono</th>
                 <th>WhatsApp</th>
                 <th>Fecha de solicitud</th>
@@ -487,6 +487,11 @@ export default function RegistrosPendientesPage() {
               ) : (
                 registros.map((reg) => (
                   <tr key={reg.id}>
+                    {/* Nº Cuenta — primera columna, igual que VanillaJS registros-pendientes.js */}
+                    <td data-label="Núm. Cuenta" className="td-cuenta">
+                      <code className="cuenta-code">{reg.numero_cuenta}</code>
+                    </td>
+
                     {/* Nombre */}
                     <td data-label="Nombre">
                       <strong>{reg.nombre}</strong>
@@ -502,11 +507,6 @@ export default function RegistrosPendientesPage() {
                       >
                         {reg.email}
                       </a>
-                    </td>
-
-                    {/* Nº Cuenta */}
-                    <td data-label="Nº Cuenta">
-                      <span className="cuenta-code">{reg.numero_cuenta}</span>
                     </td>
 
                     {/* Teléfono — oculto en ≤ 900px vía CSS */}

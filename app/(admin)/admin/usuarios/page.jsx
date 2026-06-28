@@ -43,12 +43,12 @@ import ConfirmModal from '@/components/admin/ConfirmModal';
 import { Plus, Pencil, Trash2, X, Upload, Search } from 'lucide-react';
 
 // ── Helpers de visualización ──────────────────────────────────────────────────
-function fmtDate(iso) {
-  if (!iso) return '—';
-  try {
-    return new Intl.DateTimeFormat('es-MX', { dateStyle: 'medium' }).format(new Date(iso));
-  } catch { return '—'; }
-}
+// Color de avatar por rol — igual que VanillaJS ROL_COLOR
+const ROL_COLOR = {
+  admin:        '#dc2626',
+  super_editor: '#7c3aed',
+  editor:       '#013B75',
+};
 
 function getRolBadgeStyle(rol) {
   switch (rol) {
@@ -730,8 +730,8 @@ export default function UsuariosPage() {
     try {
       let query = client
         .from('usuarios_admin')
-        .select('id, email, nombre, rol, estado, created_at')
-        .order('created_at', { ascending: false });
+        .select('id, email, nombre, numero_cuenta, rol, estado')
+        .order('email', { ascending: true });
 
       if (debouncedSearch) {
         query = query.or(
@@ -897,11 +897,11 @@ export default function UsuariosPage() {
                   />
                 </th>
               )}
-              <th>Nombre</th>
               <th>Email</th>
+              <th>Número de cuenta</th>
+              <th>Nombre</th>
               <th>Rol</th>
               <th>Estado</th>
-              <th>Creado</th>
               <th>Acciones</th>
             </tr>
           </thead>
@@ -949,25 +949,27 @@ export default function UsuariosPage() {
                       </td>
                     )}
                     <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
-                        {/* avatar-circle con override de tamaño para caber en fila */}
-                        <div
-                          className="avatar-circle"
-                          style={{ width: 32, height: 32, fontSize: '0.875rem', flexShrink: 0 }}
+                      <div className="td-email-cell">
+                        <span
+                          className="row-avatar"
+                          style={{ background: ROL_COLOR[u.rol] ?? '#6b7280' }}
                           aria-hidden="true"
                         >
                           {inicial}
-                        </div>
-                        <span style={{ fontWeight: 500 }}>
-                          {u.nombre || (
-                            <em style={{ color: 'var(--color-text-muted)', fontWeight: 400 }}>
-                              Sin nombre
-                            </em>
-                          )}
                         </span>
+                        <span>{u.email}</span>
                       </div>
                     </td>
-                    <td>{u.email}</td>
+                    <td className="td-cuenta">
+                      {u.numero_cuenta
+                        ? <code className="cuenta-code">{u.numero_cuenta}</code>
+                        : <span className="text-muted">—</span>}
+                    </td>
+                    <td>
+                      {(u.nombre && u.nombre !== '-')
+                        ? u.nombre
+                        : <span className="text-muted">—</span>}
+                    </td>
                     <td>
                       <span className="badge" style={getRolBadgeStyle(u.rol)}>
                         {getRolLabel(u.rol)}
@@ -977,9 +979,6 @@ export default function UsuariosPage() {
                       <span className="badge" style={getEstadoBadgeStyle(u.estado)}>
                         {u.estado === 'activo' ? 'Activo' : 'Inactivo'}
                       </span>
-                    </td>
-                    <td style={{ whiteSpace: 'nowrap', color: 'var(--color-text-muted)', fontSize: 'var(--text-sm)' }}>
-                      {fmtDate(u.created_at)}
                     </td>
                     <td className="actions-cell">
                       <div className="action-buttons">
