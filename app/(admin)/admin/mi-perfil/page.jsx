@@ -4,28 +4,37 @@
  * app/(admin)/admin/mi-perfil/page.jsx
  *
  * Mi Perfil — Client Component.
- * Tres secciones en .profile-grid (3 columnas):
- *   Col 1 — Datos personales: avatar, nombre editable, email, rol
- *   Col 2 — Cambiar contraseña: 3 campos con toggle de visibilidad
- *   Col 3 — MFA: activar (QR + código) / desactivar (ConfirmModal)
+ * Layout tres columnas (replicando profile.js + layout VanillaJS):
+ *
+ *   Col 1 — .column-datos   : avatar, nombre (editable), numero_cuenta (editor),
+ *                              email (read-only), rol (badge), miembro desde, estado
+ *                              + botón "Guardar cambios" abajo
+ *   Col 2 — .column-acciones: "Acciones rápidas" (.quick-actions-container)
+ *                              Contenido varía por rol (replicando profile.js)
+ *   Col 3 — .column-contrasena: "Cambiar contraseña" (3 campos + botón guardar)
+ *
+ * MFA: no presente en profile.js VanillaJS → no se muestra en ningún rol.
  *
  * Auth: createClient().auth.getUser() → usuarios_admin lookup (NO useAuth)
  * CSS: únicamente selectores verificados en styles/admin.css
  */
 
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
-import ConfirmModal from '@/components/admin/ConfirmModal';
 import {
   Save,
   Eye,
   EyeOff,
-  ShieldCheck,
-  ShieldOff,
-  X,
-  Check,
   KeyRound,
+  Check,
+  LayoutGrid,
+  PlusCircle,
+  UserPlus,
+  Activity,
+  Tag,
+  Brush,
 } from 'lucide-react';
 
 /* ─── Helpers ─────────────────────────────────────────────────────── */
@@ -43,13 +52,20 @@ function getRolLabel(rol) {
   }
 }
 
-function getRolStyle(rol) {
+function getRolBadgeStyle(rol) {
   switch (rol) {
     case 'admin':        return { background: '#013B75', color: '#fff' };
     case 'super_editor': return { background: '#7C3AED', color: '#fff' };
     case 'editor':       return { background: '#059669', color: '#fff' };
     default:             return { background: '#6B7280', color: '#fff' };
   }
+}
+
+function formatFecha(ts) {
+  if (!ts) return '—';
+  return new Date(ts).toLocaleString('es-MX', {
+    day: '2-digit', month: 'long', year: 'numeric',
+  });
 }
 
 /* ─── PasswordField con toggle ────────────────────────────────────── */
@@ -85,18 +101,37 @@ function PasswordField({ id, label, value, onChange, disabled, error, autoComple
   );
 }
 
+/* ─── Definición de acciones rápidas por rol (replicando profile.js) ── */
+const QUICK_ACTIONS = {
+  admin: [
+    { label: 'Nueva Obra',     Icon: PlusCircle, href: '/admin/obras',     hint: 'Agregar obra al catálogo',   highlight: false },
+    { label: 'Nuevo Usuario',  Icon: UserPlus,   href: '/admin/usuarios',  hint: 'Crear cuenta de usuario',   highlight: false },
+    { label: 'Ver Logs',       Icon: Activity,   href: '/admin/logs',      hint: 'Auditoría del sistema',     highlight: false },
+    { label: 'Gestionar Tags', Icon: Tag,        href: '/admin/tags',      hint: 'Administrar etiquetas',     highlight: false },
+  ],
+  super_editor: [
+    { label: 'Nueva Obra',      Icon: PlusCircle, href: '/admin/obras',     hint: 'Agregar obra al catálogo',    highlight: false },
+    { label: 'Nuevo Usuario',   Icon: UserPlus,   href: '/admin/usuarios',  hint: 'Crear cuenta de usuario',    highlight: false },
+    { label: 'Gestionar Tags',  Icon: Tag,        href: '/admin/tags',      hint: 'Administrar etiquetas',      highlight: false },
+    { label: 'Técnicas',        Icon: Brush,      href: '/admin/tecnicas',  hint: 'Administrar técnicas',       highlight: false },
+  ],
+  editor: [
+    { label: 'Mi Portafolio', Icon: LayoutGrid,  href: '/admin/mi-portafolio', hint: 'Ver mis obras',              highlight: false },
+    { label: 'Nueva Obra',    Icon: PlusCircle,  href: '/admin/mi-portafolio', hint: 'Agregar obra al catálogo',   highlight: true  },
+  ],
+};
+
 /* ═══════════════════════════════════════════════════════════════════
    COMPONENTE PRINCIPAL
    ═══════════════════════════════════════════════════════════════════ */
 export default function MiPerfilPage() {
-  const router  = useRouter();
-  const client  = createClient();
+  const router = useRouter();
+  const client = createClient();
 
   /* ── Auth + perfil ────────────────────────────────────────── */
-  const [authUser, setAuthUser] = useState(null);   // auth.users row
-  const [perfil,   setPerfil]   = useState(null);   // usuarios_admin row
-  const [loading,  setLoading]  = useState(true);
-  const [authReady, setAuthReady] = useState(false);
+  const [authUser,  setAuthUser]  = useState(null);
+  const [perfil,    setPerfil]    = useState(null);
+  const [loading,   setLoading]   = useState(true);
 
   useEffect(() => {
     (async () => {
@@ -105,7 +140,7 @@ export default function MiPerfilPage() {
 
       const { data: adminRow } = await client
         .from('usuarios_admin')
-        .select('id, nombre, email, rol, estado')
+        .select('id, nombre, email, rol, estado, numero_cuenta, created_at')
         .eq('id', user.id)
         .single();
 
@@ -114,17 +149,16 @@ export default function MiPerfilPage() {
       setAuthUser(user);
       setPerfil(adminRow);
       setNombre(adminRow.nombre ?? '');
-      setAuthReady(true);
       setLoading(false);
     })();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  /* ─── Section 1: Datos personales ─────────────────────────── */
-  const [nombre,      setNombre]      = useState('');
-  const [saving,      setSaving]      = useState(false);
-  const [savedDatos,  setSavedDatos]  = useState(false);
-  const [errorDatos,  setErrorDatos]  = useState(null);
+  /* ─── Col 1: Datos personales ──────────────────────────────── */
+  const [nombre,     setNombre]     = useState('');
+  const [saving,     setSaving]     = useState(false);
+  const [savedOk,    setSavedOk]    = useState(false);
+  const [errorDatos, setErrorDatos] = useState(null);
 
   const handleSaveDatos = async () => {
     if (!perfil) return;
@@ -133,7 +167,7 @@ export default function MiPerfilPage() {
 
     setSaving(true);
     setErrorDatos(null);
-    setSavedDatos(false);
+    setSavedOk(false);
     try {
       const { error: err } = await client
         .from('usuarios_admin')
@@ -142,8 +176,8 @@ export default function MiPerfilPage() {
 
       if (err) throw err;
       setPerfil(prev => ({ ...prev, nombre: trimmed || null }));
-      setSavedDatos(true);
-      setTimeout(() => setSavedDatos(false), 3000);
+      setSavedOk(true);
+      setTimeout(() => setSavedOk(false), 3000);
     } catch (err) {
       setErrorDatos(err.message);
     } finally {
@@ -151,20 +185,21 @@ export default function MiPerfilPage() {
     }
   };
 
-  /* ─── Section 2: Cambiar contraseña ───────────────────────── */
-  const [currentPass,  setCurrentPass]  = useState('');
-  const [newPass,      setNewPass]      = useState('');
-  const [confirmPass,  setConfirmPass]  = useState('');
-  const [passErrors,   setPassErrors]   = useState({});
-  const [savingPass,   setSavingPass]   = useState(false);
-  const [passMsg,      setPassMsg]      = useState(null);   // { type: 'ok'|'err', text }
+  /* ─── Col 3: Cambiar contraseña ────────────────────────────── */
+  const [currentPass, setCurrentPass] = useState('');
+  const [newPass,     setNewPass]     = useState('');
+  const [confirmPass, setConfirmPass] = useState('');
+  const [passErrors,  setPassErrors]  = useState({});
+  const [savingPass,  setSavingPass]  = useState(false);
+  const [passMsg,     setPassMsg]     = useState(null);  // { type: 'ok'|'err', text }
 
   const handleChangePassword = async (e) => {
     e.preventDefault();
     const errs = {};
-    if (!currentPass)           errs.current  = 'Ingresa tu contraseña actual.';
-    if (newPass.length < 8)     errs.new      = 'Mínimo 8 caracteres.';
-    if (newPass !== confirmPass) errs.confirm  = 'Las contraseñas no coinciden.';
+    if (!currentPass)            errs.current  = 'Ingresa tu contraseña actual.';
+    if (newPass.length < 8)      errs.new      = 'Mínimo 8 caracteres.';
+    if (newPass === currentPass && newPass) errs.new = 'Debe ser diferente a la contraseña actual.';
+    if (newPass !== confirmPass)  errs.confirm  = 'Las contraseñas no coinciden.';
     if (Object.keys(errs).length) { setPassErrors(errs); return; }
     setPassErrors({});
 
@@ -191,108 +226,10 @@ export default function MiPerfilPage() {
       setNewPass('');
       setConfirmPass('');
     } catch (err) {
-      setPassMsg({ type: 'err', text: err.message });
+      setPassMsg({ type: 'err', text: err.message ?? 'No se pudo cambiar la contraseña.' });
     } finally {
       setSavingPass(false);
     }
-  };
-
-  /* ─── Section 3: MFA ──────────────────────────────────────── */
-  const [mfaLoading,   setMfaLoading]   = useState(true);
-  const [activeFactor, setActiveFactor] = useState(null);  // factor | null
-  const [enrollData,   setEnrollData]   = useState(null);  // { id, qr_code, secret }
-  const [mfaCode,      setMfaCode]      = useState('');
-  const [mfaVerifying, setMfaVerifying] = useState(false);
-  const [mfaError,     setMfaError]     = useState(null);
-  const [mfaSuccess,   setMfaSuccess]   = useState(null);
-  const [showUnenroll, setShowUnenroll] = useState(false);
-
-  const loadMfa = useCallback(async () => {
-    setMfaLoading(true);
-    try {
-      const { data } = await client.auth.mfa.listFactors();
-      const verified = data?.totp?.find(f => f.status === 'verified') ?? null;
-      setActiveFactor(verified);
-    } catch { /* ignore */ }
-    setMfaLoading(false);
-  }, [client]);
-
-  useEffect(() => {
-    if (authReady) loadMfa();
-  }, [authReady, loadMfa]);
-
-  const handleEnroll = async () => {
-    setMfaError(null);
-    setMfaSuccess(null);
-    setEnrollData(null);
-    setMfaCode('');
-    try {
-      const { data, error } = await client.auth.mfa.enroll({ factorType: 'totp' });
-      if (error) throw error;
-      setEnrollData({
-        id:      data.id,
-        qr_code: data.totp.qr_code,
-        secret:  data.totp.secret,
-      });
-    } catch (err) {
-      setMfaError(err.message);
-    }
-  };
-
-  const handleVerifyEnroll = async (e) => {
-    e.preventDefault();
-    if (mfaCode.length !== 6) {
-      setMfaError('Ingresa el código de 6 dígitos.');
-      return;
-    }
-    setMfaVerifying(true);
-    setMfaError(null);
-    try {
-      /* Challenge */
-      const { data: challenge, error: chalErr } = await client.auth.mfa.challenge({
-        factorId: enrollData.id,
-      });
-      if (chalErr) throw chalErr;
-
-      /* Verify */
-      const { error: verErr } = await client.auth.mfa.verify({
-        factorId:    enrollData.id,
-        challengeId: challenge.id,
-        code:        mfaCode,
-      });
-      if (verErr) throw verErr;
-
-      setEnrollData(null);
-      setMfaCode('');
-      setMfaSuccess('MFA activado correctamente.');
-      loadMfa();
-    } catch (err) {
-      setMfaError(err.message || 'Código incorrecto. Inténtalo de nuevo.');
-    } finally {
-      setMfaVerifying(false);
-    }
-  };
-
-  const handleCancelEnroll = async () => {
-    /* Unenroll the unverified factor to clean up */
-    if (enrollData?.id) {
-      await client.auth.mfa.unenroll({ factorId: enrollData.id }).catch(() => {});
-    }
-    setEnrollData(null);
-    setMfaCode('');
-    setMfaError(null);
-  };
-
-  /* handleUnenroll: llamado por ConfirmModal.onConfirm.
-     Si lanza, ConfirmModal queda abierto (busy=false) y muestra el error.
-     Si resuelve, ConfirmModal se oculta; el estado mfaSuccess se muestra en col-3. */
-  const handleUnenroll = async () => {
-    if (!activeFactor) return;
-    setMfaError(null);
-    const { error } = await client.auth.mfa.unenroll({ factorId: activeFactor.id });
-    if (error) throw error;
-    setActiveFactor(null);
-    setMfaSuccess('MFA desactivado correctamente.');
   };
 
   /* ─── Render ───────────────────────────────────────────────── */
@@ -304,15 +241,17 @@ export default function MiPerfilPage() {
     );
   }
 
-  const initial  = getInitial(perfil?.nombre, perfil?.email);
-  const hayDatosChange = nombre.trim() !== (perfil?.nombre ?? '').trim();
+  const initial         = getInitial(perfil?.nombre, perfil?.email);
+  const hayDatosChange  = nombre.trim() !== (perfil?.nombre ?? '').trim();
+  const esEditor        = perfil?.rol === 'editor';
+  const quickActions    = QUICK_ACTIONS[perfil?.rol] ?? QUICK_ACTIONS.editor;
 
   return (
     <div className="page-content">
       <div className="section-header">
         <div>
           <h2>Mi Perfil</h2>
-          <p>Datos personales, seguridad y autenticación de dos factores</p>
+          <p>Datos personales y configuración de tu cuenta</p>
         </div>
       </div>
 
@@ -342,36 +281,65 @@ export default function MiPerfilPage() {
               />
             </div>
 
+            {/* Número de cuenta — solo visible para editor */}
+            {esEditor && (
+              <div className="profile-row">
+                <span className="profile-label">Nº de cuenta</span>
+                <span>{perfil?.numero_cuenta || '—'}</span>
+              </div>
+            )}
+
             {/* Email — solo lectura */}
             <div className="profile-row">
               <span className="profile-label">Email</span>
               <span>{perfil?.email ?? '—'}</span>
             </div>
 
-            {/* Rol — solo lectura con badge */}
+            {/* Rol */}
             <div className="profile-row">
               <span className="profile-label">Rol</span>
               <span
                 className="badge"
-                style={{ ...getRolStyle(perfil?.rol), padding: '2px 10px', borderRadius: '12px', fontSize: '0.78rem', fontWeight: 600 }}
+                style={{
+                  ...getRolBadgeStyle(perfil?.rol),
+                  padding: '2px 10px',
+                  borderRadius: '12px',
+                  fontSize: '0.78rem',
+                  fontWeight: 600,
+                }}
               >
                 {getRolLabel(perfil?.rol)}
               </span>
             </div>
+
+            {/* Miembro desde */}
+            <div className="profile-row">
+              <span className="profile-label">Miembro desde</span>
+              <span>{formatFecha(perfil?.created_at)}</span>
+            </div>
+
+            {/* Estado */}
+            <div className="profile-row">
+              <span className="profile-label">Estado</span>
+              <span className={`badge ${perfil?.estado === 'activo' ? 'badge-publicado' : 'badge-borrador'}`}>
+                {perfil?.estado === 'activo' ? 'Activo' : 'Inactivo'}
+              </span>
+            </div>
           </div>
 
+          {/* Feedback guardar */}
           {errorDatos && (
             <div className="alert alert-error" role="alert" style={{ fontSize: '0.8125rem' }}>
               {errorDatos}
             </div>
           )}
-
-          {savedDatos && (
+          {savedOk && (
             <div style={{ color: 'var(--color-success, #059669)', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
               <Check size={14} aria-hidden="true" /> Cambios guardados
             </div>
           )}
 
+          {/* Botón guardar */}
           <button
             type="button"
             className="btn btn-primary"
@@ -385,7 +353,26 @@ export default function MiPerfilPage() {
           </button>
         </div>
 
-        {/* ══ COL 2 — Cambiar contraseña ═══════════════════ */}
+        {/* ══ COL 2 — Acciones rápidas ══════════════════════ */}
+        <div className="profile-column column-acciones">
+          <h3 className="column-title">Acciones rápidas</h3>
+
+          <div className="quick-actions-container">
+            {quickActions.map(({ label, Icon, href, hint, highlight }) => (
+              <Link
+                key={label}
+                href={href}
+                className={`action-btn${highlight ? ' action-btn--highlight' : ''}`}
+                title={hint}
+              >
+                <Icon size={22} aria-hidden="true" />
+                <span>{label}</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        {/* ══ COL 3 — Cambiar contraseña ════════════════════ */}
         <div className="profile-column column-contrasena">
           <h3 className="column-title">Cambiar contraseña</h3>
 
@@ -438,160 +425,13 @@ export default function MiPerfilPage() {
               >
                 {savingPass
                   ? <><div className="spinner spinner--sm" aria-hidden="true" /> Guardando…</>
-                  : <><KeyRound size={15} aria-hidden="true" /> Actualizar contraseña</>}
+                  : <><KeyRound size={15} aria-hidden="true" /> Guardar contraseña</>}
               </button>
             </div>
           </form>
         </div>
 
-        {/* ══ COL 3 — Autenticación de dos factores ════════ */}
-        <div className="profile-column column-contrasena">
-          <h3 className="column-title">Autenticación de dos factores</h3>
-
-          {mfaLoading && (
-            <div className="page-loading" style={{ minHeight: '80px' }}>
-              <div className="spinner" aria-label="Cargando estado MFA…" />
-            </div>
-          )}
-
-          {!mfaLoading && (
-            <>
-              {/* Error / éxito MFA */}
-              {mfaError && (
-                <div className="alert alert-error" role="alert" style={{ marginBottom: '0.75rem' }}>
-                  {mfaError}
-                </div>
-              )}
-              {mfaSuccess && (
-                <div className="alert alert-success" role="alert" style={{ marginBottom: '0.75rem' }}>
-                  {mfaSuccess}
-                </div>
-              )}
-
-              {/* ── MFA ACTIVO ───────────────────────────── */}
-              {activeFactor && !enrollData && (
-                <div style={{ textAlign: 'center' }}>
-                  <div className="mfa-icon">
-                    <ShieldCheck size={28} aria-hidden="true" />
-                  </div>
-                  <p style={{ fontSize: '0.9rem', marginBottom: '1rem', color: 'var(--color-text-muted)' }}>
-                    La autenticación de dos factores está <strong style={{ color: 'var(--color-success, #059669)' }}>activa</strong>.
-                  </p>
-                  <button
-                    type="button"
-                    className="btn btn-danger btn-sm"
-                    onClick={() => setShowUnenroll(true)}
-                    style={{ width: '100%', justifyContent: 'center' }}
-                  >
-                    <ShieldOff size={15} aria-hidden="true" />
-                    Desactivar MFA
-                  </button>
-                </div>
-              )}
-
-              {/* ── MFA INACTIVO — sin enroll en curso ───── */}
-              {!activeFactor && !enrollData && (
-                <div style={{ textAlign: 'center' }}>
-                  <div className="mfa-icon" style={{ background: 'var(--color-surface-alt, #F4F7FC)', color: 'var(--color-text-muted)' }}>
-                    <ShieldOff size={28} aria-hidden="true" />
-                  </div>
-                  <p style={{ fontSize: '0.9rem', marginBottom: '1rem', color: 'var(--color-text-muted)' }}>
-                    La autenticación de dos factores está <strong>inactiva</strong>.
-                  </p>
-                  <button
-                    type="button"
-                    className="btn btn-primary"
-                    onClick={handleEnroll}
-                    style={{ width: '100%', justifyContent: 'center' }}
-                  >
-                    <ShieldCheck size={15} aria-hidden="true" />
-                    Activar MFA
-                  </button>
-                </div>
-              )}
-
-              {/* ── ENROLL EN CURSO: QR + código ─────────── */}
-              {enrollData && (
-                <form onSubmit={handleVerifyEnroll}>
-                  <p style={{ fontSize: '0.875rem', marginBottom: '0.5rem' }}>
-                    Escanea el código QR con tu app de autenticación (Google Authenticator, Authy, etc.):
-                  </p>
-
-                  {/* QR Code */}
-                  <div className="mfa-qr-container">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={enrollData.qr_code}
-                      alt="Código QR para MFA"
-                      width={180}
-                      height={180}
-                    />
-                  </div>
-
-                  {/* Código base32 manual */}
-                  <details className="mfa-secret-details">
-                    <summary>¿No puedes escanear? Ingresa el código manualmente</summary>
-                    <code className="mfa-secret-code">{enrollData.secret}</code>
-                  </details>
-
-                  {/* Campo código 6 dígitos */}
-                  <div className="form-group">
-                    <label className="form-label" htmlFor="mfa-code">
-                      Código de verificación (6 dígitos)
-                    </label>
-                    <input
-                      id="mfa-code"
-                      type="text"
-                      inputMode="numeric"
-                      pattern="[0-9]{6}"
-                      maxLength={6}
-                      className="mfa-code-input"
-                      value={mfaCode}
-                      onChange={e => setMfaCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                      placeholder="000000"
-                      disabled={mfaVerifying}
-                      autoComplete="one-time-code"
-                      aria-label="Código de verificación MFA"
-                    />
-                  </div>
-
-                  <div className="profile-form-actions">
-                    <button
-                      type="button"
-                      className="btn btn-secondary"
-                      onClick={handleCancelEnroll}
-                      disabled={mfaVerifying}
-                    >
-                      <X size={14} aria-hidden="true" /> Cancelar
-                    </button>
-                    <button
-                      type="submit"
-                      className="btn btn-primary"
-                      disabled={mfaVerifying || mfaCode.length !== 6}
-                    >
-                      {mfaVerifying
-                        ? <><div className="spinner spinner--sm" aria-hidden="true" /> Verificando…</>
-                        : <><Check size={14} aria-hidden="true" /> Confirmar</>}
-                    </button>
-                  </div>
-                </form>
-              )}
-            </>
-          )}
-        </div>
       </div>
-
-      {/* ConfirmModal para desactivar MFA */}
-      {showUnenroll && (
-        <ConfirmModal
-          title="Desactivar MFA"
-          message="¿Estás seguro de que quieres desactivar la autenticación de dos factores? Tu cuenta quedará menos protegida."
-          confirmLabel="Sí, desactivar"
-          confirmVariant="danger"
-          onConfirm={handleUnenroll}
-          onCancel={() => setShowUnenroll(false)}
-        />
-      )}
     </div>
   );
 }

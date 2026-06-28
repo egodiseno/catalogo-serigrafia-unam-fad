@@ -6,10 +6,13 @@
  * Mi Portafolio — Client Component (acceso: solo rol 'editor').
  * Muestra las obras del usuario autenticado filtradas por editor_id.
  *
- * Acciones por estado:
+ * Acciones por estado (fuente: portafolio.js VanillaJS + instrucción del usuario):
  *   - Publicado    → "Solicitar cambios" (modal de motivo → estado = 'En Revisión')
- *   - Borrador / En Revisión → "Editar" (ObraForm)
- *   - Archivado    → sin acciones
+ *   - Borrador     → "Editar" (ObraForm)
+ *   - En Revisión  → sin acción (en espera de revisión del admin)
+ *   - Archivado    → sin acción (solo lectura)
+ *
+ * Columnas: Imagen / Título / Año / Técnica / Tags / Estado / Fecha / Acciones
  *
  * Auth: createClient().auth.getUser() → usuarios_admin lookup (NO useAuth)
  * CSS: únicamente selectores verificados en styles/admin.css
@@ -26,7 +29,8 @@ import { Pencil, MessageSquarePlus, Search, RefreshCw, X } from 'lucide-react';
 const OBRA_SELECT =
   'id, titulo, artista, año, estado, updated_at, motivo_reapertura, editor_id, ' +
   'tecnicas(nombre), ' +
-  'imagenes(id, url_storage, principal, pendiente_borrado)';
+  'imagenes(id, url_storage, principal, pendiente_borrado), ' +
+  'obra_tags(tags(id, nombre))';
 
 /* ─── Helpers ─────────────────────────────────────────────────────── */
 function estadoBadgeClass(estado) {
@@ -154,7 +158,7 @@ function SolicitarCambiosModal({ obra, onClose, onSaved }) {
 export default function MiPortafolioPage() {
   const router = useRouter();
 
-  /* ── Auth ─────────────────────────────────────────────────── */
+  /* ── Auth ─────────────────────────────────────────────── */
   const [currentUser, setCurrentUser] = useState(null);
   const [rol,         setRol]         = useState(null);
   const [authReady,   setAuthReady]   = useState(false);
@@ -185,11 +189,14 @@ export default function MiPortafolioPage() {
     }
   }, [authReady, tienePermiso, router]);
 
-  /* ── Datos ────────────────────────────────────────────────── */
+  /* ── Datos ────────────────────────────────────────────── */
   const [obras,   setObras]   = useState([]);
   const [loading, setLoading] = useState(true);
   const [error,   setError]   = useState(null);
-  const [search,  setSearch]  = useState('');
+
+  /* Filtros */
+  const [search,       setSearch]       = useState('');
+  const [filtroEstado, setFiltroEstado] = useState('');
 
   const loadObras = useCallback(async () => {
     if (!currentUser) return;
@@ -217,20 +224,22 @@ export default function MiPortafolioPage() {
     if (authReady && tienePermiso('portafolio.ver')) loadObras();
   }, [authReady, loadObras, tienePermiso]);
 
-  /* ── Modales ──────────────────────────────────────────────── */
-  const [editObra,    setEditObra]    = useState(null);   // obra | null
-  const [reapertura,  setReapertura]  = useState(null);   // obra | null
+  /* ── Modales ──────────────────────────────────────────── */
+  const [editObra,   setEditObra]   = useState(null);   // obra | null
+  const [reapertura, setReapertura] = useState(null);   // obra | null
 
-  /* ── Filtro local ─────────────────────────────────────────── */
-  const obrasFiltradas = obras.filter(o =>
-    !search.trim() ||
-    o.titulo?.toLowerCase().includes(search.toLowerCase()) ||
-    o.artista?.toLowerCase().includes(search.toLowerCase())
-  );
+  /* ── Filtro local ─────────────────────────────────────── */
+  const obrasFiltradas = obras.filter(o => {
+    const matchSearch = !search.trim() ||
+      o.titulo?.toLowerCase().includes(search.toLowerCase()) ||
+      o.artista?.toLowerCase().includes(search.toLowerCase());
+    const matchEstado = !filtroEstado || o.estado === filtroEstado;
+    return matchSearch && matchEstado;
+  });
 
   const stats = contarPorEstado(obras);
 
-  /* ── Render ───────────────────────────────────────────────── */
+  /* ── Render ───────────────────────────────────────────── */
   if (!authReady) {
     return (
       <div className="page-loading">
@@ -246,11 +255,7 @@ export default function MiPortafolioPage() {
       <div className="section-header">
         <div>
           <h2>Mi Portafolio</h2>
-          <p>
-            {currentUser?.nombre
-              ? `Obras de ${currentUser.nombre}`
-              : 'Tus obras registradas en el catálogo'}
-          </p>
+          <p>Tus obras en el catálogo</p>
         </div>
         <button
           type="button"
@@ -269,7 +274,7 @@ export default function MiPortafolioPage() {
       <div className="portafolio-stats">
         <div className="portafolio-stat-card">
           <span className="portafolio-stat-number">{obras.length}</span>
-          <span className="portafolio-stat-label">Total</span>
+          <span className="portafolio-stat-label">Total de Obras</span>
         </div>
         <div className="portafolio-stat-card portafolio-stat-card--publicado">
           <span className="portafolio-stat-number">{stats['Publicado']   ?? 0}</span>
@@ -300,8 +305,9 @@ export default function MiPortafolioPage() {
         </div>
       )}
 
-      {/* ── Toolbar (búsqueda) ────────────────────────────── */}
+      {/* ── Toolbar (búsqueda + filtro estado) ───────────── */}
       <div className="portafolio-toolbar">
+        {/* Búsqueda por título/artista */}
         <div className="portafolio-search search-field">
           <span className="search-field__icon" aria-hidden="true">
             <Search size={16} />
@@ -315,6 +321,21 @@ export default function MiPortafolioPage() {
             aria-label="Buscar obras"
           />
         </div>
+
+        {/* Filtro por estado */}
+        <select
+          className="sort-select"
+          value={filtroEstado}
+          onChange={e => setFiltroEstado(e.target.value)}
+          aria-label="Filtrar por estado"
+          style={{ maxWidth: '180px' }}
+        >
+          <option value="">Todos los estados</option>
+          <option value="Borrador">Borrador</option>
+          <option value="En Revisión">En Revisión</option>
+          <option value="Publicado">Publicado</option>
+          <option value="Archivado">Archivado</option>
+        </select>
       </div>
 
       {/* ── Tabla ─────────────────────────────────────────── */}
@@ -331,17 +352,18 @@ export default function MiPortafolioPage() {
                 <th scope="col">Título</th>
                 <th scope="col">Año</th>
                 <th scope="col">Técnica</th>
+                <th scope="col">Tags</th>
                 <th scope="col">Estado</th>
-                <th scope="col">Actualización</th>
+                <th scope="col">Fecha</th>
                 <th scope="col">Acciones</th>
               </tr>
             </thead>
             <tbody>
               {obrasFiltradas.length === 0 ? (
                 <tr>
-                  <td colSpan={7} style={{ textAlign: 'center', padding: '2rem', color: 'var(--color-text-muted)' }}>
-                    {search
-                      ? 'Sin resultados para la búsqueda.'
+                  <td colSpan={8} style={{ textAlign: 'center', padding: '2rem', color: 'var(--color-text-muted)' }}>
+                    {search || filtroEstado
+                      ? 'Sin resultados para los filtros aplicados.'
                       : 'Aún no tienes obras registradas.'}
                   </td>
                 </tr>
@@ -350,6 +372,10 @@ export default function MiPortafolioPage() {
                   obra.imagenes?.find(i => i.principal && !i.pendiente_borrado)?.url_storage ??
                   obra.imagenes?.find(i => !i.pendiente_borrado)?.url_storage ??
                   null;
+
+                const tagNames = (obra.obra_tags ?? [])
+                  .map(ot => ot.tags?.nombre)
+                  .filter(Boolean);
 
                 return (
                   <tr key={obra.id}>
@@ -394,6 +420,19 @@ export default function MiPortafolioPage() {
                     {/* Técnica */}
                     <td>{obra.tecnicas?.nombre ?? '—'}</td>
 
+                    {/* Tags */}
+                    <td>
+                      {tagNames.length > 0 ? (
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                          {tagNames.map(n => (
+                            <span key={n} className="tag-badge">{n}</span>
+                          ))}
+                        </div>
+                      ) : (
+                        <span style={{ color: 'var(--color-text-muted)' }}>—</span>
+                      )}
+                    </td>
+
                     {/* Estado */}
                     <td>
                       <span className={`badge ${estadoBadgeClass(obra.estado)}`}>
@@ -401,25 +440,27 @@ export default function MiPortafolioPage() {
                       </span>
                     </td>
 
-                    {/* Actualización */}
+                    {/* Fecha */}
                     <td>{formatDate(obra.updated_at)}</td>
 
                     {/* Acciones */}
                     <td>
                       <div className="action-buttons">
+                        {/* Publicado → Solicitar cambios */}
                         {obra.estado === 'Publicado' && (
                           <button
                             type="button"
                             className="btn btn-sm btn-secondary"
                             onClick={() => setReapertura(obra)}
-                            title="Solicitar cambios"
+                            title="Solicitar cambios al administrador"
                           >
                             <MessageSquarePlus size={13} aria-hidden="true" />
                             Solicitar cambios
                           </button>
                         )}
 
-                        {(obra.estado === 'Borrador' || obra.estado === 'En Revisión') && (
+                        {/* Borrador → Editar */}
+                        {obra.estado === 'Borrador' && (
                           <button
                             type="button"
                             className="btn btn-sm btn-secondary"
@@ -431,6 +472,14 @@ export default function MiPortafolioPage() {
                           </button>
                         )}
 
+                        {/* En Revisión → sin acción (esperando revisión del admin) */}
+                        {obra.estado === 'En Revisión' && (
+                          <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontStyle: 'italic' }}>
+                            En revisión
+                          </span>
+                        )}
+
+                        {/* Archivado → sin acción */}
                         {obra.estado === 'Archivado' && (
                           <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontStyle: 'italic' }}>
                             Solo lectura
@@ -446,7 +495,7 @@ export default function MiPortafolioPage() {
         </div>
       )}
 
-      {/* ── ObraForm (Editar) ──────────────────────────────── */}
+      {/* ── ObraForm (Editar Borrador) ─────────────────────── */}
       {editObra && (
         <ObraForm
           obra={editObra}
@@ -457,7 +506,7 @@ export default function MiPortafolioPage() {
         />
       )}
 
-      {/* ── Modal Solicitar cambios ────────────────────────── */}
+      {/* ── Modal Solicitar cambios (Publicado → En Revisión) ─ */}
       {reapertura && (
         <SolicitarCambiosModal
           obra={reapertura}
