@@ -29,6 +29,7 @@ import {
   BarChart2,
   Settings2,
   LayoutGrid,
+  UserCircle2,
 } from 'lucide-react';
 
 // Orden exacto del HTML original. href = ruta Next.js de la sección.
@@ -44,7 +45,8 @@ const NAV_ITEMS = [
   { section: 'logs', label: 'Logs', href: '/admin/logs', Icon: Activity, roles: ['admin'] },
   { section: 'estadisticas', label: 'Estadísticas', href: '/admin/estadisticas', Icon: BarChart2, roles: ['admin', 'super_editor'] },
   { section: 'configuracion', label: 'Configuración', href: '/admin/configuracion', Icon: Settings2, roles: ['admin'] },
-  { section: 'mi-portafolio', label: 'Mi Portafolio', href: '/admin/portafolio', Icon: LayoutGrid, roles: ['editor'] },
+  { section: 'mi-portafolio', label: 'Mi Portafolio', href: '/admin/mi-portafolio', Icon: LayoutGrid, roles: ['editor'] },
+  { section: 'mi-perfil', label: 'Mi Perfil', href: '/admin/mi-perfil', Icon: UserCircle2, roles: ['admin', 'super_editor', 'editor'] },
 ];
 
 export default function SidebarNav({ rol }) {
