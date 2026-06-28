@@ -19,6 +19,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
+import Image from 'next/image';
 import { Heart, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useFavorite } from '@/hooks/useFavorite';
 
@@ -178,13 +179,18 @@ export default function WorkGallery({ images, title, workId }) {
         onTouchEnd={onHeroTouchEnd}
       >
         {mainImg && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          // .work-hero__figure ya tiene position:relative + aspect-ratio:3/4 + overflow:hidden en CSS
+          // priority=true porque es la imagen principal de la página (LCP candidate)
+          <Image
             className="work-hero__img"
             src={mainImg.url_storage}
             alt={title}
+            fill
+            sizes="(max-width: 1024px) 100vw, 50vw"
+            quality={85}
+            priority
             onClick={openLightbox}
-            style={{ cursor: 'zoom-in' }}
+            style={{ cursor: 'zoom-in', objectFit: 'contain' }}
           />
         )}
 
@@ -227,12 +233,16 @@ export default function WorkGallery({ images, title, workId }) {
               aria-current={idx === currentIdx ? 'true' : undefined}
               role="listitem"
               onClick={() => setCurrentIdx(idx)}
+              style={{ position: 'relative' }}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              {/* .gallery-thumb tiene aspect-ratio:1/1 + overflow:hidden en CSS pero no position:relative */}
+              <Image
                 src={img.url_storage}
                 alt={`${title}, miniatura ${idx + 1}`}
-                loading="lazy"
+                fill
+                sizes="80px"
+                quality={60}
+                style={{ objectFit: 'cover' }}
               />
             </button>
           ))}

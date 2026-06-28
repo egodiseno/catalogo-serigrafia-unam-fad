@@ -1,7 +1,10 @@
 // app/obra/[slug]/page.jsx
-// Página de detalle de obra — Server Component con SSR y OG tags dinámicos
+// Página de detalle de obra — Server Component con ISR y OG tags dinámicos
 //
-// Flujo SSR:
+// ISR: revalidate = 3600 (1 hora) — el HTML se regenera en background.
+// dynamicParams = true — slugs no generados en build se renderizan on-demand y se cachean.
+//
+// Flujo SSR/ISR:
 //   1. generateMetadata  → consulta Supabase (fetchWorkBySlug cacheada con React cache())
 //                          → retorna title / description / openGraph / twitter
 //   2. ObraPage          → llama fetchWorkBySlug(slug) nuevamente — devuelve el resultado
@@ -12,6 +15,12 @@
 //        WorkShare     — copiar / WhatsApp / Email / SMS
 //        RelatedWorks  — obras relacionadas (carga propia en cliente)
 //        VisitRecorder — fire-and-forget INSERT en obra_visitas
+
+// ── ISR: regenerar páginas de detalle cada hora ───────────────────────────────
+export const revalidate = 3600;
+
+// ── Slugs desconocidos: renderizar on-demand y cachear ───────────────────────
+export const dynamicParams = true;
 
 import { notFound } from 'next/navigation';
 import Link from 'next/link';

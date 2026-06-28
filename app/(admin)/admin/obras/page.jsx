@@ -17,12 +17,18 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import dynamic from 'next/dynamic';
 import { createClient } from '@/lib/supabase/client';
 import { usePermisos } from '@/hooks/usePermisos';
-import ObraForm from '@/components/admin/ObraForm';
-import DiffModal from '@/components/admin/DiffModal';
 import ConfirmModal from '@/components/admin/ConfirmModal';
 import { Plus, Pencil, Trash2, MessageSquare, Search, ChevronLeft, ChevronRight } from 'lucide-react';
+
+// ── Code splitting: modales pesados cargados solo cuando se necesitan ─────────
+// ObraForm incluye el uploader de imágenes multi-step (~50 KB JS).
+// DiffModal incluye el diff viewer con renderizado de campos y miniaturas.
+// Ambos se cargan en el cliente bajo demanda (ssr:false — no se renderizan en servidor).
+const ObraForm = dynamic(() => import('@/components/admin/ObraForm'), { ssr: false });
+const DiffModal = dynamic(() => import('@/components/admin/DiffModal'), { ssr: false });
 
 const PAGE_SIZE = 20;
 const ESTADOS = ['Borrador', 'Publicado', 'En Revisión', 'Archivado'];

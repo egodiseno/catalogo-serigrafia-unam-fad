@@ -3,6 +3,26 @@ const nextConfig = {
   // swcMinify está habilitado por defecto en Next.js 14+ (no requiere configuración explícita).
   // La opción fue deprecada en Next.js 15. No se incluye para evitar el warning de deprecación.
 
+  // Compresión gzip/brotli de assets estáticos
+  compress: true,
+
+  // Ocultar el header X-Powered-By: Next.js
+  poweredByHeader: false,
+
+  // ── Optimización de imágenes ──────────────────────────────────────────────
+  images: {
+    // Formatos modernos: AVIF primero, luego WebP como fallback
+    formats: ['image/avif', 'image/webp'],
+    // Supabase Storage: todas las imágenes de obras vienen de **.supabase.co
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '*.supabase.co',
+        pathname: '/storage/v1/object/public/**',
+      },
+    ],
+  },
+
   async headers() {
     return [
       {

@@ -2,6 +2,7 @@
 // Tarjeta de obra individual — réplica exacta de createArtworkCard() de public-catalog.js
 // Componente puro: recibe todos los datos como props, no hace fetch.
 
+import Image       from 'next/image';
 import { ArrowRight, Heart } from 'lucide-react';
 
 /**
@@ -48,8 +49,14 @@ export default function ArtworkCard({ work, isFav, onFav, lang, t }) {
       >
         <div className={`artwork-card__media${!imageUrl ? ' is-empty' : ''}`}>
           {imageUrl && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={imageUrl} alt={work.titulo} loading="lazy" />
+            // .artwork-card__media ya tiene position:relative + aspect-ratio:4/5 + overflow:hidden en CSS
+            <Image
+              src={imageUrl}
+              alt={work.titulo}
+              fill
+              sizes="(max-width: 640px) calc(100vw - 2rem), (max-width: 960px) calc(50vw - 2rem), (max-width: 1200px) calc(33vw - 2rem), 280px"
+              quality={75}
+            />
           )}
           {techniqueName && (
             <span className="artwork-card__badge">{techniqueName}</span>

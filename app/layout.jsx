@@ -1,11 +1,33 @@
 // app/layout.jsx — Layout raíz definitivo
 // Server Component: no usa estado ni hooks del cliente
 
+import { Inter, Lora } from 'next/font/google';
 import '../styles/globals.css';
 import { LangProvider }      from '@/contexts/LangContext';
 import Header                from '@/components/public/Header';
 import Footer                from '@/components/public/Footer';
 import OfflineIndicator      from '@/components/OfflineIndicator';
+
+// ── Fuentes optimizadas con next/font ────────────────────────────────────────
+// next/font elimina las peticiones externas a Google Fonts:
+//   1. Descarga las fuentes en tiempo de build
+//   2. Las sirve desde el mismo dominio (sin roundtrip a fonts.googleapis.com)
+//   3. Añade font-display:swap automáticamente
+//   4. Inyecta CSS variables disponibles en globals.css via var(--font-inter) / var(--font-lora)
+
+const inter = Inter({
+  subsets:  ['latin'],
+  display:  'swap',
+  variable: '--font-inter',
+  weight:   ['400', '500', '600', '700'],
+});
+
+const lora = Lora({
+  subsets:  ['latin'],
+  display:  'swap',
+  variable: '--font-lora',
+  weight:   ['500', '600', '700'],
+});
 
 // themeColor va en viewport export separado (Next.js 14 — evita warning de metadata)
 export const viewport = {
@@ -51,16 +73,11 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="es">
+    // Las clases CSS de next/font inyectan las variables --font-inter y --font-lora
+    // en el elemento html, disponibles globalmente para globals.css
+    <html lang="es" className={`${inter.variable} ${lora.variable}`}>
       <head>
-        {/* Google Fonts — igual que index.html original */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:wght@500;600;700&display=swap"
-          rel="stylesheet"
-        />
-        {/* Bootstrap Icons — para iconos en el footer */}
+        {/* Bootstrap Icons — para iconos en el footer (no cubierto por next/font) */}
         <link
           rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
