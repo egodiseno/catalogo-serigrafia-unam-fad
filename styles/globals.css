@@ -715,6 +715,38 @@ body.is-scrolled .filters {
   transform: rotate(180deg);
 }
 
+/* ── Barra de búsqueda en el panel de filtros ───────────────────────────────── */
+/* Aparece antes del filter-grid en todos los viewports */
+.filter-search {
+  position: relative;
+  width: 100%;
+}
+
+/* Sobreescribe el width:200px del .search-input global para ocupar 100% */
+.filter-search .search-input {
+  width: 100%;
+  padding-left: 40px;
+}
+
+/* Ícono lupa absoluto dentro del contenedor */
+.filter-search__icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-muted);
+  pointer-events: none;
+  flex-shrink: 0;
+}
+
+/* Desktop: el filter-search ocupa las 4 columnas del grid [data-filters] */
+@media (min-width: 1200px) {
+  .filter-search {
+    grid-column: 1 / -1;
+    margin-bottom: 0;
+  }
+}
+
 /* Panel colapsable — cerrado por defecto en mobile */
 .filter-panel {
   max-height: 0;

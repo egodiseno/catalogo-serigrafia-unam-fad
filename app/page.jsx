@@ -7,7 +7,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Image as ImageIcon, Users, Layers,
-  Heart, X, ArrowUp, ChevronDown,
+  Heart, X, ArrowUp, ChevronDown, Search,
 } from 'lucide-react';
 import { useLang } from '@/contexts/LangContext';
 import ArtworkCard from '@/components/public/ArtworkCard';
@@ -110,6 +110,7 @@ export default function CatalogPage() {
   const pageRef       = useRef(1);
   const filtersRef    = useRef(filters);
   const favSetRef     = useRef(favSet);
+  const searchModeRef = useRef(false);  // true cuando filters.search no está vacío
 
   // Sincronizar refs cuando cambia el state
   useEffect(() => { filtersRef.current = filters; }, [filters]);
@@ -162,7 +163,10 @@ export default function CatalogPage() {
     isLoadingRef.current = true;
     setIsLoading(true);
 
-    const pageSize = desktop ? 8 : 12;
+    const pageSize   = desktop ? 8 : 12;
+    const searchTerm = currFilters.search?.trim();
+    const isSearch   = !!(searchTerm && !currFilters.onlyFav); // FTS no aplica en modo favoritos
+    searchModeRef.current = isSearch;
 
     // Modo favoritos sin favoritos → mostrar vacío sin query
     if (currFilters.onlyFav) {
@@ -178,19 +182,30 @@ export default function CatalogPage() {
     }
 
     try {
-      const { data, total, error } = await api.filterWorks(currFilters, page, pageSize);
+      let data, total, error;
+
+      if (isSearch) {
+        // ── Modo búsqueda FTS: Edge Function search-obras ─────────────────
+        ({ data, total, error } = await api.searchObras(searchTerm, currFilters));
+      } else {
+        // ── Modo normal: filterWorks con paginación ────────────────────────
+        ({ data, total, error } = await api.filterWorks(currFilters, page, pageSize));
+      }
+
       if (error) throw error;
-      if (data.length === 0 && page > 1) {
-        // No hay más obras — revertir página
+
+      // En modo paginación normal: si la página ya no tiene obras, revertir
+      if (!isSearch && data.length === 0 && page > 1) {
         pageRef.current = page - 1;
         setCurrentPage(page - 1);
         return;
       }
+
       const nextWorks = append ? [...worksRef.current, ...data] : data;
       setWorks(nextWorks);
-      worksRef.current   = nextWorks;
+      worksRef.current = nextWorks;
       setTotalWorks(total);
-      totalRef.current   = total;
+      totalRef.current = total;
     } catch (err) {
       console.error('❌ Error cargando obras:', err);
       if (!append) { setWorks([]); setTotalWorks(0); }
@@ -244,13 +259,14 @@ export default function CatalogPage() {
     if (stats.tecnicas !== null) animateCounter(document.getElementById('statTecnicas'), stats.tecnicas);
   }, [stats]);
 
-  // ── Infinite scroll (mobile) ──────────────────────────────────────────────
+  // ── Infinite scroll (mobile — desactivado en modo búsqueda FTS) ─────────
   useEffect(() => {
     if (isDesktop || !sentinelRef.current) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
         if (!entries[0].isIntersecting || isLoadingRef.current) return;
+        if (searchModeRef.current) return; // FTS retorna hasta 50 resultados — sin scroll infinito
         const pageSize  = 12;
         const hasMore   = totalRef.current > 0 && pageRef.current * pageSize < totalRef.current;
         if (!hasMore) return;
@@ -277,12 +293,12 @@ export default function CatalogPage() {
     loadWorks({ page: 1, currFilters: newFilters, append: false, desktop: isDesktopRef.current });
   }, [loadWorks]);
 
-  // ── Búsqueda debounced ────────────────────────────────────────────────────
+  // ── Búsqueda debounced (400ms — más largo que filtros normales por FTS) ────
   const debouncedSearch = useCallback(
     debounce((value) => {
       const newFilters = { ...filtersRef.current, search: value };
       applyFilters(newFilters);
-    }, 300),
+    }, 400),
     [applyFilters]
   );
 
@@ -397,12 +413,13 @@ export default function CatalogPage() {
   }, [currentPage, loadWorks]);
 
   // ── Cálculos derivados ────────────────────────────────────────────────────
+  const isSearchMode = !!(filters.search && filters.search.trim() && !filters.onlyFav);
   const pageSize    = isDesktop ? 8 : 12;
   const totalPages  = Math.ceil(totalWorks / pageSize);
   const shownCount  = isDesktop ? Math.min(currentPage * pageSize, totalWorks) : works.length;
-  const hasMore     = isDesktop
+  const hasMore     = !isSearchMode && (isDesktop
     ? currentPage < totalPages
-    : works.length < totalWorks;
+    : works.length < totalWorks);
 
   const noResults = !isLoading && works.length === 0;
 
@@ -493,6 +510,23 @@ export default function CatalogPage() {
             className={`filter-panel${filterPanelOpen ? ' is-open' : ''}`}
           >
             <form data-filters onSubmit={(e) => e.preventDefault()}>
+
+              {/* BÚSQUEDA — full-text search (Edge Function search-obras) */}
+              <div className="filter-search">
+                <Search size={16} className="filter-search__icon" aria-hidden="true" />
+                <input
+                  type="search"
+                  id="searchInput"
+                  ref={searchRef}
+                  placeholder={lang === 'en' ? 'Search by title, artist or description…' : 'Buscar por título, artista o descripción…'}
+                  defaultValue={filters.search}
+                  onChange={handleSearchChange}
+                  aria-label={lang === 'en' ? 'Search works' : 'Buscar obras'}
+                  className="search-input"
+                  autoComplete="off"
+                />
+              </div>
+
               <div className="filter-grid">
 
                 {/* AÑO */}
@@ -673,11 +707,18 @@ export default function CatalogPage() {
               aria-live="polite"
               aria-atomic="true"
             >
-              {totalWorks > 0 && (
-                lang === 'en'
-                  ? `Showing ${shownCount} of ${totalWorks}`
-                  : `Mostrando ${shownCount} de ${totalWorks}`
-              )}
+              {isSearchMode
+                ? (totalWorks > 0
+                    ? (lang === 'en'
+                        ? `${totalWorks} result${totalWorks !== 1 ? 's' : ''} for "${filters.search.trim()}"`
+                        : `${totalWorks} resultado${totalWorks !== 1 ? 's' : ''} para "${filters.search.trim()}"`)
+                    : null)
+                : (totalWorks > 0
+                    ? (lang === 'en'
+                        ? `Showing ${shownCount} of ${totalWorks}`
+                        : `Mostrando ${shownCount} de ${totalWorks}`)
+                    : null)
+              }
             </p>
           </div>
 
@@ -698,9 +739,13 @@ export default function CatalogPage() {
           {/* Estado vacío */}
           {noResults && (
             <p className="empty-state">
-              {filters.onlyFav
-                ? (lang === 'en' ? "You haven't saved any favorites yet." : 'Aún no tienes obras guardadas como favoritas.')
-                : (lang === 'en' ? 'No works found with those filters.' : 'No encontramos obras con esos filtros.')}
+              {isSearchMode
+                ? (lang === 'en'
+                    ? `No results found for "${filters.search.trim()}".`
+                    : `No se encontraron resultados para "${filters.search.trim()}".`)
+                : filters.onlyFav
+                  ? (lang === 'en' ? "You haven't saved any favorites yet." : 'Aún no tienes obras guardadas como favoritas.')
+                  : (lang === 'en' ? 'No works found with those filters.' : 'No encontramos obras con esos filtros.')}
             </p>
           )}
 
@@ -711,8 +756,9 @@ export default function CatalogPage() {
             </div>
           )}
 
-          {/* ── Mobile: botón "Cargar más" + sentinel para IntersectionObserver */}
-          {!isDesktop && (
+          {/* ── Mobile: botón "Cargar más" + sentinel para IntersectionObserver
+               Oculto en modo búsqueda FTS (resultados ya vienen completos) */}
+          {!isDesktop && !isSearchMode && (
             <div className="load-more-wrap" ref={sentinelRef} hidden={!hasMore || undefined}>
               <button
                 type="button"
@@ -725,8 +771,8 @@ export default function CatalogPage() {
             </div>
           )}
 
-          {/* ── Desktop: paginación ───────────────────────────────────── */}
-          {isDesktop && totalPages > 1 && (
+          {/* ── Desktop: paginación — oculta en modo búsqueda FTS ────── */}
+          {isDesktop && totalPages > 1 && !isSearchMode && (
             <nav aria-label={lang === 'en' ? 'Pagination' : 'Paginación'} className="pagination-nav">
               {/* Anterior */}
               <button

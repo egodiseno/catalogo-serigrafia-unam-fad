@@ -23,3 +23,6 @@ enable_signup = true
 
 [functions.reset-user-password]
 verify_jwt = false   # Acceso público: no requiere Bearer token del caller
+
+[functions.search-obras]
+verify_jwt = false   # Búsqueda pública del catálogo: no requiere autenticación
