@@ -120,7 +120,7 @@ export default function DashboardPage() {
     }
 
     // ── 2. Lookup en usuarios_admin → obtener rol ────────────────────────────
-    let rol, artista, esAdmin;
+    let rol, editorId, esAdmin;
     try {
       const { data: adminUser, error: adminError } = await supabase
         .from('usuarios_admin')
@@ -136,9 +136,9 @@ export default function DashboardPage() {
         return;
       }
 
-      rol     = adminUser.rol;
-      artista = adminUser.email; // editor filtra obras por email (campo artista en obras)
-      esAdmin = rol !== 'editor';
+      rol      = adminUser.rol;
+      editorId = authUser.id;  // obras.editor_id = auth.users.id (columna FK verificada en migrations)
+      esAdmin  = rol !== 'editor';
 
       // Actualizar currentUser para usePermisos (puede diferir entre refreshes si el rol cambia)
       setCurrentUser({
@@ -167,9 +167,12 @@ export default function DashboardPage() {
       .order('created_at', { ascending: false })
       .limit(5);
 
-    if (rol === 'editor' && artista) {
-      obrasCountQ = obrasCountQ.eq('artista', artista);
-      obrasListQ  = obrasListQ.eq('artista', artista);
+    // Editor ve solo sus obras: filtrar por editor_id (UUID de auth.users)
+    // Columna verificada en supabase/migrations/20260621_flujo_aprobacion_base.sql:
+    //   ADD COLUMN IF NOT EXISTS editor_id UUID REFERENCES auth.users(id)
+    if (rol === 'editor' && editorId) {
+      obrasCountQ = obrasCountQ.eq('editor_id', editorId);
+      obrasListQ  = obrasListQ.eq('editor_id', editorId);
     }
 
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();

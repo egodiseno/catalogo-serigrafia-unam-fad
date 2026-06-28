@@ -34,8 +34,8 @@ import {
 
 // Orden exacto del HTML original. href = ruta Next.js de la sección.
 const NAV_ITEMS = [
-  { section: 'dashboard', label: 'Dashboard', href: '/admin', Icon: LayoutDashboard, roles: ['admin', 'super_editor'] },
-  { section: 'obras', label: 'Obras', href: '/admin/obras', Icon: ImageIcon, roles: ['admin', 'super_editor'] },
+  { section: 'dashboard', label: 'Dashboard', href: '/admin', Icon: LayoutDashboard, roles: ['admin', 'super_editor', 'editor'] },
+  { section: 'obras', label: 'Obras', href: '/admin/obras', Icon: ImageIcon, roles: ['admin', 'super_editor', 'editor'] },
   { section: 'tecnicas', label: 'Técnicas', href: '/admin/tecnicas', Icon: Brush, roles: ['admin', 'super_editor'] },
   { section: 'tags', label: 'Tags', href: '/admin/tags', Icon: Tag, roles: ['admin', 'super_editor'] },
   { section: 'usuarios', label: 'Usuarios', href: '/admin/usuarios', Icon: Users, roles: ['admin', 'super_editor'] },
