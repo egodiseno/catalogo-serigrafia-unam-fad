@@ -30,15 +30,17 @@ export default function EstadisticasPage() {
     const client = createClient();
     (async () => {
       const { data: { user } } = await client.auth.getUser();
-      if (!user) { router.replace('/login'); return; }
+      if (!user) { router.replace('/admin/login'); return; }
 
+      // Lookup por email — mismo patrón que todas las demás páginas del admin.
+      // usuarios_admin.id ≠ auth.users.id; la FK de relación es el email.
       const { data: admin } = await client
         .from('usuarios_admin')
         .select('rol')
-        .eq('id', user.id)
+        .eq('email', user.email)
         .single();
 
-      if (!admin) { router.replace('/login'); return; }
+      if (!admin) { router.replace('/admin/login'); return; }
       setRol(admin.rol);
       setAuthReady(true);
     })();
@@ -58,7 +60,6 @@ export default function EstadisticasPage() {
   const [loading,   setLoading]   = useState(false);
   const [hasMore,   setHasMore]   = useState(true);
   const [error,     setError]     = useState(null);
-  const [totalRows, setTotalRows] = useState(null);
 
   const sentinelRef = useRef(null);
   const observerRef = useRef(null);

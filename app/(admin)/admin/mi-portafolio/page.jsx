@@ -48,7 +48,10 @@ function estadoBadgeClass(estado) {
 
 function formatDate(ts) {
   if (!ts) return '—';
-  return new Date(ts).toLocaleDateString('es-MX', { dateStyle: 'short' });
+  // Formato consistente con el resto del admin: "24 jun. 2026"
+  return new Date(ts).toLocaleDateString('es-MX', {
+    day: '2-digit', month: 'short', year: 'numeric',
+  });
 }
 
 function contarPorEstado(obras) {
@@ -361,7 +364,7 @@ function MiPortafolioInner() {
             <tbody>
               {obrasFiltradas.length === 0 ? (
                 <tr>
-                  <td colSpan={8} style={{ textAlign: 'center', padding: '2rem', color: 'var(--color-text-muted)' }}>
+                  <td colSpan={8} className="empty-state">
                     {search || filtroEstado
                       ? 'Sin resultados para los filtros aplicados.'
                       : 'Aún no tienes obras registradas.'}

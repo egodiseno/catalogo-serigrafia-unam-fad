@@ -41,7 +41,7 @@ function fmtDateTime(iso) {
   if (!iso) return '—';
   try {
     return new Intl.DateTimeFormat('es-MX', {
-      dateStyle: 'short',
+      dateStyle: 'medium',
       timeStyle: 'medium',
     }).format(new Date(iso));
   } catch { return '—'; }
