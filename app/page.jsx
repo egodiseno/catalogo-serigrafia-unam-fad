@@ -12,6 +12,8 @@ import {
 import { useLang } from '@/contexts/LangContext';
 import ArtworkCard from '@/components/public/ArtworkCard';
 import * as api from '@/lib/supabase/api';
+import { useRealtimeWorks }    from '@/hooks/useRealtimeWorks';
+import { useRealtimeTecnicas } from '@/hooks/useRealtimeTecnicas';
 
 // ── Módulo de Favoritos (misma lógica que el IIFE en public-catalog.js) ────────
 const SESSION_KEY = 'catalogo_session_id';
@@ -96,6 +98,7 @@ export default function CatalogPage() {
   const [tagsPopoverOpen, setTagsPopoverOpen]   = useState(false);
   const [filterPanelOpen, setFilterPanelOpen]   = useState(false);
   const [showBackToTop, setShowBackToTop]        = useState(false);
+  const [realtimeUpdating, setRealtimeUpdating] = useState(false); // indicador Realtime
 
   // Refs
   const sentinelRef   = useRef(null);   // div sentinel para IntersectionObserver
@@ -110,7 +113,8 @@ export default function CatalogPage() {
   const pageRef       = useRef(1);
   const filtersRef    = useRef(filters);
   const favSetRef     = useRef(favSet);
-  const searchModeRef = useRef(false);  // true cuando filters.search no está vacío
+  const searchModeRef   = useRef(false);  // true cuando filters.search no está vacío
+  const updateTimerRef  = useRef(null);   // timer para auto-ocultar el indicador Realtime
 
   // Sincronizar refs cuando cambia el state
   useEffect(() => { filtersRef.current = filters; }, [filters]);
@@ -292,6 +296,49 @@ export default function CatalogPage() {
     setWorks([]);
     loadWorks({ page: 1, currFilters: newFilters, append: false, desktop: isDesktopRef.current });
   }, [loadWorks]);
+
+  // ── Helpers internos para indicador Realtime ─────────────────────────────
+  // Muestra el dot "Actualizando…" durante 2 s tras cada cambio detectado
+  const showRealtimeIndicator = useCallback(() => {
+    setRealtimeUpdating(true);
+    clearTimeout(updateTimerRef.current);
+    updateTimerRef.current = setTimeout(() => setRealtimeUpdating(false), 2000);
+  }, []);
+
+  // ── Callbacks para useRealtimeWorks ──────────────────────────────────────
+
+  // INSERT / UPDATE de obra visible → refetch con filtros actuales
+  const handleRealtimeRefresh = useCallback(() => {
+    showRealtimeIndicator();
+    loadWorks({
+      page:        pageRef.current,
+      currFilters: filtersRef.current,
+      append:      false,
+      desktop:     isDesktopRef.current,
+    });
+  }, [loadWorks, showRealtimeIndicator]);
+
+  // DELETE (o UPDATE que oculta) una obra → eliminar del grid sin refetch
+  const handleRealtimeDelete = useCallback((obraId) => {
+    if (!obraId) return;
+    showRealtimeIndicator();
+    setWorks((prev) => prev.filter((w) => w.id !== obraId));
+    worksRef.current = worksRef.current.filter((w) => w.id !== obraId);
+    setTotalWorks((prev) => Math.max(0, prev - 1));
+    totalRef.current = Math.max(0, totalRef.current - 1);
+  }, [showRealtimeIndicator]);
+
+  // ── Callback para useRealtimeTecnicas ────────────────────────────────────
+
+  // INSERT / UPDATE / DELETE en tecnicas → re-fetch del listado de filtros
+  const handleTecnicasRefresh = useCallback(async () => {
+    const techniques = await api.getTechniques();
+    setTechniqueOptions(techniques);
+  }, []);
+
+  // ── Suscripciones Realtime ────────────────────────────────────────────────
+  useRealtimeWorks(handleRealtimeRefresh, handleRealtimeDelete);
+  useRealtimeTecnicas(handleTecnicasRefresh);
 
   // ── Búsqueda debounced (400ms — más largo que filtros normales por FTS) ────
   const debouncedSearch = useCallback(
@@ -719,6 +766,15 @@ export default function CatalogPage() {
                         : `Mostrando ${shownCount} de ${totalWorks}`)
                     : null)
               }
+              {/* Indicador subtle de actualización en tiempo real */}
+              {realtimeUpdating && (
+                <span className="realtime-indicator" aria-label={lang === 'en' ? 'Updating…' : 'Actualizando…'}>
+                  <span className="realtime-dot" aria-hidden="true" />
+                  <span aria-hidden="true">
+                    {lang === 'en' ? 'Updating…' : 'Actualizando…'}
+                  </span>
+                </span>
+              )}
             </p>
           </div>
 
