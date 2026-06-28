@@ -1,0 +1,50 @@
+{
+  "name": "Catálogo Digital de Obra Serigráfica UNAM/FAD",
+  "short_name": "Catálogo Serigrafía",
+  "description": "Catálogo digital académico y cultural de obra serigráfica del Taller de Serigrafía UNAM/FAD",
+  "start_url": "/",
+  "display": "standalone",
+  "scope": "/",
+  "orientation": "any",
+  "theme_color": "#013B75",
+  "background_color": "#FFFFFF",
+  "lang": "es",
+  "categories": ["arts", "education"],
+  "icons": [
+    {
+      "src": "/logos/cropped-icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/logos/cropped-icon-180x180.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/logos/UNAM.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Ver catálogo",
+      "short_name": "Catálogo",
+      "description": "Explorar todas las obras",
+      "url": "/",
+      "icons": [{ "src": "/logos/cropped-icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Técnicas",
+      "short_name": "Técnicas",
+      "description": "Explorar técnicas serigráficas",
+      "url": "/tecnicas",
+      "icons": [{ "src": "/logos/cropped-icon-192x192.png", "sizes": "192x192" }]
+    }
+  ]
+}

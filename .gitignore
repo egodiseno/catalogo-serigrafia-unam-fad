@@ -52,3 +52,14 @@ appcatalogo_/
 # Temporales
 *.tmp
 *.bak
+
+# Next.js
+.next/
+out/
+*.tsbuildinfo
+next-env.d.ts
+
+# Playwright E2E
+playwright-report/
+test-results/
+/playwright/.cache/

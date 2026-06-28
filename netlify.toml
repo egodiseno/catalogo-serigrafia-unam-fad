@@ -1,17 +1,12 @@
 [build]
-  publish = "app"
+  command = "next build"
+  publish = ".next"
 
-# ── SPA redirect: /admin/* → index.html (maneja rutas y hash tokens) ──────────
-# Netlify sirve "app/" como raíz, por lo que la URL pública es /admin/
-# (sin el prefijo /app/ que existe en el filesystem local)
-[[redirects]]
-  from   = "/admin/*"
-  to     = "/admin/index.html"
-  status = 200
+# Plugin de Netlify para Next.js — habilita SSR, ISR y Route Handlers
+# Netlify lo instala automáticamente durante el build de CI
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
 
-# ── Página 404 personalizada ────────────────────────────────────────────────────
-# Debe ir DESPUÉS de las redirecciones específicas (Netlify usa first-match).
-[[redirects]]
-  from   = "/*"
-  to     = "/404.html"
-  status = 404
+# Variables de entorno requeridas en Netlify UI:
+# NEXT_PUBLIC_SUPABASE_URL
+# NEXT_PUBLIC_SUPABASE_ANON_KEY

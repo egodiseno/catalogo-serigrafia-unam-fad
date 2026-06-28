@@ -1,9 +1,10 @@
 # PLAN DE MIGRACIÓN — Next.js
 ## Catálogo Digital de Obra Serigráfica UNAM/FAD
 
-**Versión:** 2.0 (completo y ejecutable)
+**Versión:** 2.1 (en ejecución)
 **Fecha:** 26 junio 2026
-**Estado:** Documentado — listo para ejecutar en sesión dedicada
+**Actualizado:** 26 junio 2026
+**Estado:** Fases 0, 1A, 1B y 1C completadas — catálogo público funcional en `nextjs-migration`
 **Baseline:** Versión VanillaJS 100% funcional en producción (commit documentado)
 
 ---
@@ -240,33 +241,63 @@ catalogo-serigrafia-unam-fad/
 
 ## Plan de ejecución por fases
 
-### Fase 0 — Setup (1 sesión)
+### ✅ Fase 0 — Setup
 
 **Objetivo:** Proyecto Next.js funcional vacío en Netlify, sin tocar main.
 
-- Crear rama `nextjs-migration` desde `main`
-- Inicializar Next.js 14 con App Router
-- Configurar `netlify.toml` para builds Next.js
-- Conectar Supabase (client para browser + server para SSR)
-- Migrar tokens CSS globales a `styles/globals.css`
-- Verificar deploy vacío en Netlify desde la rama nueva
+- ✅ Crear rama `nextjs-migration` desde `main`
+- ✅ Inicializar Next.js 14 con App Router
+- ✅ Configurar `netlify.toml` para builds Next.js
+- ✅ Conectar Supabase (client para browser + server para SSR)
+- ✅ Migrar tokens CSS globales a `styles/globals.css`
+- ✅ Verificar deploy vacío en Netlify desde la rama nueva
 - **Main no se toca — VanillaJS sigue en producción**
 
-### Fase 1 — Catálogo público (2 sesiones)
+**Commit:** `9908324` — `FEAT: Fase 0 — setup inicial Next.js en rama nextjs-migration`
 
-**Sesión 1A:**
-- Layout global: header, footer, i18n provider
-- `app/page.jsx`: grid de obras con filtros, paginación, infinite scroll
-- `components/public/ArtworkCard.jsx` con `next/image`
-- Sistema de favoritos (misma lógica, adaptada a React)
+---
 
-**Sesión 1B:**
-- `app/obra/[slug]/page.jsx` con SSR y `generateMetadata` — el objetivo principal
-- Gallery + lightbox + counter + swipe
-- `app/tecnicas/page.jsx`
-- `app/creditos/page.jsx`
-- `app/registro/page.jsx`
-- Verificar que OG tags dinámicos funcionan (probar con WhatsApp Web o Twitter Card Validator)
+### ✅ Fase 1 — Catálogo público
+
+#### ✅ Sesión 1A
+- ✅ Layout global: header, footer, i18n provider (`LangContext`)
+- ✅ `app/page.jsx`: grid de obras con filtros, búsqueda, paginación desktop / infinite scroll mobile
+- ✅ `components/public/ArtworkCard.jsx`
+- ✅ Sistema de favoritos con Supabase (`obra_favoritos`, `session_id`)
+- ✅ `FilterBar`, `ArtworkGrid`, `useFavorite` hook
+
+**Commits:**
+- `6f262e6` — `FEAT: Fase 1A — catálogo público grid, filtros y paginación`
+- `dfc4dd1` — `FIX: alinear botones de filtros en misma fila que los selects`
+
+#### ✅ Sesión 1B
+- ✅ `app/obra/[slug]/page.jsx` con SSR y `generateMetadata` — OG tags dinámicos con imagen real
+- ✅ `WorkGallery` (carousel, lightbox, swipe, teclado, image counter)
+- ✅ `WorkShare` (WhatsApp, Email, SMS, copy link)
+- ✅ `RelatedWorks` (misma técnica, prioriza tags comunes)
+- ✅ `VisitRecorder` (fire-and-forget INSERT en `obra_visitas`)
+- ✅ `useFavorite` hook con optimistic update
+
+**Commits:**
+- `7d74844` — `FEAT: Fase 1B — obra/[slug] con SSR y OG tags dinámicos`
+- `c878351` — `FIX: eliminar page.js duplicado, corregir viewport export, limpiar caché .next`
+
+#### ✅ Sesión 1C
+- ✅ `app/tecnicas/page.jsx` (SSR) + `TechniquesClient` (selección, obras bajo demanda, cargar más)
+- ✅ `app/creditos/page.jsx` (SSR) + `CreditosAcerca` (bilingüe via `useLang`)
+- ✅ `app/registro/page.jsx` (Client Component, pantallas loading/cerrada/abierta, toasts, validación)
+- ✅ `app/not-found.jsx` (404 personalizada con estilos en globals.css)
+- ✅ `app/registro/layout.jsx` — layout standalone, oculta header/footer globales vía CSS
+- ✅ CSS de registro movido a `globals.css` (sección `=== Registro público ===`)
+- ✅ Singleton Supabase client (`lib/supabase/client.js`) — evita múltiples instancias `GoTrueClient`
+- ✅ Patrón `mounted` en registro — elimina hydration mismatch por `new Date()` en SSR
+
+**Commits:**
+- `8b631fe` — `FEAT: Fase 1C — técnicas, créditos, registro y 404`
+- `420b161` — `FIX: hydration error en registro y singleton Supabase client`
+- `1c894bf` — `FIX: mover estilos de registro a globals.css — eliminar hydration error`
+- `c4f3a6c` — `FIX: layout standalone para /registro sin header ni footer`
+- `bc64391` — `FIX: registro pantalla completa 100vh con card centrada`
 
 ### Fase 2 — Admin panel (4 sesiones)
 
@@ -347,6 +378,82 @@ Next.js es portable. Cuando el proyecto migre a infraestructura UNAM:
 
 ---
 
+## Lecciones aprendidas (Fases 0 – 1C)
+
+Errores encontrados en ejecución que el plan original no anticipaba. Registrados para no repetirlos en Fase 2.
+
+### 1. Patrón singleton obligatorio para el cliente Supabase
+
+`@supabase/supabase-js` y `@supabase/ssr` cada uno crean una instancia de `GoTrueClient` internamente. Si se llama a `createClient()` o `createBrowserClient()` más de una vez en el mismo proceso del browser, Next.js emite el warning `Multiple GoTrueClient instances detected` y el comportamiento de sesión se vuelve impredecible.
+
+**Regla:** todo archivo que exporte un cliente Supabase para el browser debe usar el patrón de módulo singleton:
+
+```js
+let _client = null;
+export function createClient() {
+  if (!_client) _client = createBrowserClient(URL, ANON_KEY);
+  return _client;
+}
+```
+
+Cualquier componente que necesite el cliente lo importa de un solo lugar — nunca instancia directamente.
+
+---
+
+### 2. Estilos nunca inyectados con tag `<style>` en componentes
+
+Inyectar un `<style>` dentro de un Client Component (`'use client'`) provoca hydration mismatch: el servidor emite el tag con el CSS, React intenta reconciliarlo con el DOM del cliente y falla si hay cualquier diferencia de timing o contenido.
+
+**Regla:** todos los estilos van en `styles/globals.css` (o en un `.css` module). Los estilos específicos de una sola página se añaden al final de `globals.css` bajo una sección comentada (`/* === Nombre de página === */`). Ningún componente inyecta un `<style>` dinámico.
+
+Excepción permitida: `<style>` en un **Server Component** (sin `'use client'`) es seguro porque el HTML se emite una sola vez desde el servidor — Next.js no necesita reconciliarlo.
+
+---
+
+### 3. Layouts anidados en Next.js App Router no reemplazan el root layout
+
+Un archivo `app/ruta/layout.jsx` se renderiza **dentro** del slot `{children}` del layout raíz (`app/layout.jsx`), no en su lugar. El `<Header>` y el `<Footer>` del layout raíz siempre montan, independientemente de si la sub-ruta tiene su propio layout.
+
+Para ocultar el header/footer en una ruta específica sin tocar `app/layout.jsx`:
+
+```jsx
+// app/registro/layout.jsx (Server Component)
+export default function RegistroLayout({ children }) {
+  return (
+    <>
+      <style>{`.site-header, .site-footer { display: none !important; }`}</style>
+      {children}
+    </>
+  );
+}
+```
+
+La alternativa limpia —y la correcta para proyectos con varias rutas standalone— son los **Route Groups** con paréntesis (`app/(main)/layout.jsx`), que permiten agrupar páginas bajo un layout compartido sin afectar la URL. Requiere mover archivos pero no toca el root layout.
+
+---
+
+### 4. Limpiar `.next` al cambiar de rama o después de conflictos de caché
+
+El directorio `.next/` almacena la caché de compilación de Next.js. Cuando se cambia de rama o se modifica `next.config.js`, la caché puede tener artefactos del estado anterior que generan errores oscuros en runtime que no se reproducen en un build limpio.
+
+**Cuando limpiar obligatoriamente:**
+- Al hacer `git checkout` a otra rama con diferente configuración
+- Después de resolver conflictos de merge que tocaron archivos de configuración
+- Cuando aparecen errores de módulo no encontrado que contradicen lo que hay en disco
+- Antes de hacer `npm run build` para un deploy final
+
+```bash
+# PowerShell
+Remove-Item -Recurse -Force .next
+
+# Bash
+rm -rf .next
+```
+
+Después de limpiar, `npm run dev` o `npm run build` reconstruyen la caché desde cero.
+
+---
+
 **ÚLTIMA ACTUALIZACIÓN:** 26 junio 2026
 **RESPONSABLE:** Emmanuel (egodiseno)
-**SIGUIENTE PASO:** Ejecutar Fase 0 en sesión nueva dedicada — confirmar Node.js instalado primero
+**SIGUIENTE PASO:** Fase 2A — Login + MFA + auth middleware + Dashboard admin
