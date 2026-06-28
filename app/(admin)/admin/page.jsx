@@ -510,11 +510,11 @@ export default function DashboardPage() {
             role="button"
             tabIndex={0}
             title="Ver registros pendientes de validación"
-            onClick={() => router.push('/admin/registros-pendientes')}
+            onClick={() => router.push('/admin/registros')}
             onKeyDown={e => {
               if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
-                router.push('/admin/registros-pendientes');
+                router.push('/admin/registros');
               }
             }}
           >

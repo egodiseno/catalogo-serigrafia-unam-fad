@@ -29,7 +29,6 @@ const ROUTE_SUBTITLES = {
   '/admin/mi-perfil':          'Mi perfil',
   '/admin/mi-portafolio':      'Mi portafolio',
   '/admin/configuracion':      'Configuración',
-  '/admin/registros-pendientes': 'Registros pendientes de validación',
   '/admin/registros':          'Registros pendientes de validación',
   '/admin/control-registro':   'Control de registro de alumnos',
   '/admin/historial-alumnos':  'Historial de alumnos',

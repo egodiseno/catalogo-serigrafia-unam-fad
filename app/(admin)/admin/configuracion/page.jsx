@@ -93,15 +93,15 @@ export default function ConfiguracionPage() {
     const client = createClient();
     (async () => {
       const { data: { user } } = await client.auth.getUser();
-      if (!user) { router.replace('/login'); return; }
+      if (!user) { router.replace('/admin/login'); return; }
 
       const { data: admin } = await client
         .from('usuarios_admin')
         .select('rol')
-        .eq('id', user.id)
+        .eq('email', user.email)
         .single();
 
-      if (!admin) { router.replace('/login'); return; }
+      if (!admin) { router.replace('/admin/login'); return; }
       setRol(admin.rol);
       setAuthReady(true);
     })();

@@ -154,15 +154,15 @@ export default function MiPerfilPage() {
   useEffect(() => {
     (async () => {
       const { data: { user }, error } = await client.auth.getUser();
-      if (!user || error) { router.replace('/login'); return; }
+      if (!user || error) { router.replace('/admin/login'); return; }
 
       const { data: adminRow } = await client
         .from('usuarios_admin')
         .select('id, nombre, email, rol, estado, numero_cuenta, created_at')
-        .eq('id', user.id)
+        .eq('email', user.email)
         .single();
 
-      if (!adminRow) { router.replace('/login'); return; }
+      if (!adminRow) { router.replace('/admin/login'); return; }
       setPerfil(adminRow);
       setLoading(false);
     })();
