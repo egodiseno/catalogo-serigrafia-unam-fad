@@ -8004,3 +8004,107 @@ input[type="file"]:hover {
   line-height: 1.55;
   color:       #1e3a5f;
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   PASSWORD STRENGTH — Mi Perfil
+   Barra de fortaleza visual (4 niveles) + lista de requisitos
+   ═══════════════════════════════════════════════════════════════════ */
+
+.password-strength-bar {
+  height:        5px;
+  border-radius: 3px;
+  background:    #e5e7eb;
+  overflow:      hidden;
+  margin-top:    0.4rem;
+}
+
+.password-strength-fill {
+  height:     100%;
+  border-radius: 3px;
+  transition: width 300ms ease, background-color 300ms ease;
+  width:      0%;
+}
+
+/* Niveles: Débil → Regular → Buena → Fuerte */
+.password-strength-fill--debil   { width: 25%; background: #ef4444; }
+.password-strength-fill--regular { width: 50%; background: #f97316; }
+.password-strength-fill--buena   { width: 75%; background: #eab308; }
+.password-strength-fill--fuerte  { width:100%; background: #22c55e; }
+
+.password-strength-label {
+  font-size:   0.72rem;
+  font-weight: 600;
+  margin-top:  0.25rem;
+  display:     block;
+}
+
+.password-strength-label--debil   { color: #ef4444; }
+.password-strength-label--regular { color: #f97316; }
+.password-strength-label--buena   { color: #ca8a04; }
+.password-strength-label--fuerte  { color: #16a34a; }
+
+/* Lista de requisitos */
+.password-requirements {
+  list-style:    none;
+  margin:        0.5rem 0 0;
+  padding:       0;
+  display:       flex;
+  flex-direction: column;
+  gap:           0.2rem;
+}
+
+.password-req {
+  display:     flex;
+  align-items: center;
+  gap:         0.35rem;
+  font-size:   0.75rem;
+  color:       var(--color-text-muted, #6b7280);
+  transition:  color 200ms ease;
+}
+
+.password-req--ok {
+  color: #16a34a;
+}
+
+.password-req__icon {
+  flex-shrink: 0;
+  width:       13px;
+  height:      13px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   PORTAFOLIO — Select de filtro estado (estilo premium sistema)
+   ═══════════════════════════════════════════════════════════════════ */
+
+.portafolio-toolbar select {
+  height:             40px;
+  padding:            0 2.5rem 0 1rem;
+  border:             1px solid #e5e7eb;
+  border-radius:      6px;
+  background:         #fff
+                      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7' viewBox='0 0 12 7'%3E%3Cpolyline points='1 1 6 6 11 1' stroke='%236b7280' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+                      no-repeat right 0.875rem center / 12px 7px;
+  color:              #1f2937;
+  font-size:          0.95rem;
+  font-weight:        500;
+  font-family:        inherit;
+  cursor:             pointer;
+  appearance:         none;
+  -webkit-appearance: none;
+  transition:         border-color 200ms ease,
+                      box-shadow   200ms ease,
+                      background-color 200ms ease;
+}
+
+.portafolio-toolbar select:hover {
+  border-color:     #013B75;
+  background-color: #f9fafb;
+  box-shadow:       0 2px 8px rgba(1, 59, 117, 0.10);
+}
+
+.portafolio-toolbar select:focus {
+  outline:          none;
+  border-color:     #013B75;
+  background-color: #fff;
+  box-shadow:       0 0 0 3px rgba(1, 59, 117, 0.12);
+}

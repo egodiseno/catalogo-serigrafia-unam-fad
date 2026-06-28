@@ -22,12 +22,11 @@
  */
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
-import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import '../../styles/admin.css';
-import LogoutButton from '@/components/admin/LogoutButton';
 import SidebarNav from '@/components/admin/SidebarNav';
-import { User, Menu } from 'lucide-react';
+import SidebarFooterActions from '@/components/admin/SidebarFooterActions';
+import { Menu } from 'lucide-react';
 
 export default async function AdminLayout({ children }) {
   // Pathname inyectado por middleware.js → distingue /admin/login del resto
@@ -123,17 +122,8 @@ export default async function AdminLayout({ children }) {
               </span>
             </div>
 
-            {/* Botones: Mi Perfil y Cerrar Sesión */}
-            <div className="sidebar-footer-actions">
-              <Link
-                href="/admin/mi-perfil"
-                className="btn btn-tertiary btn-block"
-                id="userProfileMobileBtn"
-              >
-                <User size={16} aria-hidden="true" /> Mi Perfil
-              </Link>
-              <LogoutButton />
-            </div>
+            {/* Botones: Mi Perfil y Cerrar Sesión (Client Component — usa usePathname para .active) */}
+            <SidebarFooterActions />
           </div>
         </aside>
 

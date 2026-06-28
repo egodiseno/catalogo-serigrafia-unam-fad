@@ -3,20 +3,19 @@
 /**
  * app/(admin)/admin/mi-perfil/page.jsx
  *
- * Mi Perfil — Client Component.
- * Layout tres columnas (replicando profile.js + layout VanillaJS):
+ * Mi Perfil — Client Component. Layout tres columnas (replicando profile.js VanillaJS):
  *
- *   Col 1 — .column-datos   : avatar, nombre (editable), numero_cuenta (editor),
- *                              email (read-only), rol (badge), miembro desde, estado
- *                              + botón "Guardar cambios" abajo
- *   Col 2 — .column-acciones: "Acciones rápidas" (.quick-actions-container)
- *                              Contenido varía por rol (replicando profile.js)
- *   Col 3 — .column-contrasena: "Cambiar contraseña" (3 campos + botón guardar)
- *
- * MFA: no presente en profile.js VanillaJS → no se muestra en ningún rol.
+ *   Col 1 — .column-datos   : avatar, nombre (TEXTO ESTÁTICO — no editable),
+ *                              numero_cuenta (solo editor), email, rol, miembro desde, estado
+ *   Col 2 — .column-acciones: "Acciones rápidas" por rol
+ *                              editor: Mi Portafolio + Nueva Obra (?nueva=1)
+ *   Col 3 — .column-contrasena: "Cambiar contraseña" con barra de fortaleza
+ *                                y lista de requisitos premium
  *
  * Auth: createClient().auth.getUser() → usuarios_admin lookup (NO useAuth)
  * CSS: únicamente selectores verificados en styles/admin.css
+ *      + .password-strength-bar / .password-strength-fill / .password-requirements
+ *        añadidos a admin.css
  */
 
 import { useEffect, useState } from 'react';
@@ -24,11 +23,11 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import {
-  Save,
   Eye,
   EyeOff,
   KeyRound,
   Check,
+  X,
   LayoutGrid,
   PlusCircle,
   UserPlus,
@@ -68,6 +67,27 @@ function formatFecha(ts) {
   });
 }
 
+/* ─── Password strength ───────────────────────────────────────────── */
+const REQS = [
+  { key: 'length',   label: 'Mínimo 8 caracteres',            test: (p) => p.length >= 8 },
+  { key: 'upper',    label: 'Al menos una mayúscula',          test: (p) => /[A-Z]/.test(p) },
+  { key: 'number',   label: 'Al menos un número',             test: (p) => /[0-9]/.test(p) },
+  { key: 'special',  label: 'Al menos un carácter especial',  test: (p) => /[^A-Za-z0-9]/.test(p) },
+];
+
+function getStrength(password) {
+  if (!password) return 0;
+  return REQS.filter(r => r.test(password)).length;
+}
+
+const STRENGTH_META = {
+  0: null,
+  1: { label: 'Débil',   cls: 'debil'   },
+  2: { label: 'Regular', cls: 'regular' },
+  3: { label: 'Buena',   cls: 'buena'   },
+  4: { label: 'Fuerte',  cls: 'fuerte'  },
+};
+
 /* ─── PasswordField con toggle ────────────────────────────────────── */
 function PasswordField({ id, label, value, onChange, disabled, error, autoComplete }) {
   const [show, setShow] = useState(false);
@@ -91,9 +111,7 @@ function PasswordField({ id, label, value, onChange, disabled, error, autoComple
           aria-label={show ? 'Ocultar contraseña' : 'Mostrar contraseña'}
           tabIndex={-1}
         >
-          {show
-            ? <EyeOff size={16} aria-hidden="true" />
-            : <Eye    size={16} aria-hidden="true" />}
+          {show ? <EyeOff size={16} aria-hidden="true" /> : <Eye size={16} aria-hidden="true" />}
         </button>
       </div>
       {error && <span className="field-error" style={{ display: 'block' }}>{error}</span>}
@@ -101,23 +119,24 @@ function PasswordField({ id, label, value, onChange, disabled, error, autoComple
   );
 }
 
-/* ─── Definición de acciones rápidas por rol (replicando profile.js) ── */
+/* ─── Acciones rápidas por rol (replicando profile.js VanillaJS) ──── */
+// Para editor "Nueva Obra" abre /admin/mi-portafolio?nueva=1
 const QUICK_ACTIONS = {
   admin: [
-    { label: 'Nueva Obra',     Icon: PlusCircle, href: '/admin/obras',     hint: 'Agregar obra al catálogo',   highlight: false },
-    { label: 'Nuevo Usuario',  Icon: UserPlus,   href: '/admin/usuarios',  hint: 'Crear cuenta de usuario',   highlight: false },
-    { label: 'Ver Logs',       Icon: Activity,   href: '/admin/logs',      hint: 'Auditoría del sistema',     highlight: false },
-    { label: 'Gestionar Tags', Icon: Tag,        href: '/admin/tags',      hint: 'Administrar etiquetas',     highlight: false },
+    { label: 'Nueva Obra',     Icon: PlusCircle, href: '/admin/obras',     hint: 'Agregar obra al catálogo' },
+    { label: 'Nuevo Usuario',  Icon: UserPlus,   href: '/admin/usuarios',  hint: 'Crear cuenta de usuario' },
+    { label: 'Ver Logs',       Icon: Activity,   href: '/admin/logs',      hint: 'Auditoría del sistema' },
+    { label: 'Gestionar Tags', Icon: Tag,        href: '/admin/tags',      hint: 'Administrar etiquetas' },
   ],
   super_editor: [
-    { label: 'Nueva Obra',      Icon: PlusCircle, href: '/admin/obras',     hint: 'Agregar obra al catálogo',    highlight: false },
-    { label: 'Nuevo Usuario',   Icon: UserPlus,   href: '/admin/usuarios',  hint: 'Crear cuenta de usuario',    highlight: false },
-    { label: 'Gestionar Tags',  Icon: Tag,        href: '/admin/tags',      hint: 'Administrar etiquetas',      highlight: false },
-    { label: 'Técnicas',        Icon: Brush,      href: '/admin/tecnicas',  hint: 'Administrar técnicas',       highlight: false },
+    { label: 'Nueva Obra',      Icon: PlusCircle, href: '/admin/obras',     hint: 'Agregar obra al catálogo' },
+    { label: 'Nuevo Usuario',   Icon: UserPlus,   href: '/admin/usuarios',  hint: 'Crear cuenta de usuario' },
+    { label: 'Gestionar Tags',  Icon: Tag,        href: '/admin/tags',      hint: 'Administrar etiquetas' },
+    { label: 'Técnicas',        Icon: Brush,      href: '/admin/tecnicas',  hint: 'Administrar técnicas' },
   ],
   editor: [
-    { label: 'Mi Portafolio', Icon: LayoutGrid,  href: '/admin/mi-portafolio', hint: 'Ver mis obras',              highlight: false },
-    { label: 'Nueva Obra',    Icon: PlusCircle,  href: '/admin/mi-portafolio', hint: 'Agregar obra al catálogo',   highlight: true  },
+    { label: 'Mi Portafolio', Icon: LayoutGrid, href: '/admin/mi-portafolio',      hint: 'Ver mis obras',            highlight: false },
+    { label: 'Nueva Obra',    Icon: PlusCircle, href: '/admin/mi-portafolio?nueva=1', hint: 'Agregar obra al catálogo', highlight: true  },
   ],
 };
 
@@ -129,9 +148,8 @@ export default function MiPerfilPage() {
   const client = createClient();
 
   /* ── Auth + perfil ────────────────────────────────────────── */
-  const [authUser,  setAuthUser]  = useState(null);
-  const [perfil,    setPerfil]    = useState(null);
-  const [loading,   setLoading]   = useState(true);
+  const [perfil,  setPerfil]  = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
@@ -145,45 +163,11 @@ export default function MiPerfilPage() {
         .single();
 
       if (!adminRow) { router.replace('/login'); return; }
-
-      setAuthUser(user);
       setPerfil(adminRow);
-      setNombre(adminRow.nombre ?? '');
       setLoading(false);
     })();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  /* ─── Col 1: Datos personales ──────────────────────────────── */
-  const [nombre,     setNombre]     = useState('');
-  const [saving,     setSaving]     = useState(false);
-  const [savedOk,    setSavedOk]    = useState(false);
-  const [errorDatos, setErrorDatos] = useState(null);
-
-  const handleSaveDatos = async () => {
-    if (!perfil) return;
-    const trimmed = nombre.trim();
-    if (trimmed === (perfil.nombre ?? '').trim()) return; // sin cambios reales
-
-    setSaving(true);
-    setErrorDatos(null);
-    setSavedOk(false);
-    try {
-      const { error: err } = await client
-        .from('usuarios_admin')
-        .update({ nombre: trimmed || null })
-        .eq('id', perfil.id);
-
-      if (err) throw err;
-      setPerfil(prev => ({ ...prev, nombre: trimmed || null }));
-      setSavedOk(true);
-      setTimeout(() => setSavedOk(false), 3000);
-    } catch (err) {
-      setErrorDatos(err.message);
-    } finally {
-      setSaving(false);
-    }
-  };
 
   /* ─── Col 3: Cambiar contraseña ────────────────────────────── */
   const [currentPass, setCurrentPass] = useState('');
@@ -193,20 +177,25 @@ export default function MiPerfilPage() {
   const [savingPass,  setSavingPass]  = useState(false);
   const [passMsg,     setPassMsg]     = useState(null);  // { type: 'ok'|'err', text }
 
+  // Strength computed
+  const strength     = getStrength(newPass);
+  const reqsMet      = REQS.map(r => r.test(newPass));
+  const allReqsMet   = reqsMet.every(Boolean);
+  const passwordsMatch = newPass.length > 0 && newPass === confirmPass;
+  const canSubmit    = allReqsMet && passwordsMatch && currentPass.length > 0;
+
   const handleChangePassword = async (e) => {
     e.preventDefault();
     const errs = {};
-    if (!currentPass)            errs.current  = 'Ingresa tu contraseña actual.';
-    if (newPass.length < 8)      errs.new      = 'Mínimo 8 caracteres.';
-    if (newPass === currentPass && newPass) errs.new = 'Debe ser diferente a la contraseña actual.';
-    if (newPass !== confirmPass)  errs.confirm  = 'Las contraseñas no coinciden.';
+    if (!currentPass)   errs.current = 'Ingresa tu contraseña actual.';
+    if (!allReqsMet)    errs.new     = 'La contraseña no cumple todos los requisitos.';
+    if (!passwordsMatch) errs.confirm = 'Las contraseñas no coinciden.';
     if (Object.keys(errs).length) { setPassErrors(errs); return; }
     setPassErrors({});
 
     setSavingPass(true);
     setPassMsg(null);
     try {
-      /* Verificar contraseña actual re-autenticando */
       const { error: signInErr } = await client.auth.signInWithPassword({
         email:    perfil.email,
         password: currentPass,
@@ -217,7 +206,6 @@ export default function MiPerfilPage() {
         return;
       }
 
-      /* Cambiar contraseña */
       const { error: updErr } = await client.auth.updateUser({ password: newPass });
       if (updErr) throw updErr;
 
@@ -241,10 +229,10 @@ export default function MiPerfilPage() {
     );
   }
 
-  const initial         = getInitial(perfil?.nombre, perfil?.email);
-  const hayDatosChange  = nombre.trim() !== (perfil?.nombre ?? '').trim();
-  const esEditor        = perfil?.rol === 'editor';
-  const quickActions    = QUICK_ACTIONS[perfil?.rol] ?? QUICK_ACTIONS.editor;
+  const initial      = getInitial(perfil?.nombre, perfil?.email);
+  const esEditor     = perfil?.rol === 'editor';
+  const quickActions = QUICK_ACTIONS[perfil?.rol] ?? QUICK_ACTIONS.editor;
+  const strengthMeta = STRENGTH_META[strength];
 
   return (
     <div className="page-content">
@@ -257,7 +245,7 @@ export default function MiPerfilPage() {
 
       <div className="profile-grid">
 
-        {/* ══ COL 1 — Datos personales ══════════════════════ */}
+        {/* ══ COL 1 — Datos personales (solo lectura) ═══════ */}
         <div className="profile-column column-datos">
 
           {/* Avatar */}
@@ -266,19 +254,10 @@ export default function MiPerfilPage() {
           </div>
 
           <div className="profile-info">
-            {/* Nombre editable */}
-            <div className="profile-row" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '4px' }}>
+            {/* Nombre — TEXTO ESTÁTICO (no editable) */}
+            <div className="profile-row">
               <span className="profile-label">Nombre</span>
-              <input
-                type="text"
-                className="search-input"
-                style={{ width: '100%' }}
-                value={nombre}
-                onChange={e => setNombre(e.target.value)}
-                disabled={saving}
-                placeholder="Tu nombre completo"
-                aria-label="Nombre completo"
-              />
+              <span>{perfil?.nombre || '—'}</span>
             </div>
 
             {/* Número de cuenta — solo visible para editor */}
@@ -326,31 +305,6 @@ export default function MiPerfilPage() {
               </span>
             </div>
           </div>
-
-          {/* Feedback guardar */}
-          {errorDatos && (
-            <div className="alert alert-error" role="alert" style={{ fontSize: '0.8125rem' }}>
-              {errorDatos}
-            </div>
-          )}
-          {savedOk && (
-            <div style={{ color: 'var(--color-success, #059669)', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-              <Check size={14} aria-hidden="true" /> Cambios guardados
-            </div>
-          )}
-
-          {/* Botón guardar */}
-          <button
-            type="button"
-            className="btn btn-primary"
-            onClick={handleSaveDatos}
-            disabled={saving || !hayDatosChange}
-            style={{ width: '100%', justifyContent: 'center' }}
-          >
-            {saving
-              ? <><div className="spinner spinner--sm" aria-hidden="true" /> Guardando…</>
-              : <><Save size={15} aria-hidden="true" /> Guardar cambios</>}
-          </button>
         </div>
 
         {/* ══ COL 2 — Acciones rápidas ══════════════════════ */}
@@ -377,6 +331,7 @@ export default function MiPerfilPage() {
           <h3 className="column-title">Cambiar contraseña</h3>
 
           <form onSubmit={handleChangePassword} noValidate>
+
             <PasswordField
               id="pass-current"
               label="Contraseña actual"
@@ -387,15 +342,56 @@ export default function MiPerfilPage() {
               autoComplete="current-password"
             />
 
-            <PasswordField
-              id="pass-new"
-              label="Nueva contraseña"
-              value={newPass}
-              onChange={e => setNewPass(e.target.value)}
-              disabled={savingPass}
-              error={passErrors.new}
-              autoComplete="new-password"
-            />
+            {/* Nueva contraseña + barra de fortaleza + requisitos */}
+            <div className="form-group">
+              <label className="form-label" htmlFor="pass-new">
+                Nueva contraseña
+              </label>
+              <div className="password-toggle-wrapper">
+                <PasswordInputInner
+                  id="pass-new"
+                  value={newPass}
+                  onChange={e => setNewPass(e.target.value)}
+                  disabled={savingPass}
+                  error={passErrors.new}
+                />
+              </div>
+
+              {/* Barra de fortaleza */}
+              {newPass.length > 0 && (
+                <>
+                  <div className="password-strength-bar" role="progressbar" aria-valuenow={strength} aria-valuemax={4}>
+                    <div
+                      className={`password-strength-fill${strengthMeta ? ` password-strength-fill--${strengthMeta.cls}` : ''}`}
+                    />
+                  </div>
+                  {strengthMeta && (
+                    <span className={`password-strength-label password-strength-label--${strengthMeta.cls}`}>
+                      {strengthMeta.label}
+                    </span>
+                  )}
+                </>
+              )}
+
+              {passErrors.new && (
+                <span className="field-error" style={{ display: 'block' }}>{passErrors.new}</span>
+              )}
+
+              {/* Lista de requisitos */}
+              <ul className="password-requirements" aria-label="Requisitos de contraseña">
+                {REQS.map((req, i) => (
+                  <li
+                    key={req.key}
+                    className={`password-req${reqsMet[i] ? ' password-req--ok' : ''}`}
+                  >
+                    {reqsMet[i]
+                      ? <Check size={13} className="password-req__icon" aria-hidden="true" />
+                      : <X     size={13} className="password-req__icon" style={{ color: '#ef4444' }} aria-hidden="true" />}
+                    {req.label}
+                  </li>
+                ))}
+              </ul>
+            </div>
 
             <PasswordField
               id="pass-confirm"
@@ -406,6 +402,15 @@ export default function MiPerfilPage() {
               error={passErrors.confirm}
               autoComplete="new-password"
             />
+
+            {/* Indicador de coincidencia */}
+            {confirmPass.length > 0 && (
+              <p style={{ fontSize: '0.75rem', marginTop: '-0.5rem', marginBottom: '0.75rem', color: passwordsMatch ? '#16a34a' : '#ef4444' }}>
+                {passwordsMatch
+                  ? <><Check size={12} aria-hidden="true" /> Las contraseñas coinciden</>
+                  : <><X size={12} aria-hidden="true" /> Las contraseñas no coinciden</>}
+              </p>
+            )}
 
             {passMsg && (
               <div
@@ -421,7 +426,7 @@ export default function MiPerfilPage() {
               <button
                 type="submit"
                 className="btn btn-primary"
-                disabled={savingPass}
+                disabled={savingPass || !canSubmit}
               >
                 {savingPass
                   ? <><div className="spinner spinner--sm" aria-hidden="true" /> Guardando…</>
@@ -433,5 +438,32 @@ export default function MiPerfilPage() {
 
       </div>
     </div>
+  );
+}
+
+/* ─── Input de nueva contraseña con toggle interno ────────────────── */
+function PasswordInputInner({ id, value, onChange, disabled, error }) {
+  const [show, setShow] = useState(false);
+  return (
+    <>
+      <input
+        id={id}
+        type={show ? 'text' : 'password'}
+        className={`search-input${error ? ' input--error' : ''}`}
+        value={value}
+        onChange={onChange}
+        disabled={disabled}
+        autoComplete="new-password"
+      />
+      <button
+        type="button"
+        className="password-toggle-btn"
+        onClick={() => setShow(v => !v)}
+        aria-label={show ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+        tabIndex={-1}
+      >
+        {show ? <EyeOff size={16} aria-hidden="true" /> : <Eye size={16} aria-hidden="true" />}
+      </button>
+    </>
   );
 }

@@ -6,24 +6,27 @@
  * Mi Portafolio — Client Component (acceso: solo rol 'editor').
  * Muestra las obras del usuario autenticado filtradas por editor_id.
  *
- * Acciones por estado (fuente: portafolio.js VanillaJS + instrucción del usuario):
+ * Acciones por estado:
  *   - Publicado    → "Solicitar cambios" (modal de motivo → estado = 'En Revisión')
  *   - Borrador     → "Editar" (ObraForm)
- *   - En Revisión  → sin acción (en espera de revisión del admin)
- *   - Archivado    → sin acción (solo lectura)
+ *   - En Revisión  → texto "En revisión" (sin acción — esperando al admin)
+ *   - Archivado    → "Solo lectura" (sin acción)
  *
  * Columnas: Imagen / Título / Año / Técnica / Tags / Estado / Fecha / Acciones
+ *
+ * ?nueva=1 — al montar, si existe este param, abre ObraForm en modo creación
+ *            y limpia el param de la URL.
  *
  * Auth: createClient().auth.getUser() → usuarios_admin lookup (NO useAuth)
  * CSS: únicamente selectores verificados en styles/admin.css
  */
 
-import { useEffect, useState, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState, useCallback, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { usePermisos } from '@/hooks/usePermisos';
 import ObraForm from '@/components/admin/ObraForm';
-import { Pencil, MessageSquarePlus, Search, RefreshCw, X } from 'lucide-react';
+import { Pencil, MessageSquarePlus, Search, PlusCircle, X } from 'lucide-react';
 
 /* ─── Constantes ──────────────────────────────────────────────────── */
 const OBRA_SELECT =
@@ -60,9 +63,9 @@ function contarPorEstado(obras) {
    MODAL — Solicitar cambios (Publicado → En Revisión)
    ═══════════════════════════════════════════════════════════════════ */
 function SolicitarCambiosModal({ obra, onClose, onSaved }) {
-  const [motivo,  setMotivo]  = useState('');
-  const [saving,  setSaving]  = useState(false);
-  const [error,   setError]   = useState(null);
+  const [motivo, setMotivo] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [error,  setError]  = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -74,10 +77,7 @@ function SolicitarCambiosModal({ obra, onClose, onSaved }) {
       const client = createClient();
       const { error: err } = await client
         .from('obras')
-        .update({
-          estado:            'En Revisión',
-          motivo_reapertura: motivo.trim(),
-        })
+        .update({ estado: 'En Revisión', motivo_reapertura: motivo.trim() })
         .eq('id', obra.id);
 
       if (err) throw err;
@@ -153,10 +153,11 @@ function SolicitarCambiosModal({ obra, onClose, onSaved }) {
 }
 
 /* ═══════════════════════════════════════════════════════════════════
-   COMPONENTE PRINCIPAL
+   COMPONENTE INTERNO (usa useSearchParams — dentro de Suspense)
    ═══════════════════════════════════════════════════════════════════ */
-export default function MiPortafolioPage() {
-  const router = useRouter();
+function MiPortafolioInner() {
+  const router       = useRouter();
+  const searchParams = useSearchParams();
 
   /* ── Auth ─────────────────────────────────────────────── */
   const [currentUser, setCurrentUser] = useState(null);
@@ -225,14 +226,22 @@ export default function MiPortafolioPage() {
   }, [authReady, loadObras, tienePermiso]);
 
   /* ── Modales ──────────────────────────────────────────── */
-  const [editObra,   setEditObra]   = useState(null);   // obra | null
-  const [reapertura, setReapertura] = useState(null);   // obra | null
+  const [editObra,    setEditObra]    = useState(null);   // obra existente | null
+  const [showNewObra, setShowNewObra] = useState(false);  // nueva obra
+  const [reapertura,  setReapertura]  = useState(null);   // solicitar cambios
+
+  /* ── ?nueva=1 — auto-abrir modal de nueva obra ────────── */
+  useEffect(() => {
+    if (authReady && searchParams.get('nueva') === '1') {
+      setShowNewObra(true);
+      router.replace('/admin/mi-portafolio', { scroll: false });
+    }
+  }, [authReady, searchParams, router]);
 
   /* ── Filtro local ─────────────────────────────────────── */
   const obrasFiltradas = obras.filter(o => {
     const matchSearch = !search.trim() ||
-      o.titulo?.toLowerCase().includes(search.toLowerCase()) ||
-      o.artista?.toLowerCase().includes(search.toLowerCase());
+      o.titulo?.toLowerCase().includes(search.toLowerCase());
     const matchEstado = !filtroEstado || o.estado === filtroEstado;
     return matchSearch && matchEstado;
   });
@@ -250,8 +259,11 @@ export default function MiPortafolioPage() {
 
   if (!tienePermiso('portafolio.ver')) return null;
 
+  const obraFormOpen = editObra !== null || showNewObra;
+
   return (
     <div className="page-content">
+      {/* ── Header con botón "+ Nueva Obra" a la derecha ──── */}
       <div className="section-header">
         <div>
           <h2>Mi Portafolio</h2>
@@ -259,14 +271,11 @@ export default function MiPortafolioPage() {
         </div>
         <button
           type="button"
-          className="btn btn-secondary btn-sm"
-          onClick={loadObras}
-          disabled={loading}
-          aria-label="Recargar"
-          title="Recargar"
+          className="btn btn-primary btn-sm"
+          onClick={() => setShowNewObra(true)}
         >
-          <RefreshCw size={14} aria-hidden="true" />
-          Recargar
+          <PlusCircle size={15} aria-hidden="true" />
+          Nueva Obra
         </button>
       </div>
 
@@ -294,37 +303,28 @@ export default function MiPortafolioPage() {
       {error && (
         <div className="alert alert-error" role="alert" style={{ marginBottom: '1rem' }}>
           <strong>Error:</strong> {error}
-          <button
-            type="button"
-            className="btn btn-sm btn-secondary"
-            onClick={loadObras}
-            style={{ marginLeft: '1rem' }}
-          >
-            <RefreshCw size={13} aria-hidden="true" /> Reintentar
-          </button>
         </div>
       )}
 
-      {/* ── Toolbar (búsqueda + filtro estado) ───────────── */}
+      {/* ── Toolbar: búsqueda + filtro estado ────────────── */}
       <div className="portafolio-toolbar">
-        {/* Búsqueda por título/artista */}
-        <div className="portafolio-search search-field">
+        {/* Búsqueda por título */}
+        <div className="search-field portafolio-search">
           <span className="search-field__icon" aria-hidden="true">
-            <Search size={16} />
+            <Search size={15} />
           </span>
           <input
             type="search"
             className="search-field__input"
-            placeholder="Buscar por título o artista…"
+            placeholder="Buscar por título..."
             value={search}
             onChange={e => setSearch(e.target.value)}
-            aria-label="Buscar obras"
+            aria-label="Buscar obras por título"
           />
         </div>
 
-        {/* Filtro por estado */}
+        {/* Filtro por estado — dropdown premium (.portafolio-toolbar select en admin.css) */}
         <select
-          className="sort-select"
           value={filtroEstado}
           onChange={e => setFiltroEstado(e.target.value)}
           aria-label="Filtrar por estado"
@@ -379,7 +379,7 @@ export default function MiPortafolioPage() {
 
                 return (
                   <tr key={obra.id}>
-                    {/* Miniatura */}
+                    {/* Imagen */}
                     <td style={{ width: '64px' }}>
                       {thumb ? (
                         // eslint-disable-next-line @next/next/no-img-element
@@ -396,7 +396,7 @@ export default function MiPortafolioPage() {
                             background: 'var(--color-surface-alt, #F4F7FC)',
                             border: '1px solid var(--color-border)',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontSize: '0.65rem', color: 'var(--color-text-muted)', textAlign: 'center'
+                            fontSize: '0.65rem', color: 'var(--color-text-muted)', textAlign: 'center',
                           }}
                         >
                           Sin imagen
@@ -404,14 +404,9 @@ export default function MiPortafolioPage() {
                       )}
                     </td>
 
-                    {/* Título */}
+                    {/* Título — solo título, sin artista debajo */}
                     <td>
                       <span style={{ fontWeight: 600 }}>{obra.titulo || '—'}</span>
-                      {obra.artista && (
-                        <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
-                          {obra.artista}
-                        </span>
-                      )}
                     </td>
 
                     {/* Año */}
@@ -472,7 +467,7 @@ export default function MiPortafolioPage() {
                           </button>
                         )}
 
-                        {/* En Revisión → sin acción (esperando revisión del admin) */}
+                        {/* En Revisión → texto informativo */}
                         {obra.estado === 'En Revisión' && (
                           <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontStyle: 'italic' }}>
                             En revisión
@@ -495,18 +490,19 @@ export default function MiPortafolioPage() {
         </div>
       )}
 
-      {/* ── ObraForm (Editar Borrador) ─────────────────────── */}
-      {editObra && (
+      {/* ── ObraForm (nueva o editar borrador) ────────────── */}
+      {obraFormOpen && (
         <ObraForm
-          obra={editObra}
-          onClose={() => setEditObra(null)}
-          onSaved={() => { setEditObra(null); loadObras(); }}
+          obra={editObra}   /* null = nueva obra, objeto = editar existente */
+          onClose={() => { setEditObra(null); setShowNewObra(false); }}
+          onSaved={() => { setEditObra(null); setShowNewObra(false); loadObras(); }}
           userRol={currentUser?.rol}
           userEmail={currentUser?.email}
+          userName={currentUser?.nombre}
         />
       )}
 
-      {/* ── Modal Solicitar cambios (Publicado → En Revisión) ─ */}
+      {/* ── Modal Solicitar cambios ────────────────────────── */}
       {reapertura && (
         <SolicitarCambiosModal
           obra={reapertura}
@@ -515,5 +511,16 @@ export default function MiPortafolioPage() {
         />
       )}
     </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   EXPORT — envuelve en Suspense para useSearchParams (Next.js 14)
+   ═══════════════════════════════════════════════════════════════════ */
+export default function MiPortafolioPage() {
+  return (
+    <Suspense fallback={<div className="page-loading"><div className="spinner" aria-label="Cargando…" /></div>}>
+      <MiPortafolioInner />
+    </Suspense>
   );
 }

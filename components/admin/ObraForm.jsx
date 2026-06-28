@@ -59,7 +59,7 @@ export function generateSlug(titulo) {
 }
 
 // ── Componente ────────────────────────────────────────────────────────────────
-export default function ObraForm({ obra = null, onClose, onSaved, userRol, userEmail }) {
+export default function ObraForm({ obra = null, onClose, onSaved, userRol, userEmail, userName }) {
   const client = createClient();
   const imageUploadRef = useRef(null);
 
@@ -70,11 +70,14 @@ export default function ObraForm({ obra = null, onClose, onSaved, userRol, userE
   // Una obra publicada difiere el borrado de imágenes (pendiente_borrado)
   const esPublicada = obra?.estado === 'Publicado' || obra?.visible_publico === true;
 
+  // Para editor: pre-rellenar artista con el nombre completo (no email)
+  const artistaDefault = esEditor
+    ? (obra?.artista ?? userName ?? userEmail ?? '')
+    : (obra?.artista ?? '');
+
   // ── Estado del formulario ──────────────────────────────────────────────────
   const [titulo,      setTitulo]     = useState(obra?.titulo ?? '');
-  const [artista,     setArtista]    = useState(
-    obra?.artista ?? (esEditor ? userEmail ?? '' : '')
-  );
+  const [artista,     setArtista]    = useState(artistaDefault);
   const [ano,         setAno]        = useState(obra?.año != null ? String(obra.año) : '');
   const [tecnicaId,   setTecnicaId]  = useState(obra?.tecnica_id ?? '');
   const [descripcion, setDescripcion] = useState(obra?.descripcion ?? '');
@@ -513,9 +516,9 @@ export default function ObraForm({ obra = null, onClose, onSaved, userRol, userE
                 type="text"
                 value={artista}
                 onChange={(e) => setArtista(e.target.value)}
-                readOnly={esEditor}
+                disabled={esEditor}
                 className={esEditor ? 'field--readonly' : undefined}
-                title={esEditor ? 'El artista se asigna automáticamente' : undefined}
+                title={esEditor ? 'Nombre asignado automáticamente desde tu perfil' : undefined}
               />
             </div>
             <div className="form-group">
