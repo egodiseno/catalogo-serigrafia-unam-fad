@@ -58,8 +58,12 @@ export default function SidebarNav({ rol }) {
     <nav className="sidebar-nav" aria-label="Secciones del admin">
       {NAV_ITEMS.map(({ section, label, href, Icon, roles }) => {
         if (!roles.includes(rol)) return null;
+        // Dashboard: coincidencia exacta '/admin' para no marcar todo como activo.
+        // Resto: pathname.startsWith(href) detecta sub-rutas (/admin/obras/123, etc.).
         const isActive =
-          pathname === href || (section === 'dashboard' && pathname === '/admin');
+          section === 'dashboard'
+            ? pathname === '/admin'
+            : pathname.startsWith(href);
         return (
           <Link
             key={section}

@@ -26,7 +26,7 @@ import { createClient } from '@/lib/supabase/server';
 import '../../styles/admin.css';
 import SidebarNav from '@/components/admin/SidebarNav';
 import SidebarFooterActions from '@/components/admin/SidebarFooterActions';
-import { Menu } from 'lucide-react';
+import AdminHeader from '@/components/admin/AdminHeader';
 
 export default async function AdminLayout({ children }) {
   // Pathname inyectado por middleware.js → distingue /admin/login del resto
@@ -130,35 +130,8 @@ export default async function AdminLayout({ children }) {
         {/* ── Área principal (header + contenido) ─────────────────────────── */}
         <main className="main-content">
 
-          {/* Header superior — sin info de usuario (vive en sidebar-footer) */}
-          <header className="admin-header">
-            {/* Logos mobile/tablet — CSS oculta en desktop (display:none por defecto) */}
-            <div className="header-logos" aria-hidden="true">
-              <img src="/logos/UNAM.svg" alt="UNAM" className="header-logo--unam" />
-              <img src="/logos/FAD.svg"  alt="FAD"  className="header-logo--fad"  />
-            </div>
-
-            {/* Título de la sección */}
-            <div className="header-left">
-              <h1 id="pageTitle">Catálogo de Obra Serigráfica</h1>
-              <p id="pageSubtitle">Panel de administración</p>
-            </div>
-
-            {/* Spacer empuja el hamburger a la derecha */}
-            <div className="header-spacer" aria-hidden="true" />
-
-            {/* Hamburger — CSS lo muestra solo en ≤ 1023px */}
-            <button
-              className="hamburger-btn"
-              id="sidebarToggle"
-              aria-label="Abrir menú"
-              aria-expanded="false"
-              aria-controls="adminSidebar"
-              type="button"
-            >
-              <Menu size={20} aria-hidden="true" />
-            </button>
-          </header>
+          {/* Header superior — Client Component para subtítulo dinámico por ruta */}
+          <AdminHeader />
 
           {/* Área de contenido scrollable */}
           <div className="content-area" id="contenido">
