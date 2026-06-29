@@ -145,31 +145,55 @@ export default async function AdminLayout({ children }) {
           en #adminSidebar y body.sidebar-is-open según CSS de styles/admin.css. */}
       <script dangerouslySetInnerHTML={{ __html: `
         (function () {
-          var btn     = document.getElementById('sidebarToggle');
-          var sidebar = document.getElementById('adminSidebar');
-          var overlay = document.getElementById('sidebarOverlay');
-          if (!btn || !sidebar) return;
+          function init() {
+            var btn     = document.getElementById('sidebarToggle');
+            var sidebar = document.getElementById('adminSidebar');
+            var overlay = document.getElementById('sidebarOverlay');
+            if (!btn || !sidebar) return;
 
-          function openSidebar() {
-            sidebar.classList.add('sidebar--open');
-            document.body.classList.add('sidebar-is-open');
-            btn.setAttribute('aria-expanded', 'true');
-            if (overlay) overlay.style.display = 'block';
-          }
-          function closeSidebar() {
-            sidebar.classList.remove('sidebar--open');
-            document.body.classList.remove('sidebar-is-open');
-            btn.setAttribute('aria-expanded', 'false');
-            if (overlay) overlay.style.display = '';
+            function openSidebar() {
+              sidebar.classList.add('sidebar--open');
+              document.body.classList.add('sidebar-is-open');
+              btn.setAttribute('aria-expanded', 'true');
+              if (overlay) overlay.style.display = 'block';
+            }
+            function closeSidebar() {
+              sidebar.classList.remove('sidebar--open');
+              document.body.classList.remove('sidebar-is-open');
+              btn.setAttribute('aria-expanded', 'false');
+              if (overlay) overlay.style.display = '';
+            }
+
+            btn.addEventListener('click', function () {
+              sidebar.classList.contains('sidebar--open') ? closeSidebar() : openSidebar();
+            });
+            if (overlay) overlay.addEventListener('click', closeSidebar);
+            document.addEventListener('keydown', function (e) {
+              if (e.key === 'Escape') closeSidebar();
+            });
+
+            // Cerrar sidebar en navegación SPA — Next.js App Router usa history.pushState
+            // para soft navigation; no hay evento 'routeChangeComplete' disponible aquí.
+            var origPush    = history.pushState.bind(history);
+            var origReplace = history.replaceState.bind(history);
+            history.pushState = function () {
+              origPush.apply(this, arguments);
+              closeSidebar();
+            };
+            history.replaceState = function () {
+              origReplace.apply(this, arguments);
+              closeSidebar();
+            };
+            window.addEventListener('popstate', closeSidebar);
           }
 
-          btn.addEventListener('click', function () {
-            sidebar.classList.contains('sidebar--open') ? closeSidebar() : openSidebar();
-          });
-          if (overlay) overlay.addEventListener('click', closeSidebar);
-          document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape') closeSidebar();
-          });
+          // Ejecutar cuando el DOM esté listo — seguro si el script corre antes
+          // de DOMContentLoaded (hidratación de React) o después.
+          if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+          } else {
+            init();
+          }
         })();
       `}} />
     </>
