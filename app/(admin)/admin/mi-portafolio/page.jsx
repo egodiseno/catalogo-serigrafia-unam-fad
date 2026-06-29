@@ -26,7 +26,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { usePermisos } from '@/hooks/usePermisos';
 import ObraForm from '@/components/admin/ObraForm';
-import { Pencil, MessageSquarePlus, Search, PlusCircle, X } from 'lucide-react';
+import { Pencil, MessageSquarePlus, Search, Plus, X } from 'lucide-react';
 
 /* ─── Constantes ──────────────────────────────────────────────────── */
 const OBRA_SELECT =
@@ -274,11 +274,10 @@ function MiPortafolioInner() {
         </div>
         <button
           type="button"
-          className="btn btn-primary btn-sm"
+          className="btn btn-primary"
           onClick={() => setShowNewObra(true)}
         >
-          <PlusCircle size={15} aria-hidden="true" />
-          Nueva Obra
+          <Plus size={16} aria-hidden="true" /> Nueva Obra
         </button>
       </div>
 

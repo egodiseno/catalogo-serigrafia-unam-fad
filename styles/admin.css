@@ -285,6 +285,10 @@ a:hover {
   color: var(--color-primary-dark);
   text-decoration: underline;
 }
+.sidebar a:hover,
+.nav-item:hover {
+  text-decoration: none;
+}
 
 small {
   font-size: var(--text-sm);      /* 14px */
@@ -1157,6 +1161,10 @@ a:hover {
   color: var(--color-blue-dark);
   text-decoration: underline;
 }
+.sidebar a:hover,
+.nav-item:hover {
+  text-decoration: none;
+}
 
 /* ============ BUTTONS ============ */
 .btn {
@@ -1477,6 +1485,7 @@ select {
 .nav-item:hover {
   background-color: rgba(255, 255, 255, 0.1);
   color: white;
+  text-decoration: none;
 }
 
 .nav-item.active {
