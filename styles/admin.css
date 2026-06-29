@@ -1093,30 +1093,15 @@ textarea:focus-visible {
 /* MAIN CONTENT */
 .main-content {
   margin-left: 280px;
-  margin-top: 64px;
+  margin-top: 0;
   padding: var(--space-xl);
   background-color: var(--color-bg);
   min-height: calc(100vh - 64px);
   font-family: var(--font-sans);
 }
 
-/* RESPONSIVE */
-/* DEPRECATED: reemplazado por responsive system al final del archivo (2026-06-10) */
+/* ── Tablas como cards en mobile (≤ 768px) ──────────────────────── */
 @media (max-width: 768px) {
-  .sidebar {
-    width: 100%;
-    height: auto;
-    position: relative;
-  }
-  
-  .admin-header {
-    left: 0;
-  }
-  
-  .main-content {
-    margin-left: 0;
-    margin-top: 0;
-  }
 
   /* ── Tablas como cards en mobile ────────────────────────── */
 
@@ -2126,11 +2111,6 @@ table tbody tr:last-child td {
 @media (max-width: 768px) {
   .dashboard-container {
     flex-direction: column;
-  }
-
-  .sidebar {
-    width: 100%;
-    height: auto;
   }
 
   .sidebar-nav {
