@@ -264,13 +264,8 @@ async function handleRequestReset(req: Request): Promise<Response> {
   }
 
   // 5. Construir link de reset
-  const rawSiteUrl = Deno.env.get('SITE_URL')
-    ?? 'https://catalogo-serigrafia-unam-fad.netlify.app/admin/';
-  // Asegurar que apunte a index.html (no a la raíz desnuda)
-  const adminUrl  = rawSiteUrl.endsWith('/')
-    ? `${rawSiteUrl}index.html`
-    : rawSiteUrl;
-  const resetLink = `${adminUrl}?reset_token=${token}`;
+  const siteUrl   = (Deno.env.get('SITE_URL') ?? 'https://catalogo-serigrafia-unam-fad.netlify.app').replace(/\/$/, '');
+  const resetLink = `${siteUrl}/admin/login?reset_token=${token}`;
 
   console.log(`[reset/request] Token generado para ${email}. Link: ${resetLink}`);
 
