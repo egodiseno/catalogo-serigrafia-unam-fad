@@ -983,10 +983,6 @@ textarea:focus-visible {
   background-color: var(--color-primary);
   color: white;
   padding: var(--space-lg);
-  position: fixed;
-  left: 0;
-  top: 0;
-  height: 100vh;
   overflow-y: auto;
   box-shadow: var(--shadow-lg);
   font-family: var(--font-sans);
