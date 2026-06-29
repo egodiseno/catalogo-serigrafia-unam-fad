@@ -1100,10 +1100,13 @@ textarea:focus-visible {
   font-family: var(--font-sans);
 }
 
-/* ── Tablas como cards en mobile (≤ 768px) ──────────────────────── */
-@media (max-width: 768px) {
+/* ── Card grid tablet: oculto por defecto, activo solo en 768-1023px ── */
+.card-grid-tablet {
+  display: none;
+}
 
-  /* ── Tablas como cards en mobile ────────────────────────── */
+/* ── Tablas como cards premium en mobile (≤ 768px) ───────────────── */
+@media (max-width: 768px) {
 
   /* Ocultar thead */
   .obras-table thead,
@@ -1114,21 +1117,22 @@ textarea:focus-visible {
     display: none !important;
   }
 
-  /* Cada <tr> → card */
+  /* Cada <tr> → card premium */
   .obras-table tbody tr,
   .usuarios-table tbody tr,
   .tecnicas-table tbody tr,
   .tags-table tbody tr,
   .portafolio-table tbody tr {
     display: block !important;
-    margin-bottom: var(--spacing-md);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius);
-    padding: var(--spacing-md);
     background: var(--color-surface);
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border: 1px solid var(--color-border);
   }
 
-  /* Cada <td> → fila label + valor */
+  /* Cada <td>: fila label + valor con separador */
   .obras-table tbody td,
   .usuarios-table tbody td,
   .tecnicas-table tbody td,
@@ -1136,13 +1140,23 @@ textarea:focus-visible {
   .portafolio-table tbody td {
     display: flex !important;
     justify-content: space-between;
-    align-items: flex-start;
-    padding: var(--spacing-xs) 0;
+    align-items: center;
+    padding: 0.5rem 0;
     border: none !important;
+    border-bottom: 1px solid var(--color-border) !important;
     gap: var(--spacing-sm);
   }
 
-  /* Pseudo-elemento: encabezado de columna */
+  /* Último td: sin separador */
+  .obras-table tbody td:last-child,
+  .usuarios-table tbody td:last-child,
+  .tecnicas-table tbody td:last-child,
+  .tags-table tbody td:last-child,
+  .portafolio-table tbody td:last-child {
+    border-bottom: none !important;
+  }
+
+  /* Label de columna (::before) */
   .obras-table tbody td::before,
   .usuarios-table tbody td::before,
   .tecnicas-table tbody td::before,
@@ -1150,9 +1164,20 @@ textarea:focus-visible {
   .portafolio-table tbody td::before {
     content: attr(data-label);
     font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
     color: var(--color-text-muted);
     flex-shrink: 0;
-    min-width: 90px;
+  }
+
+  /* Celda de imagen: thumbnail grande a la derecha */
+  .obras-table tbody td.td-thumb img,
+  .portafolio-table tbody td[data-label="Imagen"] img {
+    width: 60px;
+    height: 60px;
+    border-radius: 8px;
+    object-fit: cover;
   }
 
   /* Celda de acciones: botones apilados full-width */
@@ -1162,7 +1187,8 @@ textarea:focus-visible {
   .tags-table tbody td.actions-cell,
   .portafolio-table tbody td.actions-cell {
     flex-direction: column;
-    width: 100%;
+    align-items: stretch;
+    gap: 0.5rem;
   }
 
   .obras-table tbody td.actions-cell .action-buttons,
@@ -1173,7 +1199,7 @@ textarea:focus-visible {
     display: flex !important;
     flex-direction: column;
     width: 100%;
-    gap: var(--spacing-xs);
+    gap: 0.5rem;
   }
 
   .obras-table tbody td.actions-cell .action-buttons .btn,
@@ -1181,16 +1207,17 @@ textarea:focus-visible {
   .tecnicas-table tbody td.actions-cell .action-buttons .btn,
   .tags-table tbody td.actions-cell .action-buttons .btn,
   .portafolio-table tbody td.actions-cell .action-buttons .btn {
+    min-height: 44px;
     width: 100% !important;
     justify-content: center;
   }
 
-  /* Checkbox (usuarios): ocultar en cards */
+  /* Checkbox (usuarios): ocultar */
   .usuarios-table tbody td.td-checkbox {
     display: none !important;
   }
 
-  /* empty-state: bloque centrado sin label */
+  /* Estado vacío: centrado sin label */
   .obras-table tbody td.empty-state,
   .usuarios-table tbody td.empty-state,
   .tecnicas-table tbody td.empty-state,
@@ -1199,6 +1226,7 @@ textarea:focus-visible {
     display: block !important;
     text-align: center;
     padding: var(--spacing-xl);
+    border-bottom: none !important;
   }
 
   .obras-table tbody td.empty-state::before,
@@ -4263,6 +4291,79 @@ input[type="file"]:hover {
     max-height:    90vh !important;
     border-radius: var(--radius, 8px) !important;
     margin:        auto !important;
+  }
+
+  /* CARD GRID TABLET: activar 3 columnas */
+  .card-grid-tablet {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  /* Tarjeta individual dentro del grid tablet */
+  .obra-card-tablet {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: box-shadow 0.2s ease;
+  }
+
+  .obra-card-tablet:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  }
+
+  .obra-card-tablet__img {
+    width: 100%;
+    height: 140px;
+    object-fit: cover;
+    display: block;
+  }
+
+  .obra-card-tablet__no-img {
+    width: 100%;
+    height: 140px;
+    background: var(--color-surface-alt, #F4F7FC);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text-muted);
+    font-size: 0.875rem;
+  }
+
+  .obra-card-tablet__info {
+    padding: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    flex: 1;
+  }
+
+  .obra-card-tablet__title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--color-text);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin-top: 0.25rem;
+  }
+
+  .obra-card-tablet__artist,
+  .obra-card-tablet__year {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+  }
+
+  .obra-card-tablet__btn {
+    margin: 0 0.75rem 0.75rem;
+    width: calc(100% - 1.5rem);
+    justify-content: center;
   }
 }
 

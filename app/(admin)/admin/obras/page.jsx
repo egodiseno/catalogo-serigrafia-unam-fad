@@ -251,6 +251,39 @@ export default function ObrasPage() {
         </select>
       </div>
 
+      {/* ── Card grid tablet (768-1023px) ── */}
+      {!loading && !loadError && obras.length > 0 && (
+        <div className="card-grid-tablet">
+          {obras.map((obra) => {
+            const imgUrl =
+              obra.imagenes?.find((i) => i.principal)?.url_storage ??
+              obra.imagenes?.[0]?.url_storage;
+            return (
+              <div key={obra.id} className="obra-card-tablet">
+                {imgUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={imgUrl} alt={obra.titulo ?? ''} className="obra-card-tablet__img" />
+                ) : (
+                  <div className="obra-card-tablet__no-img">Sin imagen</div>
+                )}
+                <div className="obra-card-tablet__info">
+                  <span className={`badge ${BADGE_CLS[obra.estado] || 'badge-borrador'}`}>{obra.estado}</span>
+                  <strong className="obra-card-tablet__title">{obra.titulo || '—'}</strong>
+                  <span className="obra-card-tablet__artist">{obra.artista || '—'}</span>
+                </div>
+                <button
+                  type="button"
+                  className="btn btn-sm btn-secondary obra-card-tablet__btn"
+                  onClick={() => setFormObra(obra)}
+                >
+                  <Pencil size={13} aria-hidden="true" /> Editar
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
       {/* Tabla */}
       <div className="table-wrapper">
         <table className="obras-table" aria-label="Tabla de obras">

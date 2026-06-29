@@ -340,6 +340,42 @@ function MiPortafolioInner() {
         </select>
       </div>
 
+      {/* ── Card grid tablet (768-1023px) ── */}
+      {!loading && obrasFiltradas.length > 0 && (
+        <div className="card-grid-tablet">
+          {obrasFiltradas.map(obra => {
+            const thumb =
+              obra.imagenes?.find(i => i.principal && !i.pendiente_borrado)?.url_storage ??
+              obra.imagenes?.find(i => !i.pendiente_borrado)?.url_storage ??
+              null;
+            return (
+              <div key={obra.id} className="obra-card-tablet">
+                {thumb ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={thumb} alt={obra.titulo ?? 'Obra'} className="obra-card-tablet__img" />
+                ) : (
+                  <div className="obra-card-tablet__no-img">Sin imagen</div>
+                )}
+                <div className="obra-card-tablet__info">
+                  <span className={`badge ${estadoBadgeClass(obra.estado)}`}>{obra.estado ?? '—'}</span>
+                  <strong className="obra-card-tablet__title">{obra.titulo || '—'}</strong>
+                  <span className="obra-card-tablet__year">{obra.año ?? '—'}</span>
+                </div>
+                {obra.estado === 'Borrador' && (
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-secondary obra-card-tablet__btn"
+                    onClick={() => setEditObra(obra)}
+                  >
+                    <Pencil size={13} aria-hidden="true" /> Editar
+                  </button>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
       {/* ── Tabla ─────────────────────────────────────────── */}
       {loading ? (
         <div className="page-loading" style={{ minHeight: '200px' }}>
