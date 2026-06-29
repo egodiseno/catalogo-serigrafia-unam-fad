@@ -7,6 +7,8 @@
  *   A. Login normal → signInWithPassword → checkMFARequired (AAL level)
  *   B. MFA Verificar → usuario con TOTP enrollado → ingresa código → dashboard
  *   C. MFA Enroll   → usuario sin factor TOTP → QR + código → dashboard
+ *   D. Forgot       → ingresa email → Edge Function envía email con link
+ *   E. Reset        → llega con ?reset_token= → ingresa nueva contraseña
  *
  * Clases: solo selectores reales de styles/admin.css
  *   .login-container, .login-box, .login-header, .login-logos,
@@ -15,16 +17,20 @@
  * Mensajes de error: traducción exacta de translateAuthError / translateMFAError en auth.js
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { Eye, EyeOff, ShieldCheck, ShieldPlus, LogIn, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff, ShieldCheck, ShieldPlus, LogIn, AlertCircle, KeyRound, LockKeyhole } from 'lucide-react';
 
 // ── Testing bypass ────────────────────────────────────────────────────────────
 // Cuando NEXT_PUBLIC_SKIP_MFA=true en .env.local, el paso de MFA se omite.
 // NUNCA configurar esta variable en Netlify ni en ningún entorno de producción.
 // Para activar: agregar NEXT_PUBLIC_SKIP_MFA=true a .env.local y reiniciar el servidor.
 const SKIP_MFA = process.env.NEXT_PUBLIC_SKIP_MFA === 'true';
+
+// ── Supabase Edge Function base URL ──────────────────────────────────────────
+const FUNCTIONS_URL = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1`;
+const ANON_KEY      = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 // ── Errores en español (translateAuthError de auth.js) ──────────────────────
 const AUTH_ERRORS = {
@@ -61,13 +67,38 @@ export default function AdminLoginPage() {
   const [loading,     setLoading]     = useState(false);
   const [error,       setError]       = useState('');
 
-  // ── Estado MFA Verificar ─────────────────────────────────────────────────
-  const [mfaStep,     setMfaStep]     = useState(null); // null | 'verify' | 'enroll'
+  // ── Estado MFA ───────────────────────────────────────────────────────────
+  const [mfaStep,     setMfaStep]     = useState(null); // null | 'verify' | 'enroll' | 'forgot' | 'reset'
   const [mfaCode,     setMfaCode]     = useState('');
   const [mfaError,    setMfaError]    = useState('');
   const [mfaFactorId, setMfaFactorId] = useState(null);
   const [mfaQR,       setMfaQR]       = useState('');
   const [mfaSecret,   setMfaSecret]   = useState('');
+
+  // ── Estado recuperación de contraseña (Paso A — forgot) ─────────────────
+  const [forgotEmail,   setForgotEmail]   = useState('');
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotSuccess, setForgotSuccess] = useState(false);
+  const [forgotError,   setForgotError]   = useState('');
+
+  // ── Estado nueva contraseña (Paso B — reset) ─────────────────────────────
+  const [resetToken,           setResetToken]           = useState('');
+  const [resetNewPassword,     setResetNewPassword]     = useState('');
+  const [resetConfirmPassword, setResetConfirmPassword] = useState('');
+  const [resetLoading,         setResetLoading]         = useState(false);
+  const [resetError,           setResetError]           = useState('');
+  const [resetSuccess,         setResetSuccess]         = useState(false);
+  const [showResetPass,        setShowResetPass]        = useState(false);
+
+  // ── Detectar ?reset_token= en la URL al montar ───────────────────────────
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token  = params.get('reset_token');
+    if (token) {
+      setResetToken(token);
+      setMfaStep('reset');
+    }
+  }, []);
 
   // ── Verificar si el usuario existe y está activo en usuarios_admin ───────
   async function verificarUsuarioAdmin() {
@@ -86,31 +117,21 @@ export default function AdminLoginPage() {
   }
 
   // ── checkMFARequired (replica checkMFARequired de auth.js) ──────────────
-  // Retorna: 'none' | 'verify' | 'enroll'
   async function checkMFARequired() {
-    // Comprobar nivel AAL actual
     const { data: aalData, error: aalError } =
       await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
 
-    if (!aalError && aalData?.currentLevel === 'aal2') {
-      // Ya está en AAL2 — sesión MFA activa, ir directo al dashboard
-      return 'none';
-    }
+    if (!aalError && aalData?.currentLevel === 'aal2') return 'none';
 
-    // AAL1 — necesita completar MFA
     const { data: factorsData, error: factorsError } =
       await supabase.auth.mfa.listFactors();
 
-    if (factorsError) {
-      throw new Error('Error al verificar MFA. Intenta de nuevo.');
-    }
+    if (factorsError) throw new Error('Error al verificar MFA. Intenta de nuevo.');
 
     const totpFactors = factorsData?.totp ?? [];
     if (totpFactors.length > 0) {
-      // Factor TOTP ya registrado → pedir código
       return { action: 'verify', factorId: totpFactors[0].id };
     } else {
-      // Sin factor → enroll obligatorio
       return { action: 'enroll' };
     }
   }
@@ -122,9 +143,7 @@ export default function AdminLoginPage() {
       issuer:       'Catálogo Serigráfica UNAM',
       friendlyName: 'Admin Panel',
     });
-
     if (enrollError) throw enrollError;
-
     setMfaFactorId(data.id);
     setMfaQR(data.totp.qr_code);
     setMfaSecret(data.totp.secret);
@@ -138,7 +157,7 @@ export default function AdminLoginPage() {
     setLoading(true);
 
     try {
-      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+      const { error: signInError } = await supabase.auth.signInWithPassword({
         email:    email.trim(),
         password,
       });
@@ -148,10 +167,8 @@ export default function AdminLoginPage() {
         return;
       }
 
-      // Login exitoso — verificar requisito MFA
-      // TESTING: si NEXT_PUBLIC_SKIP_MFA=true en .env.local, saltar todo el flujo MFA.
+      // TESTING: MFA desactivado globalmente.
       if (SKIP_MFA) {
-        console.warn('[login] ⚠️ SKIP_MFA activo — MFA desactivado para testing local.');
         const ok = await verificarUsuarioAdmin();
         if (ok) router.push('/admin');
         return;
@@ -167,7 +184,6 @@ export default function AdminLoginPage() {
       }
 
       if (mfaResult === 'none' || mfaResult?.action === undefined) {
-        // No hay MFA o ya está en AAL2 — verificar usuarios_admin
         const ok = await verificarUsuarioAdmin();
         if (ok) router.push('/admin');
         return;
@@ -191,7 +207,6 @@ export default function AdminLoginPage() {
 
     } catch (err) {
       setError('Error de conexión. Verifica tu red.');
-      console.error('[login] error:', err);
     } finally {
       setLoading(false);
     }
@@ -220,13 +235,11 @@ export default function AdminLoginPage() {
         return;
       }
 
-      // ✅ MFA verificado — verificar usuarios_admin
       const ok = await verificarUsuarioAdmin();
       if (ok) router.push('/admin');
 
     } catch (err) {
       setMfaError('Error de conexión. Intenta de nuevo.');
-      console.error('[MFA verify] error:', err);
     } finally {
       setLoading(false);
     }
@@ -255,26 +268,20 @@ export default function AdminLoginPage() {
         return;
       }
 
-      // ✅ MFA enrollado y verificado — verificar usuarios_admin
       const ok = await verificarUsuarioAdmin();
       if (ok) router.push('/admin');
 
     } catch (err) {
       setMfaError('Error de conexión. Intenta de nuevo.');
-      console.error('[MFA enroll verify] error:', err);
     } finally {
       setLoading(false);
     }
   }
 
-  // ── Cancelar MFA (signOut + volver al login) ─────────────────────────────
+  // ── Cancelar MFA ─────────────────────────────────────────────────────────
   async function handleMFACancel() {
     if (mfaStep === 'enroll' && mfaFactorId) {
-      try {
-        await supabase.auth.mfa.unenroll({ factorId: mfaFactorId });
-      } catch (unenrollErr) {
-        console.warn('[MFA] unenroll on cancel:', unenrollErr);
-      }
+      try { await supabase.auth.mfa.unenroll({ factorId: mfaFactorId }); } catch {}
     }
     setMfaStep(null);
     setMfaCode('');
@@ -285,6 +292,82 @@ export default function AdminLoginPage() {
     await supabase.auth.signOut();
   }
 
+  // ── FORGOT PASSWORD (Paso A) ──────────────────────────────────────────────
+  async function handleForgotPassword(e) {
+    e.preventDefault();
+    setForgotError('');
+    if (!forgotEmail.trim()) {
+      setForgotError('Ingresa tu correo electrónico.');
+      return;
+    }
+    setForgotLoading(true);
+    try {
+      const res = await fetch(`${FUNCTIONS_URL}/reset-user-password`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json', 'apikey': ANON_KEY },
+        body:    JSON.stringify({ email: forgotEmail.trim().toLowerCase() }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setForgotError(data.error || 'No se pudo enviar el email. Intenta de nuevo.');
+        return;
+      }
+      setForgotSuccess(true);
+    } catch {
+      setForgotError('Error de conexión. Verifica tu red.');
+    } finally {
+      setForgotLoading(false);
+    }
+  }
+
+  // ── RESET PASSWORD (Paso B) ───────────────────────────────────────────────
+  async function handleResetPassword(e) {
+    e.preventDefault();
+    setResetError('');
+
+    if (resetNewPassword.length < 8) {
+      setResetError('La contraseña debe tener al menos 8 caracteres.');
+      return;
+    }
+    if (resetNewPassword !== resetConfirmPassword) {
+      setResetError('Las contraseñas no coinciden.');
+      return;
+    }
+
+    setResetLoading(true);
+    try {
+      const res = await fetch(`${FUNCTIONS_URL}/reset-user-password/confirm`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json', 'apikey': ANON_KEY },
+        body:    JSON.stringify({ token: resetToken, new_password: resetNewPassword }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setResetError(data.error || 'El enlace es inválido o ha expirado. Solicita uno nuevo.');
+        return;
+      }
+      setResetSuccess(true);
+    } catch {
+      setResetError('Error de conexión. Verifica tu red.');
+    } finally {
+      setResetLoading(false);
+    }
+  }
+
+  // ── Helpers de estilo reutilizables ──────────────────────────────────────
+  const alertStyle = {
+    display: 'flex', alignItems: 'center', gap: 8,
+    background: '#FEF2F2', border: '1px solid #FECACA',
+    borderRadius: 8, padding: '10px 14px',
+    color: 'var(--color-error)', fontSize: 14, marginBottom: 16,
+  };
+  const successAlertStyle = {
+    display: 'flex', alignItems: 'flex-start', gap: 8,
+    background: '#F0FDF4', border: '1px solid #BBF7D0',
+    borderRadius: 8, padding: '12px 14px',
+    color: '#166534', fontSize: 14, marginBottom: 16,
+  };
+
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className="login-container">
@@ -293,40 +376,20 @@ export default function AdminLoginPage() {
         {/* Logos */}
         <div className="login-header">
           <div className="login-logos">
-            <img
-              src="/logos/UNAM.svg"
-              alt="UNAM"
-              className="login-logo--unam"
-              width="50"
-              height="35"
-            />
+            <img src="/logos/UNAM.svg" alt="UNAM" className="login-logo--unam" width="50" height="35" />
             <div className="login-logos-sep" aria-hidden="true" />
-            <img
-              src="/logos/FAD.svg"
-              alt="FAD"
-              className="login-logo--fad"
-              width="64"
-              height="35"
-            />
+            <img src="/logos/FAD.svg"  alt="FAD"  className="login-logo--fad"  width="64" height="35" />
           </div>
           <h1>Catálogo Serigráfica</h1>
           <p>Panel de administración UNAM / FAD</p>
         </div>
 
-        {/* ── Pantalla 1: Formulario de Login ───────────────────────────── */}
+        {/* ── Pantalla 1: Login ─────────────────────────────────────────── */}
         {mfaStep === null && (
           <form className="login-form" onSubmit={handleLogin} noValidate>
 
             {error && (
-              <div
-                role="alert"
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 8,
-                  background: '#FEF2F2', border: '1px solid #FECACA',
-                  borderRadius: 8, padding: '10px 14px',
-                  color: 'var(--color-error)', fontSize: 14, marginBottom: 16,
-                }}
-              >
+              <div role="alert" style={alertStyle}>
                 <AlertCircle size={16} aria-hidden="true" />
                 {error}
               </div>
@@ -385,45 +448,35 @@ export default function AdminLoginPage() {
               disabled={loading}
               style={{ width: '100%', justifyContent: 'center', gap: 8 }}
             >
-              {loading ? (
-                'Ingresando…'
-              ) : (
-                <>
-                  <LogIn size={16} aria-hidden="true" />
-                  Ingresar
-                </>
-              )}
+              {loading ? 'Ingresando…' : <><LogIn size={16} aria-hidden="true" /> Ingresar</>}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => { setForgotEmail(email); setMfaStep('forgot'); }}
+              style={{
+                display: 'block', width: '100%', marginTop: 12,
+                background: 'none', border: 'none', cursor: 'pointer',
+                color: 'var(--color-text-muted)', fontSize: 13, textAlign: 'center',
+              }}
+            >
+              ¿Olvidaste tu contraseña?
             </button>
           </form>
         )}
 
-        {/* ── Pantalla 2: MFA Verificar (factor ya enrollado) ───────────── */}
+        {/* ── Pantalla 2: MFA Verificar ─────────────────────────────────── */}
         {mfaStep === 'verify' && (
           <form className="login-form" onSubmit={handleMFAVerify} noValidate>
             <div style={{ textAlign: 'center', marginBottom: 20 }}>
               <ShieldCheck size={40} style={{ color: 'var(--color-primary)' }} aria-hidden="true" />
-              <h2 style={{ marginTop: 10, fontSize: 18, fontWeight: 600 }}>
-                Verificación en dos pasos
-              </h2>
+              <h2 style={{ marginTop: 10, fontSize: 18, fontWeight: 600 }}>Verificación en dos pasos</h2>
               <p style={{ color: 'var(--color-text-muted)', fontSize: 14, marginTop: 6 }}>
                 Ingresa el código de 6 dígitos de tu app autenticadora.
               </p>
             </div>
 
-            {mfaError && (
-              <div
-                role="alert"
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 8,
-                  background: '#FEF2F2', border: '1px solid #FECACA',
-                  borderRadius: 8, padding: '10px 14px',
-                  color: 'var(--color-error)', fontSize: 14, marginBottom: 16,
-                }}
-              >
-                <AlertCircle size={16} aria-hidden="true" />
-                {mfaError}
-              </div>
-            )}
+            {mfaError && <div role="alert" style={alertStyle}><AlertCircle size={16} aria-hidden="true" />{mfaError}</div>}
 
             <div className="form-group">
               <label htmlFor="mfaCodeInput" className="form-label">Código de verificación</label>
@@ -446,35 +499,20 @@ export default function AdminLoginPage() {
             </div>
 
             <div style={{ display: 'flex', gap: 10 }}>
-              <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={handleMFACancel}
-                disabled={loading}
-                style={{ flex: 1 }}
-              >
-                Cancelar
-              </button>
-              <button
-                type="submit"
-                className="btn btn-primary"
-                disabled={loading}
-                style={{ flex: 2, justifyContent: 'center' }}
-              >
+              <button type="button" className="btn btn-secondary" onClick={handleMFACancel} disabled={loading} style={{ flex: 1 }}>Cancelar</button>
+              <button type="submit" className="btn btn-primary" disabled={loading} style={{ flex: 2, justifyContent: 'center' }}>
                 {loading ? 'Verificando…' : 'Verificar'}
               </button>
             </div>
           </form>
         )}
 
-        {/* ── Pantalla 3: MFA Enroll (primera vez) ─────────────────────── */}
+        {/* ── Pantalla 3: MFA Enroll ────────────────────────────────────── */}
         {mfaStep === 'enroll' && (
           <form className="login-form" onSubmit={handleMFAEnroll} noValidate>
             <div style={{ textAlign: 'center', marginBottom: 16 }}>
               <ShieldPlus size={40} style={{ color: 'var(--color-primary)' }} aria-hidden="true" />
-              <h2 style={{ marginTop: 10, fontSize: 18, fontWeight: 600 }}>
-                Configurar verificación en dos pasos
-              </h2>
+              <h2 style={{ marginTop: 10, fontSize: 18, fontWeight: 600 }}>Configurar verificación en dos pasos</h2>
               <p style={{ color: 'var(--color-text-muted)', fontSize: 14, marginTop: 6 }}>
                 Escanea el código QR con Google Authenticator, Authy o similar.
               </p>
@@ -495,25 +533,10 @@ export default function AdminLoginPage() {
               </div>
             )}
 
-            {mfaError && (
-              <div
-                role="alert"
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 8,
-                  background: '#FEF2F2', border: '1px solid #FECACA',
-                  borderRadius: 8, padding: '10px 14px',
-                  color: 'var(--color-error)', fontSize: 14, marginBottom: 16,
-                }}
-              >
-                <AlertCircle size={16} aria-hidden="true" />
-                {mfaError}
-              </div>
-            )}
+            {mfaError && <div role="alert" style={alertStyle}><AlertCircle size={16} aria-hidden="true" />{mfaError}</div>}
 
             <div className="form-group">
-              <label htmlFor="mfaEnrollCodeInput" className="form-label">
-                Código de la app autenticadora
-              </label>
+              <label htmlFor="mfaEnrollCodeInput" className="form-label">Código de la app autenticadora</label>
               <input
                 id="mfaEnrollCodeInput"
                 type="text"
@@ -533,25 +556,197 @@ export default function AdminLoginPage() {
             </div>
 
             <div style={{ display: 'flex', gap: 10 }}>
-              <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={handleMFACancel}
-                disabled={loading}
-                style={{ flex: 1 }}
-              >
-                Cancelar
-              </button>
-              <button
-                type="submit"
-                className="btn btn-primary"
-                disabled={loading}
-                style={{ flex: 2, justifyContent: 'center' }}
-              >
+              <button type="button" className="btn btn-secondary" onClick={handleMFACancel} disabled={loading} style={{ flex: 1 }}>Cancelar</button>
+              <button type="submit" className="btn btn-primary" disabled={loading} style={{ flex: 2, justifyContent: 'center' }}>
                 {loading ? 'Activando…' : 'Activar y continuar'}
               </button>
             </div>
           </form>
+        )}
+
+        {/* ── Pantalla 4: Forgot password ───────────────────────────────── */}
+        {mfaStep === 'forgot' && (
+          <div className="login-form">
+            <div style={{ textAlign: 'center', marginBottom: 20 }}>
+              <KeyRound size={40} style={{ color: 'var(--color-primary)' }} aria-hidden="true" />
+              <h2 style={{ marginTop: 10, fontSize: 18, fontWeight: 600 }}>Recuperar contraseña</h2>
+              <p style={{ color: 'var(--color-text-muted)', fontSize: 14, marginTop: 6 }}>
+                Ingresa tu email y te enviaremos un enlace para crear una nueva contraseña.
+              </p>
+            </div>
+
+            {forgotSuccess ? (
+              <>
+                <div style={successAlertStyle}>
+                  <span>✓</span>
+                  <span>
+                    Email enviado a <strong>{forgotEmail}</strong>. Revisa tu bandeja de entrada
+                    (y la carpeta de spam) y haz clic en el enlace para crear tu nueva contraseña.
+                    El enlace expira en 30 minutos.
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => { setMfaStep(null); setForgotSuccess(false); setForgotError(''); setForgotEmail(''); }}
+                  style={{ width: '100%', justifyContent: 'center' }}
+                >
+                  Volver al inicio de sesión
+                </button>
+              </>
+            ) : (
+              <form onSubmit={handleForgotPassword} noValidate>
+                {forgotError && (
+                  <div role="alert" style={alertStyle}>
+                    <AlertCircle size={16} aria-hidden="true" />
+                    {forgotError}
+                  </div>
+                )}
+
+                <div className="form-group">
+                  <label htmlFor="forgotEmailInput" className="form-label">Correo electrónico</label>
+                  <input
+                    id="forgotEmailInput"
+                    type="email"
+                    className="form-input"
+                    value={forgotEmail}
+                    onChange={e => setForgotEmail(e.target.value)}
+                    autoComplete="email"
+                    placeholder="admin@ejemplo.com"
+                    required
+                    autoFocus
+                    disabled={forgotLoading}
+                  />
+                </div>
+
+                <div style={{ display: 'flex', gap: 10 }}>
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => { setMfaStep(null); setForgotError(''); }}
+                    disabled={forgotLoading}
+                    style={{ flex: 1 }}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    className="btn btn-primary"
+                    disabled={forgotLoading}
+                    style={{ flex: 2, justifyContent: 'center' }}
+                  >
+                    {forgotLoading ? 'Enviando…' : 'Enviar instrucciones'}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        )}
+
+        {/* ── Pantalla 5: Reset password ────────────────────────────────── */}
+        {mfaStep === 'reset' && (
+          <div className="login-form">
+            <div style={{ textAlign: 'center', marginBottom: 20 }}>
+              <LockKeyhole size={40} style={{ color: 'var(--color-primary)' }} aria-hidden="true" />
+              <h2 style={{ marginTop: 10, fontSize: 18, fontWeight: 600 }}>Nueva contraseña</h2>
+              <p style={{ color: 'var(--color-text-muted)', fontSize: 14, marginTop: 6 }}>
+                Elige una contraseña segura de al menos 8 caracteres.
+              </p>
+            </div>
+
+            {resetSuccess ? (
+              <>
+                <div style={successAlertStyle}>
+                  <span>✓</span>
+                  <span>Contraseña actualizada correctamente. Ya puedes iniciar sesión con tu nueva contraseña.</span>
+                </div>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={() => {
+                    window.history.replaceState({}, '', window.location.pathname);
+                    setMfaStep(null);
+                    setResetToken('');
+                    setResetNewPassword('');
+                    setResetConfirmPassword('');
+                    setResetSuccess(false);
+                  }}
+                  style={{ width: '100%', justifyContent: 'center' }}
+                >
+                  Ir al inicio de sesión
+                </button>
+              </>
+            ) : (
+              <form onSubmit={handleResetPassword} noValidate>
+                {resetError && (
+                  <div role="alert" style={alertStyle}>
+                    <AlertCircle size={16} aria-hidden="true" />
+                    {resetError}
+                  </div>
+                )}
+
+                <div className="form-group">
+                  <label htmlFor="resetNewPass" className="form-label">Nueva contraseña</label>
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      id="resetNewPass"
+                      type={showResetPass ? 'text' : 'password'}
+                      className="form-input"
+                      value={resetNewPassword}
+                      onChange={e => setResetNewPassword(e.target.value)}
+                      autoComplete="new-password"
+                      placeholder="Mínimo 8 caracteres"
+                      required
+                      autoFocus
+                      disabled={resetLoading}
+                      style={{ paddingRight: 42 }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowResetPass(v => !v)}
+                      aria-label={showResetPass ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                      style={{
+                        position: 'absolute', right: 10, top: '50%',
+                        transform: 'translateY(-50%)',
+                        background: 'none', border: 'none',
+                        cursor: 'pointer', color: 'var(--color-text-muted)',
+                        display: 'flex', padding: 4,
+                      }}
+                    >
+                      {showResetPass ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="resetConfirmPass" className="form-label">Confirmar contraseña</label>
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      id="resetConfirmPass"
+                      type={showResetPass ? 'text' : 'password'}
+                      className="form-input"
+                      value={resetConfirmPassword}
+                      onChange={e => setResetConfirmPassword(e.target.value)}
+                      autoComplete="new-password"
+                      placeholder="Repite la contraseña"
+                      required
+                      disabled={resetLoading}
+                      style={{ paddingRight: 42 }}
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  disabled={resetLoading}
+                  style={{ width: '100%', justifyContent: 'center' }}
+                >
+                  {resetLoading ? 'Guardando…' : 'Guardar contraseña'}
+                </button>
+              </form>
+            )}
+          </div>
         )}
 
         {/* Footer */}
