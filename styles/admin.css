@@ -4246,6 +4246,46 @@ input[type="file"]:hover {
   }
 }
 
+/* ── TABLET ESPECÍFICO (768px – 1023px) — refinements sobre la capa ≤1023px ── */
+@media (min-width: 768px) and (max-width: 1023px) {
+
+  /* STATS GRID: 3 columnas en tablet (≤1023px pone 2, desktop pone 4) */
+  .stats-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+
+  /* FORM ROW: 2 columnas (≤1023px fuerza 1fr con !important, se anula aquí) */
+  .form-row {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  /* CONTENT AREA: padding intermedio entre mobile (0.75rem) y desktop */
+  .content-area {
+    padding: 1.5rem !important;
+  }
+
+  /* SECTION HEADER: fila horizontal (≤1023px colapsa a columna) */
+  .section-header {
+    flex-direction: row !important;
+    align-items:    center !important;
+  }
+
+  /* MODAL: centrado vertical en tablet (≤1023px lo envía al fondo) */
+  .modal-overlay {
+    align-items: center !important;
+    padding:     var(--spacing-lg, 1.25rem) !important;
+  }
+
+  .modal-dialog,
+  .modal {
+    max-width:     600px !important;
+    width:         90% !important;
+    max-height:    90vh !important;
+    border-radius: var(--radius, 8px) !important;
+    margin:        auto !important;
+  }
+}
+
 /* ── DESKTOP (≥ 1024px) — restaurar comportamiento base ───────── */
 @media (min-width: 1024px) {
 
