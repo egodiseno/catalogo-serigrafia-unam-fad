@@ -1117,6 +1117,112 @@ textarea:focus-visible {
     margin-left: 0;
     margin-top: 0;
   }
+
+  /* ── Tablas como cards en mobile ────────────────────────── */
+
+  /* Ocultar thead */
+  .obras-table thead,
+  .usuarios-table thead,
+  .tecnicas-table thead,
+  .tags-table thead,
+  .portafolio-table thead {
+    display: none !important;
+  }
+
+  /* Cada <tr> → card */
+  .obras-table tbody tr,
+  .usuarios-table tbody tr,
+  .tecnicas-table tbody tr,
+  .tags-table tbody tr,
+  .portafolio-table tbody tr {
+    display: block !important;
+    margin-bottom: var(--spacing-md);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    padding: var(--spacing-md);
+    background: var(--color-surface);
+  }
+
+  /* Cada <td> → fila label + valor */
+  .obras-table tbody td,
+  .usuarios-table tbody td,
+  .tecnicas-table tbody td,
+  .tags-table tbody td,
+  .portafolio-table tbody td {
+    display: flex !important;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: var(--spacing-xs) 0;
+    border: none !important;
+    gap: var(--spacing-sm);
+  }
+
+  /* Pseudo-elemento: encabezado de columna */
+  .obras-table tbody td::before,
+  .usuarios-table tbody td::before,
+  .tecnicas-table tbody td::before,
+  .tags-table tbody td::before,
+  .portafolio-table tbody td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: var(--color-text-muted);
+    flex-shrink: 0;
+    min-width: 90px;
+  }
+
+  /* Celda de acciones: botones apilados full-width */
+  .obras-table tbody td.actions-cell,
+  .usuarios-table tbody td.actions-cell,
+  .tecnicas-table tbody td.actions-cell,
+  .tags-table tbody td.actions-cell,
+  .portafolio-table tbody td.actions-cell {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .obras-table tbody td.actions-cell .action-buttons,
+  .usuarios-table tbody td.actions-cell .action-buttons,
+  .tecnicas-table tbody td.actions-cell .action-buttons,
+  .tags-table tbody td.actions-cell .action-buttons,
+  .portafolio-table tbody td.actions-cell .action-buttons {
+    display: flex !important;
+    flex-direction: column;
+    width: 100%;
+    gap: var(--spacing-xs);
+  }
+
+  .obras-table tbody td.actions-cell .action-buttons .btn,
+  .usuarios-table tbody td.actions-cell .action-buttons .btn,
+  .tecnicas-table tbody td.actions-cell .action-buttons .btn,
+  .tags-table tbody td.actions-cell .action-buttons .btn,
+  .portafolio-table tbody td.actions-cell .action-buttons .btn {
+    width: 100% !important;
+    justify-content: center;
+  }
+
+  /* Checkbox (usuarios): ocultar en cards */
+  .usuarios-table tbody td.td-checkbox {
+    display: none !important;
+  }
+
+  /* empty-state: bloque centrado sin label */
+  .obras-table tbody td.empty-state,
+  .usuarios-table tbody td.empty-state,
+  .tecnicas-table tbody td.empty-state,
+  .tags-table tbody td.empty-state,
+  .portafolio-table tbody td.empty-state {
+    display: block !important;
+    text-align: center;
+    padding: var(--spacing-xl);
+  }
+
+  .obras-table tbody td.empty-state::before,
+  .usuarios-table tbody td.empty-state::before,
+  .tecnicas-table tbody td.empty-state::before,
+  .tags-table tbody td.empty-state::before,
+  .portafolio-table tbody td.empty-state::before {
+    display: none;
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════════════ */

@@ -289,17 +289,17 @@ export default function TagsPage() {
                 const obrasCount = tag.obra_tags?.length ?? 0;
                 return (
                   <tr key={tag.id}>
-                    <td>
+                    <td data-label="Nombre">
                       {/* .tag-badge: pill visual verificado en styles/admin.css ln 3065 */}
                       <span className="tag-badge">{tag.nombre}</span>
                     </td>
-                    <td>
+                    <td data-label="Slug">
                       <code style={{ fontSize: '0.8em', opacity: 0.75 }}>{tag.slug}</code>
                     </td>
-                    <td>
+                    <td data-label="Obras">
                       <span>{obrasCount}</span>
                     </td>
-                    <td className="actions-cell">
+                    <td className="actions-cell" data-label="Acciones">
                       <div className="action-buttons">
                         {tienePermiso('tags.editar') && (
                           <button

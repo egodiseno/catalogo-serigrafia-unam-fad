@@ -948,7 +948,7 @@ export default function UsuariosPage() {
                         />
                       </td>
                     )}
-                    <td>
+                    <td data-label="Email">
                       <div className="td-email-cell">
                         <span
                           className="row-avatar"
@@ -960,27 +960,27 @@ export default function UsuariosPage() {
                         <span>{u.email}</span>
                       </div>
                     </td>
-                    <td className="td-cuenta">
+                    <td className="td-cuenta" data-label="N° Cuenta">
                       {u.numero_cuenta
                         ? <code className="cuenta-code">{u.numero_cuenta}</code>
                         : <span className="text-muted">—</span>}
                     </td>
-                    <td>
+                    <td data-label="Nombre">
                       {(u.nombre && u.nombre !== '-')
                         ? u.nombre
                         : <span className="text-muted">—</span>}
                     </td>
-                    <td>
+                    <td data-label="Rol">
                       <span className="badge" style={getRolBadgeStyle(u.rol)}>
                         {getRolLabel(u.rol)}
                       </span>
                     </td>
-                    <td>
+                    <td data-label="Estado">
                       <span className="badge" style={getEstadoBadgeStyle(u.estado)}>
                         {u.estado === 'activo' ? 'Activo' : 'Inactivo'}
                       </span>
                     </td>
-                    <td className="actions-cell">
+                    <td className="actions-cell" data-label="Acciones">
                       <div className="action-buttons">
                         {tienePermiso('usuarios.editar') && (
                           <button

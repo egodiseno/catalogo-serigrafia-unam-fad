@@ -295,7 +295,7 @@ export default function ObrasPage() {
                 const esReapertura = obra.estado === 'En Revisión' && obra.motivo_reapertura;
                 return (
                   <tr key={obra.id}>
-                    <td className="td-thumb">
+                    <td className="td-thumb" data-label="Imagen">
                       {imgUrl ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={imgUrl} alt="" className="obra-thumb" />
@@ -303,22 +303,22 @@ export default function ObrasPage() {
                         <span className="no-thumb">—</span>
                       )}
                     </td>
-                    <td>{obra.titulo || '—'}</td>
-                    <td>{obra.artista || '—'}</td>
-                    <td>{obra.tecnicas?.nombre ?? '—'}</td>
-                    <td className="tags-cell">
+                    <td data-label="Título">{obra.titulo || '—'}</td>
+                    <td data-label="Artista">{obra.artista || '—'}</td>
+                    <td data-label="Técnica">{obra.tecnicas?.nombre ?? '—'}</td>
+                    <td className="tags-cell" data-label="Tags">
                       {tagNames.length > 0
                         ? tagNames.map((name, i) => (
                             <span key={i} className="tag-badge">{name}</span>
                           ))
                         : <span style={{ color: 'var(--color-text-muted)' }}>—</span>}
                     </td>
-                    <td>
+                    <td data-label="Estado">
                       <span className={`badge ${BADGE_CLS[obra.estado] || 'badge-borrador'}`}>
                         {obra.estado}
                       </span>
                     </td>
-                    <td className="actions-cell">
+                    <td className="actions-cell" data-label="Acciones">
                       <div className="action-buttons">
                         {esReapertura && (
                           <button

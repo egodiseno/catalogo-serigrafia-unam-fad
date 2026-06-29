@@ -286,18 +286,18 @@ export default function TecnicasPage() {
             ) : (
               tecnicas.map((t) => (
                 <tr key={t.id}>
-                  <td><strong>{t.nombre}</strong></td>
-                  <td>
+                  <td data-label="Nombre"><strong>{t.nombre}</strong></td>
+                  <td data-label="Slug">
                     <code style={{ fontSize: '0.8em', opacity: 0.75 }}>{t.slug}</code>
                   </td>
-                  <td>{t.obras?.length ?? 0}</td>
-                  <td style={{ maxWidth: 260 }}>
+                  <td data-label="Obras">{t.obras?.length ?? 0}</td>
+                  <td style={{ maxWidth: 260 }} data-label="Descripción">
                     {t.descripcion
                       ? <span title={t.descripcion}>{t.descripcion.length > 80 ? t.descripcion.slice(0, 80) + '…' : t.descripcion}</span>
                       : <span style={{ color: 'var(--color-text-muted)' }}>—</span>
                     }
                   </td>
-                  <td className="actions-cell">
+                  <td className="actions-cell" data-label="Acciones">
                     <div className="action-buttons">
                       {tienePermiso('tecnicas.editar') && (
                         <button

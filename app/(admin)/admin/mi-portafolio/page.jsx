@@ -382,7 +382,7 @@ function MiPortafolioInner() {
                 return (
                   <tr key={obra.id}>
                     {/* Imagen */}
-                    <td style={{ width: '64px' }}>
+                    <td style={{ width: '64px' }} data-label="Imagen">
                       {thumb ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
@@ -407,18 +407,18 @@ function MiPortafolioInner() {
                     </td>
 
                     {/* Título — solo título, sin artista debajo */}
-                    <td>
+                    <td data-label="Título">
                       <span style={{ fontWeight: 600 }}>{obra.titulo || '—'}</span>
                     </td>
 
                     {/* Año */}
-                    <td>{obra.año ?? '—'}</td>
+                    <td data-label="Año">{obra.año ?? '—'}</td>
 
                     {/* Técnica */}
-                    <td>{obra.tecnicas?.nombre ?? '—'}</td>
+                    <td data-label="Técnica">{obra.tecnicas?.nombre ?? '—'}</td>
 
                     {/* Tags */}
-                    <td>
+                    <td data-label="Tags">
                       {tagNames.length > 0 ? (
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
                           {tagNames.map(n => (
@@ -431,17 +431,17 @@ function MiPortafolioInner() {
                     </td>
 
                     {/* Estado */}
-                    <td>
+                    <td data-label="Estado">
                       <span className={`badge ${estadoBadgeClass(obra.estado)}`}>
                         {obra.estado ?? '—'}
                       </span>
                     </td>
 
                     {/* Fecha */}
-                    <td>{formatDate(obra.updated_at)}</td>
+                    <td data-label="Fecha">{formatDate(obra.updated_at)}</td>
 
                     {/* Acciones */}
-                    <td>
+                    <td data-label="Acciones">
                       <div className="action-buttons">
                         {/* Publicado → Solicitar cambios */}
                         {obra.estado === 'Publicado' && (
