@@ -20,6 +20,12 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Eye, EyeOff, ShieldCheck, ShieldPlus, LogIn, AlertCircle } from 'lucide-react';
 
+// ── Testing bypass ────────────────────────────────────────────────────────────
+// Cuando NEXT_PUBLIC_SKIP_MFA=true en .env.local, el paso de MFA se omite.
+// NUNCA configurar esta variable en Netlify ni en ningún entorno de producción.
+// Para activar: agregar NEXT_PUBLIC_SKIP_MFA=true a .env.local y reiniciar el servidor.
+const SKIP_MFA = process.env.NEXT_PUBLIC_SKIP_MFA === 'true';
+
 // ── Errores en español (translateAuthError de auth.js) ──────────────────────
 const AUTH_ERRORS = {
   'Invalid login credentials': 'Email o contraseña incorrectos.',
@@ -143,6 +149,14 @@ export default function AdminLoginPage() {
       }
 
       // Login exitoso — verificar requisito MFA
+      // TESTING: si NEXT_PUBLIC_SKIP_MFA=true en .env.local, saltar todo el flujo MFA.
+      if (SKIP_MFA) {
+        console.warn('[login] ⚠️ SKIP_MFA activo — MFA desactivado para testing local.');
+        const ok = await verificarUsuarioAdmin();
+        if (ok) router.push('/admin');
+        return;
+      }
+
       let mfaResult;
       try {
         mfaResult = await checkMFARequired();
