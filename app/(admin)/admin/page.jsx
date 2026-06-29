@@ -74,6 +74,7 @@ export default function DashboardPage() {
   // usePermisos depende de currentUser.rol; mientras null retorna false para todo
   const { tienePermiso } = usePermisos(currentUser?.rol ?? null);
 
+  const [mounted,     setMounted]     = useState(false);
   const [stats,       setStats]       = useState(null);
   const [loadingData, setLoadingData] = useState(true);
   const [dataError,   setDataError]   = useState(false);
@@ -96,6 +97,9 @@ export default function DashboardPage() {
     }, 8_000);
     return () => clearTimeout(t);
   }, []);
+
+  // ── Hidratación: evitar flash de contenido parcial antes de montar ────────
+  useEffect(() => { setMounted(true); }, []);
 
   // ── loadStats — self-contained: obtiene auth aquí mismo ──────────────────
   const loadStats = useCallback(async () => {
@@ -141,6 +145,12 @@ export default function DashboardPage() {
       rol      = adminUser.rol;
       editorId = authUser.id;  // obras.editor_id = auth.users.id (columna FK verificada en migrations)
       esAdmin  = rol !== 'editor';
+
+      // Editor → redirigir inmediatamente a mi-portafolio (no mostrar el dashboard)
+      if (rol === 'editor') {
+        router.push('/admin/mi-portafolio');
+        return;
+      }
 
       // Actualizar currentUser para usePermisos (puede diferir entre refreshes si el rol cambia)
       setCurrentUser({
@@ -302,7 +312,7 @@ export default function DashboardPage() {
     setStats(newStats);
     setDataError(false);
     setLoadingData(false);
-  }, []); // self-contained — sin dependencias de estado externo
+  }, [router]); // router es estable en Next.js 14; se incluye por correctitud
 
   // ── Carga inicial + auto-refresh 30 s ─────────────────────────────────────
   useEffect(() => {
@@ -312,6 +322,21 @@ export default function DashboardPage() {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
   }, [loadStats]);
+
+  // ── Render: sin hidratación → mismo skeleton que loadingData ─────────────
+  if (!mounted) {
+    return (
+      <div>
+        <div className="section-header">
+          <div>
+            <h2>Dashboard</h2>
+            <p>Resumen del catálogo</p>
+          </div>
+        </div>
+        <p style={{ color: 'var(--color-text-muted)' }}>Cargando estadísticas…</p>
+      </div>
+    );
+  }
 
   // ── Render: error (timeout o fallo inmediato de auth) ─────────────────────
   if (dataError) {
