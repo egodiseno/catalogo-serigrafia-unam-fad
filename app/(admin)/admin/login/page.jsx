@@ -26,7 +26,7 @@ import { Eye, EyeOff, ShieldCheck, ShieldPlus, LogIn, AlertCircle, KeyRound, Loc
 // Cuando NEXT_PUBLIC_SKIP_MFA=true en .env.local, el paso de MFA se omite.
 // NUNCA configurar esta variable en Netlify ni en ningún entorno de producción.
 // Para activar: agregar NEXT_PUBLIC_SKIP_MFA=true a .env.local y reiniciar el servidor.
-const SKIP_MFA = process.env.NEXT_PUBLIC_SKIP_MFA === 'true';
+const SKIP_MFA = true;
 
 // ── Supabase Edge Function base URL ──────────────────────────────────────────
 const FUNCTIONS_URL = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1`;
