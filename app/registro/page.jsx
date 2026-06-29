@@ -16,6 +16,7 @@
 
 import { useState, useEffect } from 'react';
 import { getRegistroConfig } from '@/lib/supabase/api';
+import { Check, X, Eye, EyeOff } from 'lucide-react';
 
 // ── Constantes ────────────────────────────────────────────────────────────────
 const SUPABASE_URL  = process.env.NEXT_PUBLIC_SUPABASE_URL  || 'https://kfvjansfmhamkrnbxmgp.supabase.co';
@@ -24,6 +25,27 @@ const SUPABASE_ANON = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
 
 const EMAIL_RE  = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const CUENTA_RE = /^[0-9]{9}$/;
+
+// ── Password strength (copiado de mi-perfil/page.jsx) ────────────────────────
+const REQS = [
+  { key: 'length',  label: 'Mínimo 8 caracteres',                               test: (p) => p.length >= 8 },
+  { key: 'upper',   label: 'Al menos una mayúscula',                            test: (p) => /[A-Z]/.test(p) },
+  { key: 'number',  label: 'Al menos un número',                                test: (p) => /[0-9]/.test(p) },
+  { key: 'special', label: 'Al menos un carácter especial (ej: ! @ # $ % & *)', test: (p) => /[^A-Za-z0-9]/.test(p) },
+];
+
+function getStrength(pwd) {
+  if (!pwd) return 0;
+  return REQS.filter(r => r.test(pwd)).length;
+}
+
+const STRENGTH_META = {
+  0: null,
+  1: { label: 'Débil',   cls: 'debil',   color: '#ef4444' },
+  2: { label: 'Regular', cls: 'regular', color: '#f59e0b' },
+  3: { label: 'Buena',   cls: 'buena',   color: '#22c55e' },
+  4: { label: 'Fuerte',  cls: 'fuerte',  color: '#16a34a' },
+};
 
 // ── Helpers de fecha ──────────────────────────────────────────────────────────
 /** YYYY-MM-DD local del navegador (idéntico al de registro.html) */
@@ -88,6 +110,12 @@ export default function RegistroPage() {
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess]       = useState(false);
 
+  // ── Contraseña ────────────────────────────────────────────────────────────
+  const [password,        setPassword]        = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPass,        setShowPass]        = useState(false);
+  const [showConfirmPass, setShowConfirmPass] = useState(false);
+
   // ── Montar + cargar configuración ─────────────────────────────────────────
   // setMounted(true) se ejecuta primero: garantiza que el hydration check de
   // React vea el mismo skeleton en servidor y cliente antes de cualquier
@@ -130,6 +158,13 @@ export default function RegistroPage() {
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: null }));
   }
 
+  // ── Fortaleza de contraseña ───────────────────────────────────────────────
+  const regStrength   = getStrength(password);
+  const regReqsMet    = REQS.map(r => r.test(password));
+  const regAllReqsMet = regReqsMet.every(Boolean);
+  const regPwdMatch   = password.length > 0 && password === confirmPassword;
+  const regStrMeta    = STRENGTH_META[regStrength];
+
   // ── Submit ─────────────────────────────────────────────────────────────────
   async function handleSubmit(e) {
     e.preventDefault();
@@ -149,6 +184,11 @@ export default function RegistroPage() {
       return;
     }
 
+    if (!regAllReqsMet || !regPwdMatch) {
+      addToast('Verifica los requisitos de la contraseña', 'error');
+      return;
+    }
+
     setSubmitting(true);
 
     try {
@@ -159,7 +199,7 @@ export default function RegistroPage() {
           'apikey':        SUPABASE_ANON,
           'Authorization': `Bearer ${SUPABASE_ANON}`,
         },
-        body: JSON.stringify({ email: email.toLowerCase(), nombre, numero_cuenta: cuenta }),
+        body: JSON.stringify({ email: email.toLowerCase(), nombre, numero_cuenta: cuenta, password }),
       });
 
       let result;
@@ -382,6 +422,120 @@ export default function RegistroPage() {
                     )}
                   </div>
 
+                  {/* Contraseña */}
+                  <div className="reg-field">
+                    <label htmlFor="reg-password">
+                      Contraseña <span className="req">*</span>
+                    </label>
+                    <div style={{ position: 'relative' }}>
+                      <input
+                        type={showPass ? 'text' : 'password'}
+                        id="reg-password"
+                        name="password"
+                        className="reg-input"
+                        placeholder="Mínimo 8 caracteres"
+                        autoComplete="new-password"
+                        value={password}
+                        required
+                        disabled={success}
+                        onChange={e => setPassword(e.target.value)}
+                        style={{ paddingRight: 42 }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPass(v => !v)}
+                        aria-label={showPass ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                        style={{
+                          position: 'absolute', right: 10, top: '50%',
+                          transform: 'translateY(-50%)',
+                          background: 'none', border: 'none',
+                          cursor: 'pointer', color: '#6b7280',
+                          display: 'flex', padding: 4,
+                        }}
+                      >
+                        {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
+
+                    {/* Barra de fortaleza */}
+                    {password.length > 0 && (
+                      <div style={{ marginTop: 6 }}>
+                        <div style={{ height: 4, background: '#e5e7eb', borderRadius: 2, overflow: 'hidden', marginBottom: 4 }}>
+                          <div style={{
+                            height: '100%',
+                            width: `${(regStrength / 4) * 100}%`,
+                            borderRadius: 2,
+                            background: regStrMeta?.color ?? '#e5e7eb',
+                            transition: 'width 0.2s, background 0.2s',
+                          }} />
+                        </div>
+                        {regStrMeta && (
+                          <span style={{ fontSize: 12, color: regStrMeta.color }}>
+                            {regStrMeta.label}
+                          </span>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Lista de requisitos */}
+                    <ul style={{ listStyle: 'none', padding: 0, margin: '8px 0 0', display: 'flex', flexDirection: 'column', gap: 3 }}>
+                      {REQS.map((req, i) => (
+                        <li
+                          key={req.key}
+                          style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: regReqsMet[i] ? '#16a34a' : '#6b7280' }}
+                        >
+                          {regReqsMet[i]
+                            ? <Check size={12} style={{ color: '#16a34a', flexShrink: 0 }} aria-hidden="true" />
+                            : <X     size={12} style={{ color: '#ef4444', flexShrink: 0 }} aria-hidden="true" />}
+                          {req.label}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {/* Confirmar contraseña */}
+                  <div className="reg-field">
+                    <label htmlFor="reg-confirm-password">
+                      Confirmar contraseña <span className="req">*</span>
+                    </label>
+                    <div style={{ position: 'relative' }}>
+                      <input
+                        type={showConfirmPass ? 'text' : 'password'}
+                        id="reg-confirm-password"
+                        name="confirm_password"
+                        className={`reg-input${confirmPassword.length > 0 ? (regPwdMatch ? ' success' : ' error') : ''}`}
+                        placeholder="Repite la contraseña"
+                        autoComplete="new-password"
+                        value={confirmPassword}
+                        required
+                        disabled={success}
+                        onChange={e => setConfirmPassword(e.target.value)}
+                        style={{ paddingRight: 42 }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPass(v => !v)}
+                        aria-label={showConfirmPass ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                        style={{
+                          position: 'absolute', right: 10, top: '50%',
+                          transform: 'translateY(-50%)',
+                          background: 'none', border: 'none',
+                          cursor: 'pointer', color: '#6b7280',
+                          display: 'flex', padding: 4,
+                        }}
+                      >
+                        {showConfirmPass ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
+                    {confirmPassword.length > 0 && (
+                      <span className="reg-hint" style={{ color: regPwdMatch ? '#16a34a' : '#ef4444', display: 'flex', alignItems: 'center', gap: 4 }}>
+                        {regPwdMatch
+                          ? <><Check size={12} aria-hidden="true" /> Las contraseñas coinciden</>
+                          : <><X     size={12} aria-hidden="true" /> Las contraseñas no coinciden</>}
+                      </span>
+                    )}
+                  </div>
+
                   <hr className="reg-divider" />
 
                   {/* Submit */}
@@ -389,7 +543,7 @@ export default function RegistroPage() {
                     type="submit"
                     id="btn-registrar"
                     className="reg-btn-primary"
-                    disabled={submitting || success}
+                    disabled={submitting || success || !regAllReqsMet || !regPwdMatch}
                   >
                     {submitting ? (
                       <>

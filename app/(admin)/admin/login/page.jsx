@@ -20,7 +20,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { Eye, EyeOff, ShieldCheck, ShieldPlus, LogIn, AlertCircle, KeyRound, LockKeyhole } from 'lucide-react';
+import { Eye, EyeOff, ShieldCheck, ShieldPlus, LogIn, AlertCircle, KeyRound, LockKeyhole, Check, X } from 'lucide-react';
 
 // ── Testing bypass ────────────────────────────────────────────────────────────
 // Cuando NEXT_PUBLIC_SKIP_MFA=true en .env.local, el paso de MFA se omite.
@@ -55,6 +55,27 @@ function translateMFAError(msg) {
     return 'Este factor ya está registrado.';
   return msg;
 }
+
+// ── Password strength (copiado de mi-perfil/page.jsx) ────────────────────────
+const REQS = [
+  { key: 'length',  label: 'Mínimo 8 caracteres',                               test: (p) => p.length >= 8 },
+  { key: 'upper',   label: 'Al menos una mayúscula',                            test: (p) => /[A-Z]/.test(p) },
+  { key: 'number',  label: 'Al menos un número',                                test: (p) => /[0-9]/.test(p) },
+  { key: 'special', label: 'Al menos un carácter especial (ej: ! @ # $ % & *)', test: (p) => /[^A-Za-z0-9]/.test(p) },
+];
+
+function getStrength(password) {
+  if (!password) return 0;
+  return REQS.filter(r => r.test(password)).length;
+}
+
+const STRENGTH_META = {
+  0: null,
+  1: { label: 'Débil',   cls: 'debil'   },
+  2: { label: 'Regular', cls: 'regular' },
+  3: { label: 'Buena',   cls: 'buena'   },
+  4: { label: 'Fuerte',  cls: 'fuerte'  },
+};
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -99,6 +120,14 @@ export default function AdminLoginPage() {
       setMfaStep('reset');
     }
   }, []);
+
+  // ── Fortaleza de contraseña (pantalla reset) ──────────────────────────────
+  const resetStrength   = getStrength(resetNewPassword);
+  const resetReqsMet    = REQS.map(r => r.test(resetNewPassword));
+  const resetAllReqsMet = resetReqsMet.every(Boolean);
+  const resetPwdMatch   = resetNewPassword.length > 0 && resetNewPassword === resetConfirmPassword;
+  const canSaveReset    = resetAllReqsMet && resetPwdMatch;
+  const resetStrMeta    = STRENGTH_META[resetStrength];
 
   // ── Verificar si el usuario existe y está activo en usuarios_admin ───────
   async function verificarUsuarioAdmin() {
@@ -325,11 +354,11 @@ export default function AdminLoginPage() {
     e.preventDefault();
     setResetError('');
 
-    if (resetNewPassword.length < 8) {
-      setResetError('La contraseña debe tener al menos 8 caracteres.');
+    if (!resetAllReqsMet) {
+      setResetError('La contraseña no cumple todos los requisitos de seguridad.');
       return;
     }
-    if (resetNewPassword !== resetConfirmPassword) {
+    if (!resetPwdMatch) {
       setResetError('Las contraseñas no coinciden.');
       return;
     }
@@ -716,6 +745,32 @@ export default function AdminLoginPage() {
                       {showResetPass ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
                   </div>
+
+                  {/* Barra de fortaleza */}
+                  {resetNewPassword.length > 0 && (
+                    <>
+                      <div className="password-strength-bar" role="progressbar" aria-valuenow={resetStrength} aria-valuemax={4}>
+                        <div className={`password-strength-fill${resetStrMeta ? ` password-strength-fill--${resetStrMeta.cls}` : ''}`} />
+                      </div>
+                      {resetStrMeta && (
+                        <span className={`password-strength-label password-strength-label--${resetStrMeta.cls}`}>
+                          {resetStrMeta.label}
+                        </span>
+                      )}
+                    </>
+                  )}
+
+                  {/* Lista de requisitos */}
+                  <ul className="password-requirements" aria-label="Requisitos de contraseña">
+                    {REQS.map((req, i) => (
+                      <li key={req.key} className={`password-req${resetReqsMet[i] ? ' password-req--ok' : ''}`}>
+                        {resetReqsMet[i]
+                          ? <Check size={13} className="password-req__icon" aria-hidden="true" />
+                          : <X     size={13} className="password-req__icon" style={{ color: '#ef4444' }} aria-hidden="true" />}
+                        {req.label}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
 
                 <div className="form-group">
@@ -734,12 +789,20 @@ export default function AdminLoginPage() {
                       style={{ paddingRight: 42 }}
                     />
                   </div>
+                  {/* Indicador de coincidencia */}
+                  {resetConfirmPassword.length > 0 && (
+                    <p style={{ fontSize: '0.75rem', marginTop: 4, color: resetPwdMatch ? '#16a34a' : '#ef4444' }}>
+                      {resetPwdMatch
+                        ? <><Check size={12} aria-hidden="true" /> Las contraseñas coinciden</>
+                        : <><X     size={12} aria-hidden="true" /> Las contraseñas no coinciden</>}
+                    </p>
+                  )}
                 </div>
 
                 <button
                   type="submit"
                   className="btn btn-primary"
-                  disabled={resetLoading}
+                  disabled={resetLoading || !canSaveReset}
                   style={{ width: '100%', justifyContent: 'center' }}
                 >
                   {resetLoading ? 'Guardando…' : 'Guardar contraseña'}
